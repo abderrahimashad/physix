@@ -44,3 +44,11 @@ Le prototype local de gestion des ressources prend en charge l'ordre d'affichage
 ## Phase 3 — fondation Supabase **non déployée** (branche feat/physix-supabase-security-foundation)
 
 La migration `supabase/migrations/20261105000100_physix_owner_content.sql` décrit les tables owner, chapitres, ressources, devoirs et métadonnées de PDF, avec RLS propriétaire, contraintes relationnelles anti-références croisées, et bucket `physix-private` désactivé au public. Aucun accès client ni politique Storage n'autorise pour l'instant les transferts. La procédure manuelle de création du projet, d'attribution SQL du propriétaire et de tests réels est détaillée dans `docs/supabase-setup.md`. Le test `tests/check_supabase_migration.py` vérifie seulement la structure du SQL, PAS la sécurité effective. Aucune base Supabase réelle n'a été créée ou modifiée. Les maquettes et les PDF éphémères précédents demeurent indépendants.
+
+## Qualité — CI avant connexion Supabase
+
+Le workflow `.github/workflows/physix-quality.yml` vérifie automatiquement la syntaxe des scripts JavaScript, les invariants statiques des migrations SQL et une recherche heuristique de secrets committés. Ces vérifications ne prouvent pas la sécurité de RLS : les scénarios de refus/autorisation devront être exécutés sur un vrai projet Supabase de test avant toute donnée sensible. Cette branche n'exécute aucune migration, n'active pas de stockage et ne fusionne pas les PR.
+
+## Déploiement de la migration sur Supabase — 5 novembre 2026
+
+Le projet Supabase de test « PhysiX » est créé (région eu-west-3). La migration `physix_owner_content` a été exécutée avec succès et apparaît dans l'historique des migrations distante. Vérifications distantes : cinq tables publiques `physix_*` existent avec RLS activée, cinq politiques RLS ; bucket `physix-private` non public, zéro politique Storage pour ce bucket ; conseiller sécurité : zéro alerte au moment du contrôle. À ce stade : zéro compte Auth et zéro propriétaire enregistré, donc **aucun compte Admin encore utilisable**. Les règles d'autorisation n'ont pas encore été testées avec des sessions Auth réelles ; les données de démonstration restent locales, le frontend Vercel n'est pas connecté à Supabase et aucun upload réel n'est actif. Ne pas utiliser des données personnelles d'élèves avant validation complète.

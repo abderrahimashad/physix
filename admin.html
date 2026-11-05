@@ -14,12 +14,15 @@
 <section class="px-copy" style="max-width:700px;margin:auto">
 <div class="px-pill">ESPACE PROPRIÉTAIRE</div>
 <h1>Votre espace.<br><em>En sécurité.</em></h1>
-<p>L’administration sera accessible uniquement après authentification du propriétaire. La connexion sécurisée n’est pas encore activée : aucun accès aux données réelles n’est ouvert.</p>
-<div class="entry-note">Les outils pédagogiques existants sont conservés en mode fictif. Aucun mot de passe ni code d’invitation réel ne doit être saisi pour le moment.</div>
-<div class="px-actions"><button class="px-primary" disabled>Connexion sécurisée · à venir</button><a class="px-primary" href="/admin-demo" style="display:inline-block;text-decoration:none;margin-left:10px;background:#245ee8;padding:13px 18px;border-radius:12px;color:white">Explorer la gestion pédagogique (démo fictive) →</a></div>
+<p>Connectez-vous avec votre compte propriétaire PhysiX après l’activation de votre invitation Supabase. Les données privées sont protégées par les permissions serveur ; l’édition pédagogique en ligne n’est pas encore ouverte.</p>
+<div class="entry-note">Accès propriétaire uniquement. Les élèves ne peuvent pas créer de compte ici. Ne communiquez jamais votre mot de passe.</div>
+<form id="owner-form" style="max-width:420px;margin:24px 0;display:grid;gap:14px;text-align:left"><label style="display:grid;gap:6px;color:#dceaff">Adresse email<input type="email" name="email" autocomplete="username" required style="padding:13px;border-radius:10px;border:1px solid #abc3e8;color:#102044" placeholder="Votre adresse email"></label><label style="display:grid;gap:6px;color:#dceaff">Mot de passe<input type="password" name="password" autocomplete="current-password" required style="padding:13px;border-radius:10px;border:1px solid #abc3e8;color:#102044"></label><button type="submit" class="px-primary" style="cursor:pointer">Se connecter</button></form>
+<div id="auth-message" class="entry-note" role="status" aria-live="polite">La première connexion nécessite d’accepter l’invitation et de définir votre mot de passe.</div>
+<p><a href="/admin-demo" style="color:#8fe8ff">Explorer la gestion pédagogique (démo fictive, sans protection des données locales)</a></p>
 <p style="margin-top:24px"><a href="/" style="color:#8fe8ff">← Retour à PhysiX</a></p>
 </section>
 </div>
 </main>
+<script src="/assets/admin-auth.js" defer></script>
 </body>
 </html>

@@ -19,6 +19,18 @@ async function isOwner(token){
  return Array.isArray(response)&&response.length===1;
 }
 if(form){
+ const recovery=form.querySelector("#request-recovery");
+ recovery.addEventListener("click",async()=>{
+  const email=form.elements.email.value.trim();
+  if(!email||!form.elements.email.checkValidity()){say("Indiquez d’abord votre adresse email valide.","error");return}
+  recovery.disabled=true;
+  try{
+   const redirect=location.origin+"/auth-confirm";
+   await request("/auth/v1/recover?redirect_to="+encodeURIComponent(redirect),{method:"POST",body:JSON.stringify({email})});
+   say("Si ce compte existe, un email de réinitialisation sera envoyé. Ouvrez uniquement le message le plus récent.","success");
+  }catch{say("L'envoi du lien a échoué. Vérifiez la configuration de redirection Supabase et réessayez plus tard.","error")}
+  finally{recovery.disabled=false}
+ });
  form.addEventListener("submit",async event=>{
   event.preventDefault();
   const button=form.querySelector("button[type=submit]");

@@ -16,3 +16,11 @@ Référence : SPECIFICATIONS.md. Aucune fusion ni mise en production sans valida
 ## Démonstration du lot 0–1
 
 Serveur statique local et `python3 tests/smoke.py`. Captures dans `docs/screenshots/` (desktop, mobile et espace élève fictif). Consulter docs/architecture.md pour les limites d’accès GitHub/Vercel. Aucun compte réel ni secret requis pour ce lot.
+
+## Accueil officiel — maquette validée
+
+La maquette claire fournie par le propriétaire remplace la direction sombre de la phase 1 pour l’accueil public. Implémentation sur `feat/physix-approved-home` : signature Abderrahim Ashad, navigation À propos, titre Physique-Chimie Autrement, illustration scientifique ordinateur/atome/laboratoire, cartes Élève/Invité, démo, quatre atouts, Pourquoi PhysiX et footer. Aucun aperçu de chapitre ni faux témoignage. L’illustration est un asset généré à partir de la référence, pas une capture interactive de vrais comptes.
+
+Le suivi pédagogique dans assets/app.js, admin.html et la configuration Vercel ne sont pas modifiés. home.css et home.js sont réservés à l’accueil. Contact/WhatsApp/mentions légales/demande personnalisée affichent leur disponibilité réelle. La démo élève et les ressources invitées demeurent fictives.
+
+Vérifications : tests/smoke.py et tests/visual.py passent, sans erreur JavaScript ; contrôles responsive à 320/390/768/1200/1440px, fenêtres au clavier, actions du footer, démo, chargement de l’illustration et mouvement réduit. Captures actuelles : docs/screenshots/accueil-officiel-1200.png et accueil-officiel-390.png. Les anciennes captures illustrent le lot précédent. Le déploiement Vercel distant reste non vérifié ; aucune production ni fusion autorisée par ce lot.

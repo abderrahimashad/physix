@@ -1,36 +1,37 @@
-"""Capture the phase 1 demonstration and check responsive enhancements."""
+"""Approved landing: responsive layout, actions, and screenshot evidence."""
 import os
 from pathlib import Path
 from playwright.sync_api import sync_playwright
-
 base = os.environ.get('PHYSIX_TEST_URL', 'http://127.0.0.1:8000')
 out = Path(__file__).resolve().parents[1] / 'docs/screenshots'
-out.mkdir(parents=True, exist_ok=True)
 with sync_playwright() as p:
     browser = p.chromium.launch(executable_path='/usr/bin/chromium', args=['--no-sandbox'])
-    page = browser.new_page(viewport={'width': 1440, 'height': 1000})
-    page.emulate_media(reduced_motion='reduce')
-    for width in [1440, 768, 390, 320]:
+    page = browser.new_page()
+    errors = []
+    page.on('pageerror', lambda error: errors.append(str(error)))
+    for width in [1440, 1200, 768, 390, 320]:
         page.set_viewport_size({'width': width, 'height': 1000})
         page.goto(base)
         assert page.evaluate('document.documentElement.scrollWidth <= innerWidth'), width
-        assert page.locator('.science-scene img').evaluate('(el)=>el.complete && el.naturalWidth>0')
-        assert page.locator('#entry').inner_text().count('Espace Élève') == 1
-        assert page.locator('#entry').inner_text().count('Accès Invité') == 1
-        if width in [1440, 390]:
-            page.screenshot(path=str(out / f'accueil-{width}.png'), full_page=True)
-    page.set_viewport_size({'width':1440, 'height':1000})
-    page.get_by_role('button', name='Espace Élève').click()
-    page.get_by_role('button', name='Ouvrir la démo élève').click()
-    page.screenshot(path=str(out / 'espace-eleve-demo.png'), full_page=True)
-    page.emulate_media(reduced_motion='no-preference')
-    page.goto(base)
-    page.locator('#why-heading').scroll_into_view_if_needed()
-    page.wait_for_function("!document.querySelector('.why-section').classList.contains('pending')")
-    page.locator('.science-scene').scroll_into_view_if_needed()
-    page.locator('.science-scene').hover()
-    page.wait_for_function("document.querySelector('.science-scene').style.getPropertyValue('--tilt-x') !== ''")
-    page.emulate_media(reduced_motion='reduce')
-    assert page.locator('.science-scene').evaluate('(el)=>getComputedStyle(el).transform') == 'none'
+        assert page.locator('.home-art img').evaluate('(el)=>el.complete && el.naturalWidth>0')
+        assert page.locator('.home-header button').count() == 1
+        assert page.locator('.home-features article').count() == 4
+        assert 'BIOF' not in page.locator('#entry').inner_text()
+        assert page.locator('#entry').get_by_text('Aperçu d’un chapitre').count() == 0
+        page.emulate_media(reduced_motion='reduce')
+        assert page.locator('.home-art img').evaluate('(el)=>getComputedStyle(el).animationName') == 'none'
+        if width in [1200, 390]:
+            page.screenshot(path=str(out / f'accueil-officiel-{width}.png'), full_page=True)
+    for action in ['about', 'contact', 'whatsapp', 'legal', 'demo']:
+        page.locator(f'[data-home-action="{action}"]').first.click()
+        assert page.locator('.home-dialog').is_visible()
+        assert page.locator('#home-dialog-text').inner_text().strip()
+        page.keyboard.press('Escape')
+        assert not page.locator('.home-dialog').is_visible()
+    page.locator('[data-home-action="demo"]').click()
+    page.get_by_role('button', name='Explorer la démo élève').click()
+    assert not page.locator('#entry').is_visible()
+    assert 'Mon accueil' in page.locator('#pagetitle').inner_text()
+    assert not errors, errors
     browser.close()
-print('PASS: 4 viewport sizes, SVG, scroll reveal, parallax, reduced motion; 3 screenshots saved')
+print('PASS: approved landing at five widths; artwork, 4 features, header, dialogs, demo, reduced motion; desktop/mobile screenshots')

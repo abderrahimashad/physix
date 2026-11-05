@@ -40,3 +40,7 @@ Voir `docs/backend-plan.md` pour Supabase, invitations, confidentialité et prog
 Le cahier des charges complet est conservé dans `SPECIFICATIONS.md`. L’état et les critères par phase sont dans `ROADMAP.md`, l’audit et les choix techniques dans `docs/architecture.md`.
 
 Pour régénérer les captures desktop/mobile et l’aperçu élève, lancer `python3 tests/visual.py` avec le serveur local démarré. Les images sont dans `docs/screenshots/`. Les sections chapitre et progression de l’accueil sont des aperçus fictifs ; elles ne constituent pas encore les modules pédagogiques de phase 2.
+
+## Accueil officiel validé
+
+L’accueil actuel suit la maquette claire validée par le propriétaire. Ses fichiers sont `assets/home.css`, `assets/home.js` et `assets/hero-science.png` ; ils laissent le suivi pédagogique existant intact. Les captures à consulter sont `docs/screenshots/accueil-officiel-1200.png` et `docs/screenshots/accueil-officiel-390.png`. Les captures plus anciennes correspondent à l’ancienne direction visuelle. Les boutons d’information affichent leur statut non disponible lorsque les coordonnées ou services ne sont pas configurés.

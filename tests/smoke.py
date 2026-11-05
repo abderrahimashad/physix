@@ -12,20 +12,21 @@ with sync_playwright() as p:
     assert response.status == 200
     assert page.locator('#entry').is_visible()
     assert not page.locator('.app').is_visible()
-    assert page.locator('.px-actions button').all_text_contents() == ['Espace Élève →', 'Accès Invité →']
+    assert page.locator('.home-access button').count() == 2
     assert 'BIOF' not in page.locator('#entry').inner_text()
-    assert page.locator('#entry main section').count() == 5
-    page.get_by_role('button', name='Espace Élève').click()
+    assert page.locator('#entry main section').count() == 4
+    assert 'Aperçu d’un chapitre' not in page.locator('#entry').inner_text()
+    page.get_by_role('button', name='Espace Élève', exact=False).click()
     assert page.get_by_role('dialog').is_visible()
     assert page.get_by_role('button', name='Fermer').evaluate('(el)=>el===document.activeElement')
     page.keyboard.press('Escape')
     assert not page.get_by_role('dialog').is_visible()
-    page.get_by_role('button', name='Espace Élève').click()
+    page.get_by_role('button', name='Espace Élève', exact=False).click()
     page.get_by_role('button', name='Ouvrir la démo élève').click()
     assert 'Mon accueil' in page.locator('#pagetitle').inner_text()
     assert page.locator('#nav button').filter(has_text='Professeur').count() == 0
     page.get_by_role('button', name='Accueil PhysiX').click()
-    page.get_by_role('button', name='Accès Invité').click()
+    page.get_by_role('button', name='Accès Invité', exact=False).click()
     assert 'Modulation' in page.locator('#content').inner_text()
     assert 'Exercices — Mécanique' not in page.locator('#content').inner_text()
     # Exercise preserved fictional admin tools without exposing a public admin entrance.
@@ -51,7 +52,7 @@ with sync_playwright() as p:
     page.goto(base)
     assert page.evaluate('document.getElementById("entry").scrollWidth <= innerWidth')
     page.emulate_media(reduced_motion='reduce')
-    assert page.locator('.px-visual').evaluate('(el)=>getComputedStyle(el).animationName') == 'none'
+    assert page.locator('.home-art img').evaluate('(el)=>getComputedStyle(el).animationName') == 'none'
     assert not errors, errors
     browser.close()
     print('PASS: public access, admin URL regression, guest filtering, modal keyboard, 14 views, class selection, persistence/undo, admin placeholder, mobile and reduced motion')

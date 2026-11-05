@@ -1,0 +1,27 @@
+name: PhysiX — vérifications statiques
+on:
+  push:
+    branches:
+      - main
+      - 'feat/**'
+  pull_request:
+    branches:
+      - main
+      - 'feat/**'
+permissions:
+  contents: read
+jobs:
+  quality:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+      - name: Check JavaScript syntax
+        run: |
+          node --check assets/app.js
+          node --check assets/home.js
+          node --check assets/catalogue.js
+      - name: Check Supabase migration invariants
+        run: python3 tests/check_supabase_migration.py
+      - name: Check repository for accidental live credentials
+        run: python3 tests/check_no_secrets.py

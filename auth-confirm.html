@@ -1,0 +1,16 @@
+<!doctype html>
+<html lang="fr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex,nofollow"><meta name="referrer" content="no-referrer">
+<title>PhysiX — Activation propriétaire</title><link rel="stylesheet" href="/assets/styles.css">
+<style>body{min-height:100vh;background:linear-gradient(145deg,#061534,#253e82);color:#fff;font-family:Inter,Segoe UI,Arial,sans-serif;margin:0}.auth-wrap{width:min(520px,calc(100% - 32px));margin:8vh auto;padding:32px;background:#101f43;border:1px solid #4566a3;border-radius:22px;box-shadow:0 30px 70px #0005}.auth-wrap h1{font-size:29px}.auth-wrap p{color:#d7e5ff;line-height:1.6}.auth-wrap label{display:block;font-size:14px;margin:16px 0}.auth-wrap input{width:100%;box-sizing:border-box;display:block;margin-top:7px;border:1px solid #99b7ed;border-radius:11px;padding:12px;color:#10244b;background:#fff}.auth-wrap button,.auth-wrap .auth-link{display:inline-block;border:0;border-radius:11px;background:#2384eb;color:white;font:700 15px inherit;padding:13px 19px;text-decoration:none;cursor:pointer}.auth-wrap button:disabled{opacity:.5;cursor:wait}.auth-message{border-radius:11px;padding:12px 15px;background:#244675;line-height:1.6;margin:15px 0}.auth-message.error{background:#6f283b}.auth-message.success{background:#135a55}[hidden]{display:none!important}</style>
+</head><body><main class="auth-wrap"><a href="/" style="color:#84d7ff;text-decoration:none">⚛ PhysiX</a><h1>Activation du compte propriétaire</h1>
+<p>Cette page accepte une invitation Supabase valide. Vos identifiants restent confidentiels : ne les envoyez à personne.</p>
+<div id="auth-message" class="auth-message" role="status">Vérification du lien d'invitation…</div>
+<form id="activation-form" hidden>
+<label>Nouveau mot de passe (12 caractères minimum)<input name="password" type="password" autocomplete="new-password" minlength="12" required></label>
+<label>Confirmer le mot de passe<input name="confirm" type="password" autocomplete="new-password" minlength="12" required></label>
+<button type="submit">Activer mon mot de passe</button>
+</form>
+<a class="auth-link" id="go-admin" href="/admin" hidden>Se connecter à l'administration</a>
+<p style="font-size:13px">Si votre invitation n'est plus valide, une nouvelle invitation doit être envoyée depuis Supabase après avoir corrigé l'URL de redirection.</p>
+</main><script src="/assets/admin-auth.js" defer></script></body></html>

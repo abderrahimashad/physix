@@ -12,7 +12,9 @@ with sync_playwright() as p:
     assert response.status == 200
     assert page.locator('#entry').is_visible()
     assert not page.locator('.app').is_visible()
-    assert page.locator('.px-actions button').all_text_contents() == ['🎓 \xa0 Espace Élève ↗', '📚 \xa0 Accès Invité →']
+    assert page.locator('.px-actions button').all_text_contents() == ['Espace Élève →', 'Accès Invité →']
+    assert 'BIOF' not in page.locator('#entry').inner_text()
+    assert page.locator('#entry main section').count() == 5
     page.get_by_role('button', name='Espace Élève').click()
     assert page.get_by_role('dialog').is_visible()
     assert page.get_by_role('button', name='Fermer').evaluate('(el)=>el===document.activeElement')

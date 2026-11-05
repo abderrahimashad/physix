@@ -19,3 +19,26 @@ const originalCloseEntryModal=closeEntryModal;
 closeEntryModal=function(){originalCloseEntryModal();if(modalTrigger)modalTrigger.focus()};
 modal.addEventListener('click',e=>{if(e.target===modal)closeEntryModal()});
 document.addEventListener('keydown',e=>{if(!modal.classList.contains('open'))return;if(e.key==='Escape')closeEntryModal();if(e.key==='Tab'){const buttons=modal.querySelectorAll('button');const first=buttons[0],last=buttons[buttons.length-1];if(e.shiftKey&&document.activeElement===first){e.preventDefault();last.focus()}else if(!e.shiftKey&&document.activeElement===last){e.preventDefault();first.focus()}}});
+
+// Optional progressive enhancement: content remains visible without these APIs.
+const reducedMotion = matchMedia('(prefers-reduced-motion: reduce)');
+if (!reducedMotion.matches && 'IntersectionObserver' in window) {
+  const observer = new IntersectionObserver(entries => entries.forEach(entry => {
+    if (entry.isIntersecting) { entry.target.classList.remove('pending'); observer.unobserve(entry.target); }
+  }), {threshold: 0.1});
+  document.querySelectorAll('.reveal').forEach(section => { section.classList.add('pending'); observer.observe(section); });
+}
+const scene = document.querySelector('.science-scene');
+if (scene && matchMedia('(pointer:fine)').matches) {
+  let frame;
+  scene.addEventListener('pointermove', event => {
+    if (reducedMotion.matches) return;
+    cancelAnimationFrame(frame);
+    frame = requestAnimationFrame(() => {
+      const rect = scene.getBoundingClientRect();
+      scene.style.setProperty('--tilt-x', `${(event.clientX-rect.left-rect.width/2)/rect.width*5}deg`);
+      scene.style.setProperty('--tilt-y', `${-(event.clientY-rect.top-rect.height/2)/rect.height*5}deg`);
+    });
+  });
+  scene.addEventListener('pointerleave', () => { cancelAnimationFrame(frame); scene.style.setProperty('--tilt-x','0deg'); scene.style.setProperty('--tilt-y','0deg'); });
+}

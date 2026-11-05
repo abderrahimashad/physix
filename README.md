@@ -34,3 +34,9 @@ Le test vérifie les accès publics, l’ancien paramètre administrateur, les f
 ## Étapes suivantes
 
 Voir `docs/backend-plan.md` pour Supabase, invitations, confidentialité et progression pédagogique. Les comptes, notes persistantes, invitations et corrections IA ne sont pas opérationnels. Aucun déploiement Vercel n’est affirmé sans résultat du service.
+
+## Lot phases 0 et 1
+
+Le cahier des charges complet est conservé dans `SPECIFICATIONS.md`. L’état et les critères par phase sont dans `ROADMAP.md`, l’audit et les choix techniques dans `docs/architecture.md`.
+
+Pour régénérer les captures desktop/mobile et l’aperçu élève, lancer `python3 tests/visual.py` avec le serveur local démarré. Les images sont dans `docs/screenshots/`. Les sections chapitre et progression de l’accueil sont des aperçus fictifs ; elles ne constituent pas encore les modules pédagogiques de phase 2.

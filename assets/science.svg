@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 560" fill="none">
+<defs><radialGradient id="halo"><stop stop-color="#186dbb" stop-opacity=".5"/><stop offset="1" stop-color="#0b163a" stop-opacity="0"/></radialGradient><linearGradient id="glass" x1="350" y1="300" x2="530" y2="510" gradientUnits="userSpaceOnUse"><stop stop-color="#b0f6ff" stop-opacity=".55"/><stop offset="1" stop-color="#7856ec" stop-opacity=".1"/></linearGradient><linearGradient id="light"><stop stop-color="#55edff"/><stop offset="1" stop-color="#9e73ff"/></linearGradient><filter id="glow"><feGaussianBlur stdDeviation="7"/></filter><pattern id="grid" width="36" height="36" patternUnits="userSpaceOnUse"><path d="M36 0H0V36" stroke="#5192c8" stroke-opacity=".1"/></pattern></defs>
+<rect width="640" height="560" fill="url(#grid)"/><circle cx="310" cy="255" r="280" fill="url(#halo)"/>
+<g stroke="#3375ab" stroke-opacity=".4"><circle cx="300" cy="245" r="210" stroke-dasharray="2 12"/><circle cx="300" cy="245" r="175"/><path d="M60 245H545M300 30V460" stroke-dasharray="3 10"/></g>
+<g stroke="url(#light)" stroke-width="2"><ellipse cx="300" cy="235" rx="155" ry="61" transform="rotate(-30 300 235)"/><ellipse cx="300" cy="235" rx="155" ry="61" transform="rotate(30 300 235)"/><ellipse cx="300" cy="235" rx="155" ry="61" transform="rotate(90 300 235)"/></g>
+<circle cx="300" cy="235" r="30" fill="#32d9ff" opacity=".6" filter="url(#glow)"/><circle cx="300" cy="235" r="18" fill="#7beaff"/><circle cx="290" cy="225" r="9" fill="#cbfaff"/>
+<g fill="#b2f6ff"><circle cx="164" cy="175" r="7"/><circle cx="434" cy="170" r="6"/><circle cx="300" cy="390" r="7"/></g>
+<path d="M78 425L397 389" stroke="#d8fbff" stroke-width="3"/><path d="M395 315L343 445L490 459Z" fill="url(#glass)" stroke="#95d4ff" stroke-width="2"/><path d="M395 315L430 429L490 459M343 445L430 429" stroke="#b3ddff" stroke-opacity=".6"/>
+<g stroke-width="3" opacity=".85"><path d="M430 411L609 370" stroke="#ee71b2"/><path d="M430 414L609 393" stroke="#ffb375"/><path d="M430 417L609 416" stroke="#ffe68c"/><path d="M430 420L609 439" stroke="#64e8ad"/><path d="M430 423L609 462" stroke="#60cfff"/><path d="M430 426L609 485" stroke="#b18aff"/></g>
+<g font-family="Georgia,serif" font-style="italic" fill="#96c9f0"><text x="442" y="103" font-size="28">E = mc²</text><text x="80" y="335" font-size="22">F = ma</text><text x="100" y="100" font-size="20">λ = c / f</text></g>
+<g fill="#77e3ff"><circle cx="86" cy="212" r="3"/><circle cx="506" cy="264" r="3"/><circle cx="205" cy="469" r="3"/></g>
+</svg>

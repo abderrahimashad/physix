@@ -16,7 +16,7 @@ async function request(path,options={}){
 }
 async function isOwner(token){
  const response=await request("/rest/v1/physix_owners?select=user_id&limit=1",{headers:{"Authorization":"Bearer "+token}});
- return Array.isArray(response)&&response.length===1;
+ return Array.isArray(response)&&response.length===1?response[0].user_id:null;
 }
 if(form){
  const recovery=form.querySelector("#request-recovery");
@@ -40,12 +40,16 @@ if(form){
   try{
    const session=await request("/auth/v1/token?grant_type=password",{method:"POST",body:JSON.stringify({email,password})});
    if(!session.access_token)throw new Error("Session de connexion manquante.");
-   if(!await isOwner(session.access_token)){
+   const ownerId=await isOwner(session.access_token);
+   if(!ownerId){
     say("Compte reconnu, mais aucun droit propriétaire PhysiX n'est attribué à ce compte.","error");
     return;
    }
-   say("Connexion propriétaire validée. Les outils privés connectés à Supabase seront activés après leurs tests de sécurité.","success");
    form.reset();
+   if(typeof window.physixAdminStart==="function"){
+     await window.physixAdminStart(session.access_token,ownerId);
+     say("Connexion propriétaire validée. Gestion des fiches sécurisées activée.","success");
+   }else say("Compte propriétaire reconnu. Module de gestion indisponible sur cette page.","success");
   }catch(_){say("Connexion impossible. Vérifiez votre email, votre mot de passe et l’activation du compte.","error")}
   finally{button.disabled=false}
  });

@@ -1,0 +1,52 @@
+/* PhysiX : catalogue pédagogique fictif, sans comptes ni fichiers réels. */
+const DEMO_CHAPTERS=[
+{id:"p2-1",level:"2BAC PC",subject:"Physique",title:"Ondes mécaniques progressives",summary:"Propagation, célérité et retard temporel.",items:[["Cours","Présentation des notions de propagation"],["Résumé","Vocabulaire et relations essentielles"],["Exercices","Exercices d'application guidés"],["Séries","Série d'entraînement n° 1"],["Corrections","Corrections sur décision de l'enseignant"]]},
+{id:"p2-2",level:"2BAC PC",subject:"Physique",title:"Ondes lumineuses",summary:"Diffraction, propagation et lumière.",items:[["Cours","Cours sur la propagation de la lumière"],["Résumé","Synthèse des relations"],["Exercices","Applications et méthodes"]]},
+{id:"p2-3",level:"2BAC PC",subject:"Physique",title:"Transformations nucléaires",summary:"Radioactivité et lois de conservation.",items:[["Cours","Notions de physique nucléaire"],["Exercices","Entraînement progressif"],["Séries","Exercices de révision"]]},
+{id:"c2-1",level:"2BAC PC",subject:"Chimie",title:"Transformations chimiques",summary:"Avancement et évolution d'un système.",items:[["Cours","Étude de l'avancement"],["Résumé","Méthodes de suivi"],["Exercices","Applications sur les réactions"]]},
+{id:"p1-1",level:"1BAC",subject:"Physique",title:"Mouvement et interactions",summary:"Description d'un mouvement et forces.",items:[["Cours","Repères et mouvements"],["Exercices","Applications de mécanique"],["Séries","Exercices de consolidation"]]},
+{id:"c1-1",level:"1BAC",subject:"Chimie",title:"Quantités de matière",summary:"Mole et relations de quantité de matière.",items:[["Cours","Quantité de matière et mole"],["Résumé","Relations essentielles"],["Exercices","Calculs guidés"]]}
+];
+const DEMO_DEVOIRS=[
+{id:"ds-2-1",level:"2BAC PC",subject:"Physique",semester:1,num:1,title:"Devoir surveillé n° 1 — Ondes",duration:"2 h",correction:false},
+{id:"ds-2-2",level:"2BAC PC",subject:"Chimie",semester:2,num:2,title:"Devoir surveillé n° 2 — Transformations",duration:"2 h",correction:false},
+{id:"ds-1-1",level:"1BAC",subject:"Physique",semester:1,num:1,title:"Devoir surveillé n° 1 — Mécanique",duration:"1 h",correction:false}
+];
+// Même navigateur / même origine seulement : vitrine fictive issue du prototype admin.
+// Ne JAMAIS utiliser ce stockage local comme source privée ou contrôle d'accès réel.
+function cataloguePublished(){
+  let store;
+  try{store=JSON.parse(localStorage.getItem("physix-admin-content-demo-v1")||"null")}catch{return {chapters:[],devoirs:[]}}
+  if(!store||!Array.isArray(store.chapters)||!Array.isArray(store.resources)||!Array.isArray(store.devoirs))return {chapters:[],devoirs:[]};
+  const publicResources=store.resources.filter(r=>r.visibility==="public"&&r.status==="publie"&&r.type!=="Correction").sort((a,b)=>String(a.chapter).localeCompare(String(b.chapter))||(Number(a.order)||9999)-(Number(b.order)||9999)||String(a.title).localeCompare(String(b.title),"fr"));
+  const safeChapters=store.chapters.filter(c=>publicResources.some(r=>r.chapter===c.id)).map(c=>({
+    ...c,
+    title:String(c.title||"").slice(0,160),
+    summary:String(c.summary||"").slice(0,350),
+    items:publicResources.filter(r=>r.chapter===c.id).map(r=>[r.type,r.title]),
+    id:String(c.id)
+  }));
+  const safeDevoirs=store.devoirs.filter(d=>d.status==="publie").map(d=>({...d,duration:String(d.duration||60)+" min",correction:false}));
+  return {chapters:safeChapters,devoirs:safeDevoirs};
+}
+function catalogueAllChapters(){return [...DEMO_CHAPTERS,...cataloguePublished().chapters]}
+function catalogueAllDevoirs(){return [...DEMO_DEVOIRS,...cataloguePublished().devoirs]}
+let catalogueTab="chapitres",catalogueLevel="all",catalogueSubject="all",catalogueQuery="",catalogueOpen=null;
+function catalogueSet(name,value){if(name==="tab")catalogueTab=value;else if(name==="level")catalogueLevel=value;else if(name==="subject")catalogueSubject=value;else if(name==="query")catalogueQuery=value;else if(name==="open")catalogueOpen=value;let target=document.getElementById("content");if(target)target.innerHTML=catalogueView(role)}
+function catalogueChaptersByLevel(){return catalogueAllChapters().filter(c=>catalogueMatches(c))}
+function catalogueMatches(x){return (catalogueLevel==="all"||x.level===catalogueLevel)&&(catalogueSubject==="all"||x.subject===catalogueSubject)&&(!catalogueQuery||[x.title,x.subject,x.level,x.summary||""].join(" ").toLocaleLowerCase("fr").includes(catalogueQuery.toLocaleLowerCase("fr")))}
+function catalogueView(currentRole){
+const isGuest=currentRole==="guest";
+const head='<div class="cat-intro"><span class="cat-eyebrow">✦ PHYSIX · BIBLIOTHÈQUE PÉDAGOGIQUE</span><h2>Apprendre, chapitre par chapitre.</h2><p>Explorez les matières, entraînez-vous et retrouvez les devoirs dans une organisation claire.</p><span class="cat-demo-label">Démonstration locale · Fiches visibles uniquement dans ce navigateur, aucun fichier téléchargeable</span></div>';
+const tabs='<div class="cat-tabs" role="tablist" aria-label="Bibliothèque"><button role="tab" aria-selected="'+(catalogueTab==="chapitres")+'" onclick="catalogueSet(\'tab\',\'chapitres\')">📘 Chapitres</button><button role="tab" aria-selected="'+(catalogueTab==="devoirs")+'" onclick="catalogueSet(\'tab\',\'devoirs\')">📋 Devoirs surveillés</button></div>';
+const controls='<div class="cat-filters"><label>Niveau<select onchange="catalogueSet(\'level\',this.value)"><option value="all" '+(catalogueLevel==="all"?"selected":"")+'>Tous les niveaux</option><option value="1BAC" '+(catalogueLevel==="1BAC"?"selected":"")+'>1BAC</option><option value="2BAC PC" '+(catalogueLevel==="2BAC PC"?"selected":"")+'>2BAC PC</option></select></label><label>Matière<select onchange="catalogueSet(\'subject\',this.value)"><option value="all" '+(catalogueSubject==="all"?"selected":"")+'>Toutes les matières</option><option '+(catalogueSubject==="Physique"?"selected":"")+'>Physique</option><option '+(catalogueSubject==="Chimie"?"selected":"")+'>Chimie</option></select></label><label class="cat-search">Rechercher<input type="search" id="cat-search" value="'+esc(catalogueQuery)+'" placeholder="Rechercher un chapitre ou un devoir…" oninput="catalogueQuery=this.value;document.getElementById(\'cat-results\').innerHTML=catalogueResults();"></label></div>';
+return head+tabs+controls+'<div id="cat-results">'+catalogueResults()+'</div>'+ (isGuest?'<p class="cat-restriction">👁 Accès invité : seuls les contenus publics seront consultables lorsque les publications réelles seront activées.</p>':'<p class="cat-restriction">🎓 Parcours illustratif : votre véritable classe et votre progression seront liées à votre compte sécurisé ultérieurement.</p>');
+}
+function catalogueResults(){
+if(catalogueTab==="devoirs"){
+const list=catalogueAllDevoirs().filter(x=>catalogueMatches(x));
+return '<div class="cat-heading"><h3>Devoirs surveillés</h3><span>'+list.length+' résultat(s)</span></div><div class="cat-grid">'+(list.map(x=>'<article class="cat-card"><span class="cat-chip">'+esc(x.level)+' · '+esc(x.subject)+'</span><h3>'+esc(x.title)+'</h3><p>Semestre '+x.semester+' · Durée '+esc(x.duration)+'</p><div class="cat-asset">📄 Sujet : non publié dans cette démonstration</div><div class="cat-asset">🔒 Corrigé : non disponible</div></article>').join('')||'<p class="cat-empty">Aucun devoir pour ces filtres.</p>')+'</div>';
+}
+const list=catalogueAllChapters().filter(x=>catalogueMatches(x));
+return '<div class="cat-heading"><h3>Parcours par chapitre</h3><span>'+list.length+' chapitre(s)</span></div><div class="cat-grid">'+(list.map((x,i)=>'<article class="cat-card"><span class="cat-chip">'+esc(x.level)+' · '+esc(x.subject)+'</span><h3>'+esc(x.title)+'</h3><p>'+esc(x.summary)+'</p><div class="cat-card-footer"><span>'+x.items.length+' rubrique(s)</span><button onclick="catalogueSet(\'open\',\''+x.id+'\')" aria-expanded="'+(catalogueOpen===x.id)+'">Voir le chapitre →</button></div>'+(catalogueOpen===x.id?'<div class="cat-detail"><strong>Ressources du chapitre</strong>'+x.items.map(item=>'<div class="cat-asset"><b>'+esc(item[0])+'</b><span>'+esc(item[1])+'</span><small>Exemple · Aucun fichier joint</small></div>').join('')+'<button class="cat-close" onclick="catalogueSet(\'open\',null)">Fermer</button></div>':'')+'</article>').join('')||'<p class="cat-empty">Aucun chapitre pour ces filtres.</p>')+'</div>';
+}

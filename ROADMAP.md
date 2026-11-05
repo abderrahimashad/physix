@@ -28,3 +28,7 @@ Vérifications : tests/smoke.py et tests/visual.py passent, sans erreur JavaScri
 ## Phase 2 — lot démonstration du catalogue (branche feat/physix-pedagogie-demo)
 
 Une bibliothèque fictive est disponible dans les espaces Élève et Invité via « Chapitres & devoirs » : filtre de niveau (1BAC/2BAC PC), matière, recherche de titres, fiches de chapitre à rubriques pédagogiques et liste de devoirs surveillés par semestre. Les exemples n'hébergent aucun document et n'incluent aucune donnée personnelle réelle. Il n'y a ni authentification ni véritable publication ou contrôle d'accès côté serveur : toutes les fiches sont expressément étiquetées « démonstration ». Les corrections ne sont pas accessibles. Les vrais contenus, le calendrier, les PDF et l'administration éditoriale resteront à développer après validation du lot.
+
+## Phase 2 — Prototype de gestion éditoriale (branche feat/physix-admin-content-demo)
+
+L'URL `/admin-demo` héberge un **outil de démonstration public et non sécurisé**, identifié visiblement comme tel. L'enseignant peut créer, modifier et supprimer des chapitres, des fiches de ressources (titre, type, visibilité prévue, statut) et des fiches de devoirs surveillés (niveau, matière, semestre, durée et disponibilité indicative du corrigé). Données fictives en localStorage, isolées de la bibliothèque publique. Aucun fichier réel n'est accepté, aucune donnée privée n'est protégée par ce prototype, aucun véritable élève ne doit y figurer. La vraie gestion privée sera migrée derrière Supabase Auth avec RLS et stockage privé.

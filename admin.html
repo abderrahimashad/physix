@@ -6,6 +6,32 @@
 <meta name="robots" content="noindex, nofollow">
 <title>PhysiX — Administration</title>
 <link rel="stylesheet" href="/assets/styles.css">
+<style>
+#content-root{max-width:980px;margin:28px auto 55px;text-align:left;color:#19325b;background:#f1f6fd;border-radius:20px;padding:clamp(16px,3vw,32px)}
+#content-root[hidden]{display:none}
+.content-head{display:flex;justify-content:space-between;align-items:flex-start;gap:16px;flex-wrap:wrap}
+.content-head h2{margin:0;font-size:24px}.content-head p{line-height:1.5;color:#597096;font-size:14px}
+.content-head button,#content-root button{cursor:pointer;border:1px solid #b8cbed;background:#e7effe;color:#214482;padding:10px 14px;border-radius:10px;font-weight:650}
+.content-tabs{display:flex;gap:10px;flex-wrap:wrap;margin:22px 0}
+.content-tabs button.selected,#content-form button[type=submit]{background:#216eea;color:white;border-color:#216eea}
+.content-counts{display:flex;flex-wrap:wrap;gap:10px;margin:12px 0;color:#526889;font-size:13px}
+.content-counts span{padding:9px 12px;background:white;border-radius:12px}
+.content-section{padding:20px;background:#fff;border:1px solid #dbe5f5;border-radius:16px;margin:17px 0}
+.content-section h3{margin:0 0 18px}
+.content-form{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}
+.content-form label{display:block;font-size:13px;font-weight:700;color:#40557d}
+.content-form input,.content-form select,.content-form textarea{display:block;width:100%;min-width:0;box-sizing:border-box;border:1px solid #c4d3eb;border-radius:10px;padding:10px;margin-top:5px;color:#162745;background:#fff}
+.content-form textarea{min-height:65px}.content-form .full{grid-column:1/-1}
+.content-items{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+.content-item{border:1px solid #dae4f4;border-radius:14px;padding:16px;min-width:0}
+.content-item-line{display:flex;justify-content:space-between;gap:8px;align-items:flex-start}
+.content-item-line strong{overflow-wrap:anywhere}.content-item p{font-size:13px;color:#657793;line-height:1.5}
+.content-tag{white-space:nowrap;background:#edf4ff;color:#33599c;border-radius:30px;padding:5px 9px;font-size:11px;font-weight:700}
+.content-actions{display:flex;gap:8px;flex-wrap:wrap}.content-actions button.danger{background:#fff0f0;color:#b63d54;border-color:#f5bec7}
+.content-note{border-radius:12px;background:#e4f1fa;color:#214f77;padding:12px;margin:14px 0;font-size:14px}
+.content-note.bad{background:#ffebee;color:#9c263a}
+@media(max-width:640px){.content-form,.content-items{grid-template-columns:1fr}.content-form .full{grid-column:auto}}
+</style>
 </head>
 <body>
 <main class="entry">
@@ -14,7 +40,7 @@
 <section class="px-copy" style="max-width:700px;margin:auto">
 <div class="px-pill">ESPACE PROPRIÉTAIRE</div>
 <h1>Votre espace.<br><em>En sécurité.</em></h1>
-<p>Connectez-vous avec votre compte propriétaire PhysiX après l’activation de votre invitation Supabase. Les données privées sont protégées par les permissions serveur ; l’édition pédagogique en ligne n’est pas encore ouverte.</p>
+<p>Connectez-vous avec votre compte propriétaire PhysiX après l’activation de votre invitation Supabase. Les fiches de chapitres, séries et devoirs sont enregistrées dans Supabase après vérification de vos droits. Les fichiers PDF réels restent désactivés.</p>
 <div class="entry-note">Accès propriétaire uniquement. Les élèves ne peuvent pas créer de compte ici. Ne communiquez jamais votre mot de passe.</div>
 <form id="owner-form" style="max-width:420px;margin:24px 0;display:grid;gap:14px;text-align:left"><label style="display:grid;gap:6px;color:#dceaff">Adresse email<input type="email" name="email" autocomplete="username" required style="padding:13px;border-radius:10px;border:1px solid #abc3e8;color:#102044" placeholder="Votre adresse email"></label><label style="display:grid;gap:6px;color:#dceaff">Mot de passe<input type="password" name="password" autocomplete="current-password" required style="padding:13px;border-radius:10px;border:1px solid #abc3e8;color:#102044"></label><button type="submit" class="px-primary" style="cursor:pointer">Se connecter</button><button type="button" id="request-recovery" style="cursor:pointer;color:#8fe8ff;background:transparent;border:0;text-align:left;padding:7px 0">Recevoir un nouveau lien sécurisé par email</button></form>
 <div id="auth-message" class="entry-note" role="status" aria-live="polite">La première connexion nécessite d’accepter l’invitation et de définir votre mot de passe.</div>
@@ -22,7 +48,9 @@
 <p style="margin-top:24px"><a href="/" style="color:#8fe8ff">← Retour à PhysiX</a></p>
 </section>
 </div>
+<section id="content-root" aria-label="Gestion pédagogique du propriétaire" hidden></section>
 </main>
 <script src="/assets/admin-auth.js" defer></script>
+<script src="/assets/admin-content.js" defer></script>
 </body>
 </html>

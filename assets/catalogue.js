@@ -18,7 +18,7 @@ function cataloguePublished(){
   let store;
   try{store=JSON.parse(localStorage.getItem("physix-admin-content-demo-v1")||"null")}catch{return {chapters:[],devoirs:[]}}
   if(!store||!Array.isArray(store.chapters)||!Array.isArray(store.resources)||!Array.isArray(store.devoirs))return {chapters:[],devoirs:[]};
-  const publicResources=store.resources.filter(r=>r.visibility==="public"&&r.status==="publie"&&r.type!=="Correction");
+  const publicResources=store.resources.filter(r=>r.visibility==="public"&&r.status==="publie"&&r.type!=="Correction").sort((a,b)=>String(a.chapter).localeCompare(String(b.chapter))||(Number(a.order)||9999)-(Number(b.order)||9999)||String(a.title).localeCompare(String(b.title),"fr"));
   const safeChapters=store.chapters.filter(c=>publicResources.some(r=>r.chapter===c.id)).map(c=>({
     ...c,
     title:String(c.title||"").slice(0,160),
@@ -33,6 +33,7 @@ function catalogueAllChapters(){return [...DEMO_CHAPTERS,...cataloguePublished()
 function catalogueAllDevoirs(){return [...DEMO_DEVOIRS,...cataloguePublished().devoirs]}
 let catalogueTab="chapitres",catalogueLevel="all",catalogueSubject="all",catalogueQuery="",catalogueOpen=null;
 function catalogueSet(name,value){if(name==="tab")catalogueTab=value;else if(name==="level")catalogueLevel=value;else if(name==="subject")catalogueSubject=value;else if(name==="query")catalogueQuery=value;else if(name==="open")catalogueOpen=value;let target=document.getElementById("content");if(target)target.innerHTML=catalogueView(role)}
+function catalogueChaptersByLevel(){return catalogueAllChapters().filter(c=>catalogueMatches(c))}
 function catalogueMatches(x){return (catalogueLevel==="all"||x.level===catalogueLevel)&&(catalogueSubject==="all"||x.subject===catalogueSubject)&&(!catalogueQuery||[x.title,x.subject,x.level,x.summary||""].join(" ").toLocaleLowerCase("fr").includes(catalogueQuery.toLocaleLowerCase("fr")))}
 function catalogueView(currentRole){
 const isGuest=currentRole==="guest";

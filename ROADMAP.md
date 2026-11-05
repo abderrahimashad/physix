@@ -48,3 +48,7 @@ La migration `supabase/migrations/20261105000100_physix_owner_content.sql` décr
 ## Qualité — CI avant connexion Supabase
 
 Le workflow `.github/workflows/physix-quality.yml` vérifie automatiquement la syntaxe des scripts JavaScript, les invariants statiques des migrations SQL et une recherche heuristique de secrets committés. Ces vérifications ne prouvent pas la sécurité de RLS : les scénarios de refus/autorisation devront être exécutés sur un vrai projet Supabase de test avant toute donnée sensible. Cette branche n'exécute aucune migration, n'active pas de stockage et ne fusionne pas les PR.
+
+## Déploiement de la migration sur Supabase — 5 novembre 2026
+
+Le projet Supabase de test « PhysiX » est créé (région eu-west-3). La migration `physix_owner_content` a été exécutée avec succès et apparaît dans l'historique des migrations distante. Vérifications distantes : cinq tables publiques `physix_*` existent avec RLS activée, cinq politiques RLS ; bucket `physix-private` non public, zéro politique Storage pour ce bucket ; conseiller sécurité : zéro alerte au moment du contrôle. À ce stade : zéro compte Auth et zéro propriétaire enregistré, donc **aucun compte Admin encore utilisable**. Les règles d'autorisation n'ont pas encore été testées avec des sessions Auth réelles ; les données de démonstration restent locales, le frontend Vercel n'est pas connecté à Supabase et aucun upload réel n'est actif. Ne pas utiliser des données personnelles d'élèves avant validation complète.

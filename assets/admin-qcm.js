@@ -32,6 +32,11 @@ window.physixTeacherQcm=(root,{rows,session,rest})=>{
  '<label>Semestre<select id="qcm-sem"><option value="1">Semestre 1</option><option value="2">Semestre 2</option></select></label>'+
  '<label>Chapitre<select id="qcm-chapter"></select></label></div>'+
  '<div id="qcm-owner-notice" class="content-note" role="status"></div>'+
+ '<details class="px-qcm-form-wrap"><summary>🤖 Générer automatiquement 15 questions de cours + 4 applications à partir du PDF</summary>'+
+ '<form id="qcm-generate-form"><label>PDF du chapitre (12 Mo max.)'+
+ '<input name="pdf" type="file" accept=".pdf,application/pdf" required></label>'+
+ '<button type="submit">Générer mes 19 questions avec Gemini</button></form>'+
+ '<p class="ai-help">La génération utilise votre quota Gemini gratuit uniquement côté professeur. Les questions restent en brouillon à vérifier.</p></details>'+
  '<details open class="px-qcm-form-wrap"><summary>➕ Ajouter une question de cours</summary>'+
  '<form id="qcm-owner-form"><label>Question<textarea name="question" required minlength="10" maxlength="1000" rows="3" placeholder="Quelle est l’unité SI de la capacité d’un condensateur ?"></textarea></label>'+
  ['A','B','C','D'].map(k=>'<label>Réponse '+k+'<input name="option_'+k.toLowerCase()+'" minlength="1" maxlength="400" required placeholder="Proposition '+k+'"></label>').join("")+
@@ -44,7 +49,7 @@ window.physixTeacherQcm=(root,{rows,session,rest})=>{
  const q=s=>pane.querySelector(s);
  let classCode=classes[0]?.code||"",semester=1,chapterId="",questions=[],attempts=[],busy=false;
  const feedback=(message,bad=false)=>{q("#qcm-owner-notice").textContent=message;q("#qcm-owner-notice").classList.toggle("bad",bad)};
- function chaptersFor(){return chapters.filter(c=>c.semester===semester&&(c.state==="published"||c.state==="draft"))}
+ function chaptersFor(){return chapters.filter(c=>c.semester===semester&&c.target_class===classCode&&(c.state==="published"||c.state==="draft"))}
  function pickChapter(){
   const available=chaptersFor();
   q("#qcm-chapter").innerHTML=available.map(c=>'<option value="'+esc(c.id)+'">'+esc(c.subject+" · "+c.title)+
@@ -161,6 +166,19 @@ window.physixTeacherQcm=(root,{rows,session,rest})=>{
    form.reset();
   });
  });
+ q("#qcm-generate-form").onsubmit=e=>{
+  e.preventDefault();
+  if(busy||!chapterId)return;
+  const form=e.currentTarget,file=form.elements.pdf.files?.[0],button=form.querySelector("button");
+  if(!file)return;
+  operation(button,async()=>{
+   const result=await window.physixQcmGenerateFromPdf({
+    file,chapterId,classCode,session,onStatus:feedback
+   });
+   feedback(result.message||"QCM préparé. Vérifiez avant publication.");
+   form.reset();
+  });
+ };
  q("#qcm-owner-publish-all").onclick=publishAll;
  q("#qcm-owner-refresh").onclick=load;
  q("#qcm-class").onchange=e=>{classCode=e.target.value;load()};

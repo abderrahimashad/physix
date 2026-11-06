@@ -110,6 +110,48 @@
 .student-admin-entry{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:13px 0;border-top:1px solid #edf1f8}
 .student-admin-help{font-size:14px;color:#597194}
 @media(max-width:700px){.student-admin-grid{grid-template-columns:1fr}.student-admin-entry{flex-wrap:wrap}.student-admin-entry button{width:100%}}
+
+/* Suivi pédagogique : grille claire pour prise de notes rapide pendant la séance. */
+#content-root .track-entry{width:100%;background:#1767df;color:#fff;border:0;padding:16px;font-size:17px;margin:18px 0 8px;border-radius:14px;font-weight:800}
+.tracking-section{max-width:1100px;margin:18px auto}
+.track-heading{display:flex;gap:15px;align-items:flex-start;justify-content:space-between;flex-wrap:wrap}
+.track-heading p{font-size:14px;color:#5d7296;line-height:1.5}
+.track-back{font-size:13px;color:#1d58b4}
+.track-toolbar{display:grid;grid-template-columns:2fr 1fr 1fr;gap:12px;align-items:end}
+.track-toolbar label,.track-tools label,.track-roster label{font-weight:750;font-size:13px;color:#214377}
+.track-toolbar select,.track-toolbar input,.track-tools input,.track-roster textarea{display:block;width:100%;box-sizing:border-box;margin-top:6px;border:1px solid #c6d7f3;border-radius:10px;padding:12px;background:white;color:#1d3c72}
+.track-note{padding:12px 14px;margin:18px 0;border-radius:11px;background:#edf5ff;color:#26517f;font-size:13px}
+.track-note.bad{background:#fff1f1;color:#9c3440}
+.track-roster{border:1px solid #d8e6fb;background:#f8fbff;padding:15px;border-radius:12px;margin:16px 0}
+.track-roster summary{font-weight:750;color:#2154a1;cursor:pointer}
+.track-roster form{display:grid;gap:12px;margin:12px 0}
+.track-roster button{justify-self:start}
+.track-roster small{color:#667995;display:block;margin-top:8px}
+.track-tools{display:flex;align-items:end;justify-content:space-between;gap:10px;flex-wrap:wrap;margin:18px 0}
+.track-tools label{min-width:230px;flex:1}
+.track-summary{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin:16px 0}
+.track-stat{display:grid;gap:4px;padding:14px 10px;border:1px solid #d8e4f5;background:#f8fbff;border-radius:13px}
+.track-stat strong{font-size:24px;color:#144d9e}
+.track-stat small{font-size:12px;color:#6a7c95}
+.track-list{display:grid;gap:14px}
+.track-pupil{border:1px solid #d9e5f8;border-radius:15px;padding:18px;background:#fff}
+.track-pupil-head{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:14px}
+.track-pupil-head strong{font-size:17px;color:#163b75}
+.track-total{font-size:13px;color:#607aa4}
+.track-actions{display:flex;flex-wrap:wrap;gap:7px}
+#content-root .track-actions button{font-size:12px;padding:10px;border-radius:10px;border:1px solid #c9dcf7;color:#1a559f;background:#f3f8ff}
+#content-root .track-actions button.track-caution{background:#fff7ef;color:#97521c;border-color:#f1d5b5}
+.track-grade{margin-top:15px;padding-top:14px;border-top:1px solid #e8eff9;display:flex;flex-wrap:wrap;gap:10px;align-items:end}
+.track-grade label{font-size:12px;font-weight:700;color:#4b658d;flex:1 1 200px}
+.track-grade input{display:block;width:100%;padding:11px;border:1px solid #c8d8f0;border-radius:10px;background:white;margin-top:5px}
+#content-root .track-grade button{white-space:nowrap}
+#content-root .track-grade .track-secondary{background:white;color:#8a4f65;border-color:#f0d4da}
+.track-empty{background:#f6f9ff;padding:25px;color:#637c9e;border-radius:14px;text-align:center}
+.track-history{margin-top:20px;padding:16px;border:1px solid #dee8f6;border-radius:13px}
+.track-history summary{cursor:pointer;font-weight:750;color:#1b4c97}
+.track-log{display:flex;justify-content:space-between;gap:10px;align-items:center;border-top:1px solid #e9eff8;padding:11px 0;flex-wrap:wrap;font-size:13px}
+@media(max-width:700px){.track-toolbar{grid-template-columns:1fr 1fr}.track-toolbar label:first-child{grid-column:1/-1}.track-summary{grid-template-columns:repeat(2,minmax(0,1fr))}.track-grade button{flex:1 1 100%}.track-pupil{padding:12px}}
+
 </style>
 </head>
 <body>
@@ -137,5 +179,6 @@
 <script src="/assets/admin-drive.js" defer></script>
 <script src="/assets/admin-simple.js" defer></script>
 <script src="/assets/admin-students.js" defer></script>
+<script src="/assets/admin-tracking.js" defer></script>
 </body>
 </html>

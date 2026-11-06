@@ -289,6 +289,39 @@
 .px-simple-secondary summary{cursor:pointer;color:#355d96;font-weight:700}
 @media(max-width:850px){.px-simple-actions{grid-template-columns:repeat(2,minmax(0,1fr))}}
 @media(max-width:530px){.px-simple-actions{grid-template-columns:1fr 1fr;gap:9px}#content-root .px-simple-actions button{font-size:13px;min-height:78px;padding:12px}}
+
+/* PhysiX professional workspace: compact, high-contrast and classroom-friendly. */
+#content-root{max-width:1180px;background:#f4f7fc;padding:clamp(16px,2.4vw,32px);color:#172a48}
+.px-pro-shell{display:grid;gap:22px}
+.px-pro-hero{display:flex;align-items:center;justify-content:space-between;gap:20px;flex-wrap:wrap;padding:32px 34px;border-radius:22px;color:#fff;background:linear-gradient(112deg,#102b57 0%,#1b4e91 74%,#296cae 100%);box-shadow:0 14px 26px #123a7230}
+.px-pro-eyebrow{font-size:11px;font-weight:850;letter-spacing:2px;color:#9cd8ff}
+.px-pro-eyebrow span{padding:0 7px;color:#b8cfe8}
+.px-pro-hero h2{font-size:clamp(27px,3.2vw,38px);margin:12px 0 7px;font-weight:850;line-height:1.16;color:#fff}
+.px-pro-hero p{margin:0;color:#d1e3f8;font-size:15px;line-height:1.5}
+#content-root .px-pro-logout{background:#ffffff15;color:white;border:1px solid #ffffff6b;padding:11px 16px;border-radius:11px}
+.px-pro-summary{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:14px}
+.px-pro-kpi{display:flex;flex-direction:column;gap:6px;min-width:0;padding:19px 20px;border:1px solid #dfe7f3;background:#fff;border-radius:17px;box-shadow:0 2px 9px #12356009}
+.px-pro-kpi span{font-size:13px;color:#657792;font-weight:750}
+.px-pro-kpi strong{font-size:34px;line-height:1.15;color:#164b8f;font-weight:850;font-variant-numeric:tabular-nums}
+.px-pro-kpi small{color:#7789a3;font-size:11px;line-height:1.45}
+.px-pro-section-heading{display:flex;justify-content:space-between;align-items:center;margin-top:2px}
+.px-pro-section-heading h3,.px-pro-groups h3{margin:0 0 5px;font-size:20px;color:#163863}
+.px-pro-section-heading p,.px-pro-groups p{margin:0;color:#6d7e96;font-size:13px}
+.px-pro-actions{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:13px}
+#content-root .px-pro-actions button{display:flex;align-items:flex-start;flex-direction:column;min-height:140px;text-align:left;padding:21px;border:1px solid #dfe7f2;background:#fff;border-radius:17px;box-shadow:0 3px 13px #1235600a;transition:transform .15s ease,border-color .15s ease,box-shadow .15s ease}
+#content-root .px-pro-actions button:hover,#content-root .px-pro-actions button:focus-visible{border-color:#76a6e7;transform:translateY(-2px);box-shadow:0 9px 22px #12356016}
+.px-pro-action-icon{font-size:25px;margin-bottom:15px;background:#edf5ff;border-radius:12px;display:grid;place-items:center;width:47px;height:47px}
+.px-pro-actions strong{font-size:16px;color:#183e70;margin-bottom:5px}
+.px-pro-actions small{font-size:12px;color:#70819b;font-weight:500;line-height:1.5}
+.px-pro-groups{display:grid;gap:15px;background:#fff;border:1px solid #dfe7f3;border-radius:18px;padding:23px}
+.px-pro-group-chips{display:flex;flex-wrap:wrap;gap:9px}
+#content-root .px-pro-group-chips button{background:#ecf4ff;color:#21528d;border:1px solid #cbdff7;font-size:13px;padding:10px 13px;border-radius:10px}
+#content-root .px-pro-group-chips button:hover{background:#dcecff;border-color:#74a6df}
+.px-pro-tip{padding:10px 13px;border-left:3px solid #4489df;background:#f2f7ff;border-radius:8px}
+#quick-pdf-section{max-width:none;margin:0 0 20px;box-shadow:0 4px 16px #12356009}
+@media(max-width:850px){.px-pro-summary{grid-template-columns:repeat(2,minmax(0,1fr))}.px-pro-actions{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:530px){.px-pro-hero{padding:23px 20px}.px-pro-summary{gap:9px}.px-pro-kpi{padding:14px}.px-pro-kpi strong{font-size:28px}.px-pro-actions{gap:9px}#content-root .px-pro-actions button{min-height:130px;padding:14px}.px-pro-actions strong{font-size:14px}.px-pro-actions small{font-size:11px}.px-pro-group-chips{gap:7px}}
+@media(prefers-reduced-motion:reduce){#content-root .px-pro-actions button{transition:none}}
 </style>
 </head>
 <body>

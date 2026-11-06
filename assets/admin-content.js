@@ -71,15 +71,49 @@ function render(){
  const nav=Object.keys(labels).map(t=>'<button type="button" data-tab="'+t+'" class="'+(t===tab?"selected":"")+'">'+labels[t]+'</button>').join("");
  if(tab==="documents"){
   const advanced=Object.keys(labels).filter(t=>t!=="documents").map(t=>'<button type="button" data-tab="'+t+'">'+labels[t]+'</button>').join("");
-  root.innerHTML='<div class="content-head"><div><h2>Mon espace professeur</h2><p>Suivi des élèves, cours et QCM, au même endroit.</p></div><button type="button" id="owner-logout">Déconnexion</button></div>'+
-  '<div id="content-message" class="content-note" role="status" aria-live="polite" hidden></div>'+
-  '<div class="px-simple-welcome"><h3>Bienvenue dans PhysiX</h3><p>Choisissez une action. Les options avancées restent disponibles plus bas.</p></div>'+
-  '<div class="px-simple-actions"><button type="button" id="open-dashboard">📊 Tableau de bord</button><button type="button" id="open-tracking">🙋 Participation et notes</button><button type="button" id="open-remises">📥 Copies à corriger</button><button type="button" id="open-wheel">🎡 Choisir un élève</button><button type="button" id="open-qcm">✅ QCM par chapitre</button><button type="button" id="open-pedagogy">📅 Devoirs et annonces</button></div>'+
-  '<details class="px-simple-secondary"><summary>Autres outils</summary><div class="overview-home-shortcuts"><button type="button" id="open-portraits">📸 Trombinoscope</button><button type="button" id="open-ai">📝 Exercices à remettre</button></div></details>';
+  const activeClasses=(rows.classes||[]).filter(c=>c.active);
+  const publishedResources=rows.resources.filter(r=>r.state==="published").length;
+  const privateFiles=rows.files.length;
+  const chapterCount=rows.chapters.length;
+  const docGroups=activeClasses.filter(c=>c.level==="1BAC");
+  const tile=(label,value,note)=>'<div class="px-pro-kpi"><span>'+esc(label)+'</span><strong>'+value+'</strong><small>'+esc(note)+'</small></div>';
+  root.innerHTML='<div class="px-pro-shell">'+
+   '<header class="px-pro-hero"><div><div class="px-pro-eyebrow">PHYSIX <span aria-hidden="true">/</span> ESPACE ENSEIGNANT</div>'+
+   '<h2>Bonjour, professeur <span class="px-pro-wave" aria-hidden="true">👋</span></h2>'+
+   '<p>Votre classe, vos cours et vos évaluations. Tout au même endroit.</p></div>'+
+   '<button type="button" id="owner-logout" class="px-pro-logout">Déconnexion</button></header>'+
+   '<div id="content-message" class="content-note" role="status" aria-live="polite" hidden></div>'+
+   '<section class="px-pro-summary" aria-label="Vue d’ensemble">'+
+   tile("Classes actives",activeClasses.length,"Groupes d’enseignement")+
+   tile("Chapitres",chapterCount,"Physique et chimie")+
+   tile("Documents PDF",privateFiles,"Conservés dans votre espace privé")+
+   tile("Ressources publiées",publishedResources,"Fiches pédagogiques")+'</section>'+
+   '<div class="px-pro-section-heading"><div><h3>Actions rapides</h3><p>Les outils les plus utiles pendant le cours</p></div></div>'+
+   '<div class="px-pro-actions">'+
+   '<button type="button" id="open-tracking"><span class="px-pro-action-icon">🙋</span><strong>Suivi & activités</strong><small>Participation, exercices, notes</small></button>'+
+   '<button type="button" id="open-remises"><span class="px-pro-action-icon">📥</span><strong>Copies à corriger</strong><small>Valider les devoirs reçus</small></button>'+
+   '<button type="button" id="open-qcm"><span class="px-pro-action-icon">✅</span><strong>QCM & Gemini</strong><small>19 questions par chapitre</small></button>'+
+   '<button type="button" id="open-wheel"><span class="px-pro-action-icon">🎯</span><strong>Élève au hasard</strong><small>Interroger en classe</small></button>'+
+   '<button type="button" id="open-dashboard"><span class="px-pro-action-icon">📊</span><strong>Statistiques</strong><small>Résultats et progression</small></button>'+
+   '<button type="button" id="open-pedagogy"><span class="px-pro-action-icon">📆</span><strong>Travail & annonces</strong><small>Consignes pour les groupes</small></button></div>'+
+   '<details class="px-simple-secondary"><summary>Autres outils pédagogiques</summary><div class="overview-home-shortcuts"><button type="button" id="open-portraits">📸 Trombinoscope</button><button type="button" id="open-ai">📝 Exercices à remettre</button></div></details>'+ 
+   '<section class="px-pro-groups"><div><h3>Mes groupes</h3><p>Choisissez rapidement la classe pour votre prochain document.</p></div>'+
+   '<div class="px-pro-group-chips">'+
+   activeClasses.map(c=>'<button type="button" data-class-focus="'+esc(c.code)+'">'+esc(c.code)+'</button>').join("")+
+   '</div>'+(docGroups.length>1?'<p class="px-pro-tip">Un même PDF peut être attribué à G1, G2 et G3 en une seule fois.</p>':"")+'</section>'+
+   '<div class="px-pro-section-heading" id="px-pro-doc-heading"><div><h3>Bibliothèque pédagogique</h3><p>Importer un cours, une série ou un devoir</p></div></div>'+
+   '</div>';
   if(typeof window.physixQuickPdfRender==="function"){
     window.physixQuickPdfRender(root,{rows,session,rest,refresh,esc,opt,alertText});
     window.physixStudentAdminRender?.(root,{rows,session,rest,refresh,esc,opt,alertText});
     root.querySelector("[data-class-manager]")?.addEventListener("click",()=>{tab="classes";render()});
+    root.querySelectorAll("[data-class-focus]").forEach(button=>button.addEventListener("click",()=>{
+      const select=root.querySelector("#simple-class");
+      if(!select)return;
+      select.value=button.dataset.classFocus;
+      select.dispatchEvent(new Event("change",{bubbles:true}));
+      root.querySelector("#quick-pdf-section")?.scrollIntoView({behavior:"smooth",block:"start"});
+    }));
     root.querySelector("#open-tracking")?.addEventListener("click",()=>{tab="tracking";render()});
     root.querySelector("#open-pedagogy")?.addEventListener("click",()=>{tab="pedagogy";render()});
     root.querySelector("#open-dashboard")?.addEventListener("click",()=>{tab="dashboard";render()});

@@ -53,4 +53,19 @@ sql_classes=(root/"supabase/migrations/20261106000200_physix_resource_target_cla
 assert "add column if not exists target_classes" in sql_classes
 assert "physix_resources_target_classes_allowed" in sql_classes
 assert "aucun accès" in sql_classes.lower() or "aucun droit" in sql_classes.lower()
+simple=(root/"assets/admin-simple.js").read_text(encoding="utf-8")
+class_ui=(root/"assets/admin-classes.js").read_text(encoding="utf-8")
+assert 'src="/assets/admin-simple.js"' in html and 'src="/assets/admin-classes.js"' in html
+for required in ['Pour quelle classe ?', 'Quel type de document ?', 'Choisir votre PDF', 'Devoir surveillé', 'MAX_BYTES=50*1024*1024','target_classes:[classroom.code]', 'data-class-manager','Documents généraux']:
+    assert required in simple, f"Interface simplifiée manquante : {required}"
+for required in ['physixClassRender','Ajouter la classe','Retirer cette classe','Réactiver','rest("classes"']:
+    assert required in class_ui, f"Gestion de classes manquante : {required}"
+assert 'classes:"physix_classes"' in source
+assert 'classes=classes' not in source or 'physix_classes' in source
+dynamic_sql=(root/"supabase/migrations/20261106000300_physix_dynamic_classes_and_pdf_50mb.sql").read_text(encoding="utf-8")
+for required in ["create table if not exists public.physix_classes", "enable row level security", "physix_classes_owner",
+                 "physix_validate_resource_classes","file_size between 1 and 52428800"]:
+    assert required in dynamic_sql
+kind_sql=(root/"supabase/migrations/20261106000400_physix_document_devoir_kind.sql").read_text(encoding="utf-8")
+assert "Devoir surveillé" in kind_sql
 print("OK — CRUD propriétaire et import PDF direct contrôlés statiquement.")

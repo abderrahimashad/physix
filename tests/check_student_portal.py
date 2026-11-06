@@ -23,9 +23,8 @@ for required in ['physix_student_access','physix_student_publications','physix_s
     assert required in migration,required
 assert 'from anon,authenticated' in migration
 assert "public,anon" in migration
-for required in ['physix_student_access','physix_student_publications','data-publish','data-access',
-                 'student_storage', 'downloadPdf','50 Mo','confir']:
-    if required=='student_storage':continue
+for required in ['physix_student_', 'api("access"', 'api("publications"', 'data-publish',
+                 'data-access','downloadPdf','50 Mo','confirm(']:
     assert required in teacher,required
 for forbidden in ['service_role','sb_secret_','client_secret','localStorage']:
     assert forbidden not in teacher,forbidden

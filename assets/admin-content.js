@@ -13,7 +13,7 @@ const opt=(values,chosen)=>values.map(x=>{const [value,label]=Array.isArray(x)?x
 const field=(title,name,value="",type="text")=>'<label>'+esc(title)+'<input name="'+esc(name)+'" type="'+type+'" value="'+esc(value)+'" required'+(type==="text"?' maxlength="160"':"")+'></label>';
 const select=(title,name,values,chosen)=>'<label>'+esc(title)+'<select name="'+esc(name)+'" required>'+opt(values,chosen)+'</select></label>';
 const alertText=(message,error=false)=>{const target=document.getElementById("content-message");if(!target)return;target.textContent=message;target.className="content-note"+(error?" bad":"");};
-let session=null,rows={chapters:[],resources:[],devoirs:[],files:[]},tab="chapters",editing=null,busy=false;
+let session=null,rows={chapters:[],resources:[],devoirs:[],files:[]},tab="documents",editing=null,busy=false;
 async function rest(table,query="",method="GET",body){
  if(!session)throw Error("Session terminée. Reconnectez-vous.");
  const resp=await fetch(API+MAP[table]+query,{
@@ -66,8 +66,19 @@ function rowMarkup(x){
 function render(){
  const root=document.getElementById("content-root");if(!root||!session)return;
  root.hidden=false;
- const labels={chapters:"Chapitres",resources:"Ressources",devoirs:"Devoirs surveillés"};
+ const labels={documents:"📄 Ajouter un PDF",chapters:"Chapitres",resources:"Ressources",devoirs:"Devoirs surveillés"};
  const nav=Object.keys(labels).map(t=>'<button type="button" data-tab="'+t+'" class="'+(t===tab?"selected":"")+'">'+labels[t]+'</button>').join("");
+ if(tab==="documents"){
+  root.innerHTML='<div class="content-head"><div><h2>Ajouter un document PDF</h2><p>Choisissez le chapitre, le type de document et le PDF. Un seul bouton pour tout enregistrer, sans créer une ressource avant.</p></div><button type="button" id="owner-logout">Déconnexion</button></div>'+
+  '<nav class="content-tabs" aria-label="Modules">'+nav+'</nav>'+
+  '<div id="content-message" class="content-note" role="status" aria-live="polite"></div>';
+  root.querySelectorAll("[data-tab]").forEach(b=>b.addEventListener("click",()=>{tab=b.dataset.tab;editing=null;render()}));
+  root.querySelector("#owner-logout").addEventListener("click",()=>location.reload());
+  if(typeof window.physixQuickPdfRender==="function"){
+    window.physixQuickPdfRender(root,{rows,session,rest,refresh,esc,opt,alertText});
+  }else alertText("Le module PDF est indisponible. Rechargez la page.",true);
+  return;
+ }
  const disabled=tab==="resources"&&rows.chapters.length===0;
  root.innerHTML='<div class="content-head"><div><h2>Gestion pédagogique sécurisée</h2><p>Fiches enregistrées dans Supabase. PDF conservés dans un espace privé, accessibles seulement au propriétaire.</p></div><button type="button" id="owner-logout">Déconnexion</button></div>'+
  '<nav class="content-tabs" aria-label="Modules">'+nav+'</nav>'+
@@ -137,7 +148,7 @@ async function remove(id){
 }
 window.physixAdminStart=async function(token,ownerId){
  if(!token||!ownerId)throw Error("Identité du propriétaire manquante.");
- session={token,ownerId};editing=null;tab="chapters";
+ session={token,ownerId};editing=null;tab="documents";
  const login=document.getElementById("owner-form");
  const root=document.getElementById("content-root");
  const status=document.getElementById("auth-message");

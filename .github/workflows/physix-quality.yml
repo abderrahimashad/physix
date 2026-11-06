@@ -58,5 +58,9 @@ jobs:
           node --check assets/admin-tracking.js
       - name: Check secure pupil onboarding and published classroom content
         run: python3 tests/check_pupil_onboarding.py
+      - name: Check teacher-only overview JavaScript syntax
+        run: node --check assets/admin-overview.js
+      - name: Check owner-only dashboard and trombinoscope
+        run: python3 tests/check_owner_overview.py
       - name: Check repository for accidental live credentials
         run: python3 tests/check_no_secrets.py

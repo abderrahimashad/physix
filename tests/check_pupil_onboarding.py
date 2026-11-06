@@ -27,7 +27,7 @@ assert "from public.physix_activity_grades" not in m2.lower()
 assert "private.physix_is_owner" in m1
 for term in ("physix_pupil_links","physix_pupil_objectives","physix_class_announcements","physix_class_work"):
     assert term in m0
-for term in ("signup-channel","verify-otp","activation-form","photo-form","login-password","change-photo"):
+for term in ("signup-activation-code","signup-channel","verify-otp","activation-form","photo-form","login-password","change-photo"):
     assert 'id="'+term+'"' in html,term
 for term in ("grant_type=password","auth/v1/otp","auth/v1/verify",
              "auth/v1/user","physix_activate_pupil","physix-avatars",

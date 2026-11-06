@@ -38,7 +38,7 @@ async function loadLibrary(){
 }
 function draw(){
  window.physixStudentExtras?.render({profiles:myProgress,board:classBoard,activeClass,escape});
- window.physixStudentAi?.render({token,activeClass});
+ window.physixStudentRemises?.render({token,activeClass});
  const collection=items.filter(x=>x.class_code===activeClass&&(tab==="devoir" ? x.category==="Devoir surveillé" : x.category!=="Devoir surveillé"));
  const groups=new Map();
  for(const x of collection){
@@ -150,7 +150,7 @@ el("photo-form").onsubmit=e=>submit(e,async form=>{
 });
 el("logout").addEventListener("click",async()=>{
  const old=token;token=null;userId="";items=[];myProgress=[];classBoard=[];email="";
- window.physixStudentAi?.clear();
+ window.physixStudentRemises?.clear();
  screen("login");notice("Déconnecté. Vous pouvez vous reconnecter.");
  if(old)fetch(BASE+"/auth/v1/logout",{method:"POST",headers:{"apikey":KEY,Authorization:"Bearer "+old}}).catch(()=>{});
 });

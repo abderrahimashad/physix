@@ -6,6 +6,7 @@ files=lambda path:(root/path).read_text(encoding="utf-8")
 sql=files("supabase/migrations/20261106001800_physix_ai_photo_submissions_reviewed_activity.sql")
 multi=files("supabase/migrations/20261106001900_physix_manual_exercise_multi_photos.sql")
 notifications=files("supabase/migrations/20261106002000_physix_manual_copies_owner_notifications.sql")
+no_reuse=files("supabase/migrations/20261106002100_physix_reject_reused_photos_across_exercises.sql")
 edge=files("supabase/functions/physix-ai-submission/index.ts")
 student=files("assets/eleve-remises.js")
 teacher=files("assets/admin-remises.js")
@@ -34,6 +35,8 @@ for token in ("physix_ai_upload_context","member.auth.getUser(jwt)","getAll(\"ph
     "owner_id:owner","pupil_id:pupil","sha256:p.hash"):
     assert token in edge,token
 assert "OPENAI_API_KEY" not in edge and "GEMINI_API_KEY" not in edge
+assert "unique(owner_id,sha256)" in no_reuse
+assert '.select("id").eq("owner_id",owner)' in edge
 assert "createClient(BASE,secret()" in edge and "user.user.id" in edge
 for token in ("multiple required","new FormData()","payload.append(\"photos\"",
     "physix_ai_my_submission_status","En attente de validation","physix-ai-submission"):

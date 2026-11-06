@@ -18,18 +18,19 @@ window.physixAiRemisesTeacher=(root,{rows,session,rest})=>{
  root.append(section);
  const q=s=>section.querySelector(s);
  const message=(text,error=false)=>{q("#copies-status").textContent=text;q("#copies-status").classList.toggle("bad",error)};
- let classCode=classes[0]?.code||"",state="pending",copies=[],pupils=[],exercises=[],busy=false;
+ let classCode=classes[0]?.code||"",state="pending",copies=[],pages=[],pupils=[],exercises=[],busy=false;
  const pictures=new Map();
  const clear=()=>{for(const url of pictures.values())URL.revokeObjectURL(url);pictures.clear()};
  async function load(){
   clear();message("Chargement des copies privées…");
   try{
-   const [e,p,s]=await Promise.all([
+   const [e,p,s,photoPages]=await Promise.all([
     rest("ai_exercises","?select=id,title,class_code,semester&class_code=eq."+encodeURIComponent(classCode)+"&limit=300"),
     rest("pupils","?select=id,full_name&class_code=eq."+encodeURIComponent(classCode)+"&limit=500"),
-    rest("ai_submissions","?select=id,owner_id,exercise_id,pupil_id,mime_type,review_status,teacher_feedback,created_at&order=created_at.desc&limit=1000")
+    rest("ai_submissions","?select=id,owner_id,exercise_id,pupil_id,mime_type,review_status,teacher_feedback,created_at&order=created_at.desc&limit=1000"),
+    rest("submission_pages","?select=id,submission_id,page_number&order=page_number.asc&limit=3000")
    ]);
-   exercises=e;pupils=p;const ids=new Set(exercises.map(x=>x.id));
+   exercises=e;pupils=p;pages=photoPages;const ids=new Set(exercises.map(x=>x.id));
    copies=s.filter(x=>ids.has(x.exercise_id));draw();
    message(copies.length+" copie(s) trouvée(s).");
   }catch(err){message(err.message,true)}
@@ -41,8 +42,8 @@ window.physixAiRemisesTeacher=(root,{rows,session,rest})=>{
    return '<article class="ai-exercise"><div><strong>'+esc(pupil?.full_name||"Élève")+'</strong>'+
     '<small>'+esc(exercise?.title||"Exercice")+' · '+new Date(x.created_at).toLocaleDateString("fr-FR")+
     ' · '+esc(x.review_status)+'</small>'+
-    '<div class="copy-preview" data-preview="'+esc(x.id)+'">Photo non ouverte</div>'+
-    '<button type="button" data-open-copy="'+esc(x.id)+'">Voir la photo privée</button>'+
+    '<div class="copy-preview" data-preview="'+esc(x.id)+'">Photos non ouvertes</div>'+
+    '<button type="button" data-open-copy="'+esc(x.id)+'">Voir les photos privées</button>'+
     (x.teacher_feedback?'<p>'+esc(x.teacher_feedback)+'</p>':"")+'</div>'+
     (x.review_status==="pending"?'<div class="ai-actions">'+
      '<button data-review="'+esc(x.id)+'" data-accept="true">✅ Valider (+1 exercice)</button>'+
@@ -54,17 +55,24 @@ window.physixAiRemisesTeacher=(root,{rows,session,rest})=>{
  async function openPhoto(b){
   const id=b.dataset.openCopy;if(!copies.some(c=>c.id===id))return;
   const box=q('[data-preview="'+id+'"]');if(!box)return;
-  if(pictures.has(id)){box.innerHTML='<img alt="Copie privée de l’élève" src="'+esc(pictures.get(id))+'">';return}
+  const photos=pages.filter(p=>p.submission_id===id).sort((a,b)=>a.page_number-b.page_number);
+  if(!photos.length)return message("Aucune photo trouvée pour cette copie.",true);
   b.disabled=true;
   try{
-   const response=await fetch(BASE+"/functions/v1/physix-ai-submission?id="+encodeURIComponent(id),{
-    headers:{apikey:KEY,Authorization:"Bearer "+session.token},cache:"no-store",referrerPolicy:"no-referrer"});
-   if(!response.ok)throw Error("Photo inaccessible ("+response.status+").");
-   const blob=await response.blob();
-   if(blob.size>5242880||!["image/jpeg","image/png","image/webp"].includes(blob.type))
-    throw Error("Format de photo non reconnu.");
-   const url=URL.createObjectURL(blob);pictures.set(id,url);
-   box.innerHTML='<img alt="Copie privée de l’élève" src="'+esc(url)+'">';
+   const urls=[];
+   for(const page of photos){
+    if(!pictures.has(page.id)){
+     const response=await fetch(BASE+"/functions/v1/physix-ai-submission?page_id="+encodeURIComponent(page.id),{
+      headers:{apikey:KEY,Authorization:"Bearer "+session.token},cache:"no-store",referrerPolicy:"no-referrer"});
+     if(!response.ok)throw Error("Photo inaccessible ("+response.status+").");
+     const blob=await response.blob();
+     if(blob.size>5242880||!["image/jpeg","image/png","image/webp"].includes(blob.type))
+      throw Error("Format de photo non reconnu.");
+     pictures.set(page.id,URL.createObjectURL(blob));
+    }
+    urls.push(pictures.get(page.id));
+   }
+   box.innerHTML=urls.map((url,i)=>'<figure><img alt="Page '+(i+1)+' de la copie privée" src="'+esc(url)+'"><figcaption>Page '+(i+1)+'</figcaption></figure>').join("");
   }catch(e){message(e.message,true)}
   finally{b.disabled=false}
  }

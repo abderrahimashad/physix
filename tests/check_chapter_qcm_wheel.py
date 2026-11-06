@@ -33,11 +33,11 @@ for required in ("crypto.getRandomValues","secureIndex","wheel-norepeat","wheel-
 for required in ("rest(\"chapter_qcm\"","chapter_id","class_code","correct_option",
                 "published:false","chapter_qcm_attempts","data-publish","data-delete"):
     assert required in teacher,required
-for required in ("physix_student_chapter_qcm","physix_student_answer_qcm",
-                 "p_selected","p_question","item.answered",
-                 "chapter_title","options","is_correct"):
+for required in ("physix_student_chapter_qcm","physix_student_submit_chapter_qcm",
+                 "physix_student_review_chapter_qcm","p_answers","p_chapter",
+                 "chapter_title","options","is_correct","correct_option","student-qcm-final"):
     assert required in student,required
-for forbidden in ("correct_option","teacher_correction","service_role","sb_secret_",
+for forbidden in ("teacher_correction","service_role","sb_secret_",
                   "localStorage","sessionStorage"):
     assert forbidden not in student,forbidden
 assert "window.physixClassWheel?.(" in main

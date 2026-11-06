@@ -211,8 +211,22 @@ window.physixQuickPdfRender=(root,{rows,session,rest,refresh,esc,opt,alertText})
      filename:file.name.slice(0,200),mime_type:"application/pdf",file_size:file.size});
    if(!Array.isArray(meta)||meta.length!==1)throw Error("Le stockage a réussi mais la fiche PDF n'est pas enregistrée.");
    createdFile=true;
+   let qcmSummary="";
+   if(!isDevoir&&["Cours","Résumé"].includes(kind)&&typeof window.physixQcmGenerateFromPdf==="function"){
+    try{
+     const generated=await window.physixQcmGenerateFromPdf({
+      file,chapterId:chapter.id,classCode:classroom.code,session,onStatus:note
+     });
+     qcmSummary=generated.created===19?
+      " ✅ Gemini a préparé 15 questions de cours et 4 exercices d’application en brouillon. Vérifiez-les dans QCM par chapitre.":
+      " ℹ️ "+(generated.message||"Un QCM existe déjà pour ce chapitre.");
+    }catch(qcmError){
+     qcmSummary=" ⚠️ QCM non généré : "+qcmError.message+
+      " Le PDF est bien sauvegardé, vous pourrez réessayer après configuration de Gemini.";
+    }
+   }
    await refresh();
-   alertText("PDF enregistré : "+classroom.code+" · "+(isDevoir?"Devoir surveillé / Semestre "+semestre:chapter.title+" / "+kind)+".");
+   alertText("PDF enregistré : "+classroom.code+" · "+(isDevoir?"Devoir surveillé / Semestre "+semestre:chapter.title+" / "+kind)+"."+qcmSummary);
   }catch(error){
    if(createdFile)note("Le PDF est enregistré, mais la page n'a pas pu s'actualiser. Reconnectez-vous pour le retrouver.",true);
    else{

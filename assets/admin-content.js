@@ -75,6 +75,7 @@ function render(){
   '<div id="content-message" class="content-note" role="status" aria-live="polite" hidden></div>';
   if(typeof window.physixQuickPdfRender==="function"){
     window.physixQuickPdfRender(root,{rows,session,rest,refresh,esc,opt,alertText});
+    root.querySelector("[data-class-manager]")?.addEventListener("click",()=>{tab="classes";render()});
   }else alertText("Le module PDF est indisponible. Rechargez la page.",true);
   const menu=document.createElement("details");
   menu.className="quick-advanced-menu";

@@ -14,7 +14,7 @@ review=get("supabase/migrations/20261106002600_physix_qcm_review_only_after_fini
 class_guard=get("supabase/migrations/20261106002700_physix_qcm_chapter_class_consistency.sql")
 freeze=get("supabase/migrations/20261106002900_physix_qcm_started_trigger_safe_insert_delete.sql")
 ci=get(".github/workflows/physix-quality.yml")
-for s in ("GEMINI_API_KEY","const MODEL=\"gemini-2.5-flash\"",
+for s in ("GEMINI_API_KEY","const MODEL=\"gemini-3-flash-preview\"",
  "pdf instanceof File","application/pdf","generateContent","responseMimeType:\"application/json\"",
  "questions.length!==19","i<15?\"cours\":\"application\"","question_type:expected",
  "published:false","physix_qcm_claim_generation","client.auth.getUser(jwt)",

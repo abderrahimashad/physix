@@ -29,7 +29,9 @@ assert 'teacher_correction' in teacher and 'published:false' in teacher
 assert 'ai_exercises:"physix_ai_exercises"' in owner
 assert 'id="open-ai"' in owner
 assert 'src="/assets/admin-ai.js"' in admin_html
-assert 'src="/assets/eleve-ai.js"' in student_html
+# The old paid AI interface stays unmounted; manual submissions replace it.
+assert 'src="/assets/eleve-ai.js"' not in student_html
+assert 'src="/assets/eleve-remises.js"' in student_html
 assert "node --check assets/admin-ai.js" in workflow
 assert "node --check assets/eleve-ai.js" in workflow
 assert "python3 tests/check_ai_tutor.py" in workflow

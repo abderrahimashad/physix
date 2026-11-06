@@ -1,12 +1,12 @@
-/* Teacher: compose physics and chemistry exercises. Full correction remains owner-only. */
+/* Teacher: publish physics exercises for manual photo submissions; no paid AI. */
 (()=>{
 "use strict";
 const esc=s=>String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
 window.physixAiTeacherRender=(root,{rows,session,rest})=>{
  const el=document.createElement("section");el.className="content-section ai-teacher";
  const classes=(rows.classes||[]).filter(c=>c.active);
- el.innerHTML='<div class="ai-head"><h3>🤖 Assistant IA — Exercices corrigés</h3><p>'+
- 'Saisissez l’énoncé et votre correction de référence. La correction intégrale est privée et n’est jamais téléchargée par l’élève. L’IA guide, explique, et compare une proposition de réponse avec votre corrigé sans attribuer une note officielle.</p></div>'+
+ el.innerHTML='<div class="ai-head"><h3>📝 Exercices à remettre</h3><p>'+
+ 'Publiez un énoncé par classe et semestre. Les élèves remettent 1 à 4 photos de leur solution. Vous validez chaque copie avant qu’elle soit comptée dans le Suivi.</p></div>'+
  '<div class="ai-toolbar"><label>Classe<select id="ai-class">'+classes.map(c=>
  '<option value="'+esc(c.code)+'">'+esc(c.code)+'</option>').join("")+'</select></label>'+
  '<label>Semestre<select id="ai-sem"><option value="1">Semestre 1</option><option value="2">Semestre 2</option></select></label></div>'+
@@ -16,10 +16,10 @@ window.physixAiTeacherRender=(root,{rows,session,rest})=>{
  '<label>Matière<select name="subject"><option>Physique</option><option>Chimie</option></select></label>'+
  '<label>Chapitre<input name="chapter" maxlength="160" placeholder="Ondes, électricité, chimie…"></label>'+
  '<label>Énoncé complet<textarea name="statement" minlength="20" maxlength="12000" rows="7" required placeholder="Écrivez ici le texte de l’énoncé et les données numériques, unités et questions."></textarea></label>'+
- '<label>Votre corrigé de référence — privé<textarea name="teacher_correction" minlength="10" maxlength="12000" rows="9" required placeholder="Décrivez le raisonnement, les équations, les valeurs numériques, les unités et les étapes attendues."></textarea></label>'+
- '<label>Indications pédagogiques facultatives<textarea name="teacher_guidance" maxlength="1200" rows="2" placeholder="Erreurs fréquentes, méthodes souhaitées…"></textarea></label>'+
+ '<label>Corrigé facultatif — privé<textarea name="teacher_correction" maxlength="12000" rows="5" placeholder="Facultatif, uniquement pour le professeur."></textarea></label>'+
+ ''+
  '<button type="submit">Enregistrer comme brouillon privé</button></form>'+
- '<p class="ai-help">Les PDF ne sont pas extraits automatiquement dans cette première version : copiez l’énoncé et le corrigé en texte pour une comparaison fiable.</p></details>'+
+ '<p class="ai-help">Publiez un énoncé texte. La correction reste privée et facultative. Aucune IA payante n’est appelée.</p></details>'+
  '<h4>Exercices de la classe</h4><div id="ai-list"></div>';
  root.append(el);
  const q=s=>el.querySelector(s),notice=(text,bad=false)=>{q("#ai-status").textContent=text;q("#ai-status").classList.toggle("bad",bad)};
@@ -36,7 +36,7 @@ window.physixAiTeacherRender=(root,{rows,session,rest})=>{
   '<div><strong>'+esc(x.title)+'</strong><small>'+esc(x.subject)+' · '+esc(x.chapter||"Sans chapitre")+
   ' · '+(x.published?"✅ Accessible aux élèves":"🔒 Brouillon")+'</small>'+
   '<details><summary>Voir l’énoncé et le corrigé privé</summary><p>'+esc(x.statement)+'</p>'+
-  '<h5>Corrigé professeur</h5><p>'+esc(x.teacher_correction)+'</p></details></div>'+
+  '<h5>Corrigé professeur (facultatif)</h5><p>'+esc(x.teacher_correction||"Non fourni")+'</p></details></div>'+
   '<div class="ai-actions"><button type="button" data-publish="'+esc(x.id)+'">'+(x.published?"Masquer":"Publier")+'</button>'+
   '<button type="button" data-delete="'+esc(x.id)+'" class="danger">Supprimer</button></div></article>').join(""):
   '<p class="ai-help">Aucun exercice. Ajoutez le premier énoncé et son corrigé.</p>';
@@ -71,7 +71,7 @@ window.physixAiTeacherRender=(root,{rows,session,rest})=>{
    const result=await rest("ai_exercises","","POST",{owner_id:session.ownerId,
      class_code:classCode,semester,subject:v.subject,title:v.title.trim(),chapter:v.chapter.trim(),
      statement:v.statement.trim(),teacher_correction:v.teacher_correction.trim(),
-     teacher_guidance:v.teacher_guidance.trim(),published:false});
+     teacher_guidance:'',published:false});
    if(!Array.isArray(result)||result.length!==1)throw Error("Enregistrement non confirmé.");
    f.reset();notice("Exercice enregistré en brouillon privé.");
   });

@@ -68,5 +68,12 @@ jobs:
           node --check assets/eleve-ai.js
       - name: Check reference correction privacy and AI quotas
         run: python3 tests/check_ai_tutor.py
+      - name: Check manual homework and owner notifications JavaScript
+        run: |
+          node --check assets/eleve-remises.js
+          node --check assets/admin-remises.js
+          node --check assets/admin-notifications.js
+      - name: Check private teacher-validated student submissions
+        run: python3 tests/check_manual_submissions.py
       - name: Check repository for accidental live credentials
         run: python3 tests/check_no_secrets.py

@@ -56,7 +56,11 @@ window.physixStudentAdminRender=async(root,{rows,session,rest,refresh})=>{
    '<p>Aucune adresse autorisée.</p>';
   $("#student-docs-list").innerHTML=rows.files.length?rows.files.map(f=>{
    const d=label(f);if(!d.classCodes.length)return "";
-   return d.classCodes.map(code=>{
+   const allPublished=d.classCodes.every(code=>publications.some(p=>p.file_id===f.id&&p.class_code===code&&p.enabled));
+   const batchButton=d.classCodes.length>1&&!allPublished?
+    '<div class="student-admin-entry"><span><b>'+safe(d.title)+'</b><small>'+safe(d.classCodes.join(" · "))+'</small></span>'+
+    '<button type="button" class="student-publish-all" data-publish-all="'+safe(f.id)+'">Publier aux '+d.classCodes.length+' classes</button></div>':"";
+   return batchButton+d.classCodes.map(code=>{
     const pub=publications.find(x=>x.file_id===f.id&&x.class_code===code);
     return '<div class="student-admin-entry"><span><b>'+safe(d.title)+'</b><small>'+
       safe(code)+' · '+safe(d.kind)+' · '+safe(f.filename)+(d.devoir?" · Semestre "+d.devoir.semester:"")+
@@ -75,52 +79,80 @@ window.physixStudentAdminRender=async(root,{rows,session,rest,refresh})=>{
     status(next?"Adresse réactivée.":"Accès révoqué.");await reload()}
    catch(e){status(e.message,true)}finally{pending=false;b.disabled=false}
   }));
+  async function publishForClass(f,code){
+   const info=label(f);
+   if(!info.classCodes.includes(code))throw Error("Classe du document invalide.");
+   const existing=publications.find(x=>x.file_id===f.id&&x.class_code===code);
+   if(existing?.enabled)return false;
+   if(info.devoir){
+    if(f.file_role==="correction"&&info.devoir.correction_state!=="authorized")
+     throw Error("Autorisez d'abord la correction du devoir.");
+    if(info.devoir.state!=="published")
+     await rest("devoirs","?id=eq."+encodeURIComponent(info.devoir.id),"PATCH",{state:"published"});
+   }else{
+    if(info.chapter?.state!=="published")
+     await rest("chapters","?id=eq."+encodeURIComponent(info.chapter.id),"PATCH",{state:"published"});
+    if(info.resource?.state!=="published")
+     await rest("resources","?id=eq."+encodeURIComponent(info.resource.id),"PATCH",{state:"published"});
+   }
+   let path=f.storage_path;
+   if(f.storage_provider==="google_drive"&&!existing){
+    if(f.file_size>MAX)throw Error("Ce PDF dépasse la limite privée de publication de 50 Mo.");
+    const drive=window.physixDrive;
+    if(!drive?.isConnected())throw Error("Connectez Google Drive pour publier ce PDF.");
+    status("Copie privée Google Drive en cours pour "+code+"…");
+    const blob=await drive.downloadPdf(f.drive_file_id,code);
+    path=session.ownerId+"/"+(f.resource_id?"resource/"+f.resource_id:"devoir/"+f.devoir_id)+
+     "/"+crypto.randomUUID()+".pdf";
+    await request(session,"/storage/v1/object/"+FILE_BUCKET+"/"+enc(path),{method:"POST",file:blob});
+    try{await api("publications","?select=*",{method:"POST",body:{
+     owner_id:session.ownerId,file_id:f.id,class_code:code,storage_path:path,enabled:true
+    }})}catch(err){
+     await request(session,"/storage/v1/object/"+FILE_BUCKET+"/"+enc(path),{method:"DELETE"}).catch(()=>{});
+     throw err;
+    }
+   }else if(existing){
+    await api("publications","?id=eq."+encodeURIComponent(existing.id),{method:"PATCH",body:{enabled:true}});
+   }else{
+    await api("publications","?select=*",{method:"POST",body:{
+     owner_id:session.ownerId,file_id:f.id,class_code:code,storage_path:path,enabled:true
+    }});
+   }
+   return true;
+  }
   section.querySelectorAll("[data-publish]").forEach(b=>b.addEventListener("click",async()=>{
    if(pending)return;
    const f=rows.files.find(x=>x.id===b.dataset.publish),code=b.dataset.code;
    if(!f)return;
-   const info=label(f);
-   if(!info.classCodes.includes(code))return status("Classe du document invalide.",true);
    const existing=publications.find(x=>x.file_id===f.id&&x.class_code===code);
    const show=!existing?.enabled;
-   if(!confirm(show?"Publier ce PDF pour les élèves autorisés de "+code+" ?":"Masquer ce PDF aux élèves de "+code+" ?"))return;
+   if(!confirm(show?"Publier ce PDF pour "+code+" ?":"Masquer ce PDF aux élèves de "+code+" ?"))return;
    pending=true;b.disabled=true;
    try{
-    if(!show){await api("publications","?id=eq."+encodeURIComponent(existing.id),{method:"PATCH",body:{enabled:false}});
-     status("PDF masqué. Les élèves ne peuvent plus le télécharger.");await reload();return}
-    if(info.devoir){
-     if(f.file_role==="correction"&&info.devoir.correction_state!=="authorized")
-      throw Error("Autorisez d'abord la correction du devoir dans Gestion avancée.");
-     if(info.devoir.state!=="published")await rest("devoirs","?id=eq."+encodeURIComponent(info.devoir.id),"PATCH",{state:"published"});
-    }else{
-     if(info.chapter?.state!=="published")await rest("chapters","?id=eq."+encodeURIComponent(info.chapter.id),"PATCH",{state:"published"});
-     if(info.resource?.state!=="published")await rest("resources","?id=eq."+encodeURIComponent(info.resource.id),"PATCH",{state:"published"});
-    }
-    let path=f.storage_path;
-    if(f.storage_provider==="google_drive"&&!existing){
-     if(f.file_size>MAX)throw Error("Ce PDF dépasse 50 Mo. La publication privée aux élèves est limitée à 50 Mo par fichier.");
-     const drive=window.physixDrive;
-     if(!drive?.isConnected())throw Error("Connectez Google Drive avant de publier ce fichier.");
-     status("Copie privée Google Drive → espace élèves en cours…");
-     const blob=await drive.downloadPdf(f.drive_file_id,code);
-     path=session.ownerId+"/"+(f.resource_id?"resource/"+f.resource_id:"devoir/"+f.devoir_id)+
-      "/"+crypto.randomUUID()+".pdf";
-     await request(session,"/storage/v1/object/"+FILE_BUCKET+"/"+enc(path),{method:"POST",file:blob});
-     try{await api("publications","?select=*",{method:"POST",body:{owner_id:session.ownerId,
-       file_id:f.id,class_code:code,storage_path:path,enabled:true}})}
-     catch(err){
-      await request(session,"/storage/v1/object/"+FILE_BUCKET+"/"+enc(path),{method:"DELETE"}).catch(()=>{});
-      throw err;
-     }
-    }else if(existing){
-     await api("publications","?id=eq."+encodeURIComponent(existing.id),{method:"PATCH",body:{enabled:true}});
-    }else{
-     await api("publications","?select=*",{method:"POST",body:{owner_id:session.ownerId,
-      file_id:f.id,class_code:code,storage_path:path,enabled:true}});
-    }
-    status("Document publié uniquement pour les élèves autorisés de "+code+".");
+    if(show)await publishForClass(f,code);
+    else await api("publications","?id=eq."+encodeURIComponent(existing.id),{
+     method:"PATCH",body:{enabled:false}});
+    status(show?"PDF publié pour "+code+".":"PDF masqué pour "+code+".");
     await refresh();
    }catch(e){status(e.message,true);await reload().catch(()=>{})}
+   finally{pending=false;b.disabled=false}
+  }));
+  section.querySelectorAll("[data-publish-all]").forEach(b=>b.addEventListener("click",async()=>{
+   if(pending)return;
+   const f=rows.files.find(x=>x.id===b.dataset.publishAll);
+   if(!f)return;
+   const classes=label(f).classCodes;
+   if(!confirm("Publier ce même PDF pour "+classes.join(", ")+" ?"))return;
+   pending=true;b.disabled=true;let count=0,failed="";
+   try{
+    for(const code of classes){
+     try{if(await publishForClass(f,code))count++}
+     catch(error){failed=code+" : "+error.message;break}
+    }
+    status(failed?"Publication partielle ("+count+" classe(s)). "+failed:
+     "PDF publié pour "+classes.join(", ")+".",!!failed);
+    await refresh();
+   }catch(error){status(error.message,true);await reload().catch(()=>{})}
    finally{pending=false;b.disabled=false}
   }));
  }

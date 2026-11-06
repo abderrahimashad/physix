@@ -13,7 +13,7 @@ for required in ['id="login-panel"','id="library-panel"','id="class-filter"','id
     assert required in html, required
 for required in ['auth/v1/otp','auth/v1/user','auth/v1/verify','physix_my_student_library',
                  '/storage/v1/object/authenticated/physix-private/','access_token','history.replaceState',
-                 'Bearer '+ '"+"+token', 'no-store']:
+                 'Bearer "+token', 'no-store']:
     assert required in student,required
 for forbidden in ['service_role','sb_secret_','client_secret','localStorage','sessionStorage','/object/public/']:
     assert forbidden not in student,forbidden

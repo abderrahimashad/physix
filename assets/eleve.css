@@ -31,3 +31,5 @@
 #verify-confirm{margin-top:20px;border-top:1px solid #dbe8f8;padding-top:10px}
 input[type=file]{cursor:pointer;padding:13px}
 #signup-channel{display:block;width:100%;margin-top:6px;padding:14px;border:1px solid #bcd0ef;border-radius:12px;background:#f9fbff}
+
+.photo-edit-btn{align-self:end;border:1px solid #c6d9f5;background:#eef5ff;color:#1a56a7;padding:12px 15px;border-radius:12px;font-weight:750}

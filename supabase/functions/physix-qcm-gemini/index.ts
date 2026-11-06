@@ -110,6 +110,43 @@ Deno.serve(async(req:Request)=>{
   return fail(422,"Gemini a produit "+cours.length+" questions de cours et "+applications.length+
    " applications au lieu de 15 et 4. Aucun brouillon créé.");
  const ordered=[...cours,...applications];
+ // Gemini sometimes repeats a distractor. Repair only that option via a second,
+ // bounded Gemini request; never silently accept duplicated or ambiguous answers.
+ for(let i=0;i<ordered.length;i++){
+  const item=ordered[i];
+  if(!Array.isArray(item.options)||item.options.length!==4||!item.options.every((x:unknown)=>typeof x==="string"))continue;
+  const normalized=(v:string)=>v.trim().toLocaleLowerCase("fr").replace(/\\s+/g," ");
+  if(new Set(item.options.map(normalized)).size===4)continue;
+  const repairPrompt="Corrige UNIQUEMENT les propositions de ce QCM de physique-chimie en conservant l'énoncé, "+
+   "la bonne réponse à la même position et son explication. Les quatre propositions doivent être distinctes, "+
+   "une seule physiquement correcte, les trois autres plausibles mais fausses. "+
+   "Rends UNIQUEMENT le JSON {\\\"options\\\":[\\\"...\\\",\\\"...\\\",\\\"...\\\",\\\"...\\\"]}. "+
+   "Voici les données : "+JSON.stringify({question:item.question,options:item.options,
+    correct_option:item.correct_option,explanation:item.explanation});
+  try{
+   const repairController=new AbortController();
+   const repairTimer=setTimeout(()=>repairController.abort(),17000);
+   let response:Response;
+   try{
+    response=await fetch("https://generativelanguage.googleapis.com/v1beta/models/"+MODEL+":generateContent",{
+     method:"POST",headers:{"Content-Type":"application/json","x-goog-api-key":GEMINI_KEY},
+     body:JSON.stringify({contents:[{role:"user",parts:[{text:repairPrompt}]}],
+      generationConfig:{responseMimeType:"application/json",maxOutputTokens:850}}),
+     signal:repairController.signal});
+   }finally{clearTimeout(repairTimer)}
+   if(response.ok){
+    const answer=await response.json();
+    const text=(answer?.candidates?.[0]?.content?.parts||[]).map((p:any)=>p.text||"").join("");
+    const replacement=JSON.parse(text)?.options;
+    if(Array.isArray(replacement)&&replacement.length===4&&
+     replacement.every((x:unknown)=>goodText(x,1,400))&&
+     new Set(replacement.map(normalized)).size===4&&
+     normalized(replacement[Number(item.correct_option)])===normalized(item.options[Number(item.correct_option)])){
+      item.options=replacement;
+    }
+   }
+  }catch{ /* keep original invalid QCM; teacher will see the exact validation error */ }
+ }
  const drafts:any[]=[];
  for(let i=0;i<19;i++){
   const item=ordered[i],expected=i<15?"cours":"application",position=i+1;

@@ -165,6 +165,9 @@ async function downloadPdf(id,classCode){
  if(!/^[A-Za-z0-9_-]{10,200}$/.test(id))throw Error("PDF Google invalide.");
  const folderId=cfg.classFolders?.[classCode];
  if(!folderId)throw Error("Dossier Google Drive de cette classe non configuré.");
+ // A shared PDF may physically live in G1's owner folder and be authorized for G2/G3.
+ // The caller verifies target_classes for this document before requesting the copy.
+ const designatedFolders=new Set(Object.values(cfg.classFolders||{}));
  const url=DRIVE+"/files/"+encodeURIComponent(id);
  const meta=await (await api(url+"?fields=id,mimeType,ownedByMe,trashed,parents,size")).json();
  if(!meta.ownedByMe||meta.trashed||meta.mimeType!=="application/pdf"||

@@ -47,6 +47,15 @@
 .quick-simple-form>select,.quick-simple-form>input[type=file]{display:block;width:100%;box-sizing:border-box;background:#f9fbff;color:#162c54;border:2px solid #ccdcfa;border-radius:13px;padding:17px;font:600 16px Inter,'Segoe UI',Arial,sans-serif}
 .quick-simple-form>input[type=file]{cursor:pointer;border-style:dashed;background:#f4f8ff;min-height:92px}
 .quick-file-hint{font-size:13px;color:#6980a7}
+.quick-class-fieldset{border:0;padding:0;margin:18px 0 2px;min-width:0}
+.quick-class-fieldset legend{font-size:17px;font-weight:750;color:#18386e;padding:0;margin-bottom:12px}
+.quick-class-options{display:flex;gap:10px;flex-wrap:wrap}
+.quick-class-chip{position:relative;display:inline-flex;align-items:center;gap:9px;border:2px solid #c7d9f9;border-radius:13px;padding:13px 16px;background:#f8fbff;color:#244372;font-weight:750;font-size:15px;cursor:pointer;min-height:51px}
+.quick-class-chip:has(input:checked){border-color:#216eea;background:#e8f1ff;color:#134ba5}
+.quick-class-chip input{width:19px;height:19px;accent-color:#216eea;cursor:pointer}
+.quick-class-fieldset .quick-file-hint{margin-top:10px}
+@media(max-width:540px){.quick-class-chip{flex:1 1 100%;width:100%}}
+
 #content-root .quick-upload-btn{display:block;width:100%;margin:16px 0 4px;padding:18px 16px;border:0;border-radius:14px;background:#216eea;color:white;font-size:19px;font-weight:800;box-shadow:0 7px 18px #216eea33}
 #content-root .quick-upload-btn:disabled{opacity:.55}
 .quick-optional{border:1px solid #e0e9fa;border-radius:12px;padding:12px 16px;margin-top:7px;background:#f8faff}
@@ -58,6 +67,18 @@
 .quick-advanced-menu{max-width:720px;margin:24px auto 0;padding:17px 22px;border:1px solid #dce6f6;background:#fff;border-radius:15px}
 @media(max-width:540px){.quick-simple-header h3{font-size:22px}.quick-simple-form>select,.quick-simple-form>input[type=file]{font-size:14px}#content-root .quick-upload-btn{font-size:17px}}
 
+
+/* Sélection simple : classe → type → fichier, options complémentaires repliées. */
+.quick-class-selector{width:100%;padding:16px;border:2px solid #c8dbfb;border-radius:13px;font-size:17px;color:#123565;background:#f8fbff}
+.quick-primary-pdf{max-width:780px;margin:0 auto}
+.quick-step{display:flex;flex-direction:column;gap:10px;margin:20px 0}
+.quick-step label{font-size:17px;font-weight:800;color:#17376b}
+.quick-step select,.quick-step input[type=file]{width:100%;padding:16px;border:2px solid #d2e0f8;border-radius:12px;background:#f8fbff}
+.quick-step input[type=file]{border-style:dashed;min-height:85px}
+#quick-main-upload{width:100%;margin:18px 0 8px;padding:18px;border:0;border-radius:14px;background:#216eea;color:#fff;font-size:19px;font-weight:800}
+#quick-main-upload:disabled{opacity:.6;cursor:wait}
+.physix-class-panel .content-form{margin-bottom:25px}
+.quick-documents .content-item{min-width:0}
 </style>
 </head>
 <body>
@@ -80,5 +101,7 @@
 <script src="/assets/admin-auth.js" defer></script>
 <script src="/assets/admin-content.js" defer></script>
 <script src="/assets/admin-files.js" defer></script>
+<script src="/assets/admin-classes.js" defer></script>
+<script src="/assets/admin-simple.js" defer></script>
 </body>
 </html>

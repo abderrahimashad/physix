@@ -7,13 +7,13 @@ const KEY="sb_publishable_5x4US_lL-yMa5RxlViAL6g_AokDwlx2";
 const TYPES=["Cours","Résumé","Exercices","Série","Correction","QCM","Présentation","Vidéo","Autre"];
 const STATES=[["draft","Brouillon"],["published","Publié"],["archived","Archivé"]];
 const LEVELS=["1BAC","2BAC PC"],SUBJECTS=["Physique","Chimie"];
-const MAP={chapters:"physix_chapters",resources:"physix_resources",devoirs:"physix_devoirs",files:"physix_resource_files"};
+const MAP={chapters:"physix_chapters",resources:"physix_resources",devoirs:"physix_devoirs",files:"physix_resource_files",classes:"physix_classes"};
 const esc=s=>String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
 const opt=(values,chosen)=>values.map(x=>{const [value,label]=Array.isArray(x)?x:[x,x];return '<option value="'+esc(value)+'"'+(String(value)===String(chosen)?" selected":"")+'>'+esc(label)+'</option>'}).join("");
 const field=(title,name,value="",type="text")=>'<label>'+esc(title)+'<input name="'+esc(name)+'" type="'+type+'" value="'+esc(value)+'" required'+(type==="text"?' maxlength="160"':"")+'></label>';
 const select=(title,name,values,chosen)=>'<label>'+esc(title)+'<select name="'+esc(name)+'" required>'+opt(values,chosen)+'</select></label>';
 const alertText=(message,error=false)=>{const target=document.getElementById("content-message");if(!target)return;target.textContent=message;target.className="content-note"+(error?" bad":"");};
-let session=null,rows={chapters:[],resources:[],devoirs:[],files:[]},tab="documents",editing=null,busy=false;
+let session=null,rows={chapters:[],resources:[],devoirs:[],files:[],classes:[]},tab="documents",editing=null,busy=false;
 async function rest(table,query="",method="GET",body){
  if(!session)throw Error("Session terminée. Reconnectez-vous.");
  const resp=await fetch(API+MAP[table]+query,{
@@ -26,13 +26,14 @@ async function rest(table,query="",method="GET",body){
  return data;
 }
 async function refresh(){
- const [chapters,resources,devoirs,files]=await Promise.all([
+ const [chapters,resources,devoirs,files,classes]=await Promise.all([
  rest("chapters","?select=*&order=sort_order.asc,created_at.asc"),
  rest("resources","?select=*&order=sort_order.asc,created_at.asc"),
  rest("devoirs","?select=*&order=semester.asc,devoir_number.asc"),
- rest("files","?select=*&order=created_at.desc")
+ rest("files","?select=*&order=created_at.desc"),
+ rest("classes","?select=*&order=level.asc,code.asc")
  ]);
- rows={chapters,resources,devoirs,files};render();
+ rows={chapters,resources,devoirs,files,classes};render();
 }
 function formMarkup(){
  const obj=rows[tab].find(x=>x.id===editing)||{};
@@ -66,21 +67,30 @@ function rowMarkup(x){
 function render(){
  const root=document.getElementById("content-root");if(!root||!session)return;
  root.hidden=false;
- const labels={documents:"📄 Ajouter un PDF",chapters:"Chapitres",resources:"Ressources",devoirs:"Devoirs surveillés"};
+ const labels={documents:"📄 Ajouter un PDF",classes:"Mes classes",chapters:"Chapitres",resources:"Ressources",devoirs:"Devoirs surveillés"};
  const nav=Object.keys(labels).map(t=>'<button type="button" data-tab="'+t+'" class="'+(t===tab?"selected":"")+'">'+labels[t]+'</button>').join("");
  if(tab==="documents"){
   const advanced=Object.keys(labels).filter(t=>t!=="documents").map(t=>'<button type="button" data-tab="'+t+'">'+labels[t]+'</button>').join("");
-  root.innerHTML='<div class="content-head"><div><h2>Mes documents de physique-chimie</h2><p>Pour ajouter un PDF, il suffit de choisir un chapitre et un fichier.</p></div><button type="button" id="owner-logout">Déconnexion</button></div>'+
+  root.innerHTML='<div class="content-head"><div><h2>Mes documents de physique-chimie</h2><p>Choisissez votre classe, le type de document, puis le fichier PDF.</p></div><button type="button" id="owner-logout">Déconnexion</button></div>'+
   '<div id="content-message" class="content-note" role="status" aria-live="polite" hidden></div>';
   if(typeof window.physixQuickPdfRender==="function"){
     window.physixQuickPdfRender(root,{rows,session,rest,refresh,esc,opt,alertText});
+    root.querySelector("[data-class-manager]")?.addEventListener("click",()=>{tab="classes";render()});
   }else alertText("Le module PDF est indisponible. Rechargez la page.",true);
   const menu=document.createElement("details");
   menu.className="quick-advanced-menu";
-  menu.innerHTML='<summary>⚙ Gestion avancée : chapitres, ressources et devoirs</summary><nav class="content-tabs" aria-label="Gestion avancée">'+advanced+'</nav>';
+  menu.innerHTML='<summary>⚙ Gestion avancée : classes, chapitres, ressources et devoirs</summary><nav class="content-tabs" aria-label="Gestion avancée">'+advanced+'</nav>';
   root.append(menu);
   menu.querySelectorAll("[data-tab]").forEach(b=>b.addEventListener("click",()=>{tab=b.dataset.tab;editing=null;render()}));
   root.querySelector("#owner-logout").addEventListener("click",()=>location.reload());
+  return;
+ }
+ if(tab==="classes"){
+  root.innerHTML='<div class="content-head"><div><h2>Mes classes</h2><p>Ajoutez des groupes ou retirez les classes qui ne sont plus utilisées.</p></div><button type="button" data-back-documents>← Mes documents</button></div><div id="content-message" class="content-note" role="status"></div>';
+  if(typeof window.physixClassRender==="function")
+    window.physixClassRender(root,{rows,session,rest,refresh,esc,opt,alertText});
+  else alertText("Gestion des classes indisponible. Actualisez la page.",true);
+  root.querySelector("[data-back-documents]").addEventListener("click",()=>{tab="documents";render()});
   return;
  }
  const disabled=tab==="resources"&&rows.chapters.length===0;

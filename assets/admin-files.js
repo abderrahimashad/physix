@@ -4,7 +4,7 @@
 const ORIGIN="https://auqzfcucpglrnvwhjamo.supabase.co";
 const KEY="sb_publishable_5x4US_lL-yMa5RxlViAL6g_AokDwlx2";
 const BUCKET="physix-private";
-const MAX_BYTES=20*1024*1024;
+const MAX_BYTES=50*1024*1024;
 const pathUrl=path=>path.split("/").map(encodeURIComponent).join("/");
 function authHeaders(session){return {"apikey":KEY,"Authorization":"Bearer "+session.token};}
 async function storage(session,path,method,body){
@@ -28,7 +28,7 @@ window.physixFilesRender=(root,{tab,rows,session,rest,refresh,esc,opt,alertText}
  section.className="content-section";
  section.id="physix-pdf-section";
  section.innerHTML='<h3>📄 Fichiers PDF privés</h3>'+
- '<p>PDF (20 Mo maximum). Fichiers visibles uniquement dans votre espace propriétaire. Même une ressource publiée ne rend pas son PDF accessible aux élèves.</p>'+
+ '<p>PDF (50 Mo maximum). Fichiers visibles uniquement dans votre espace propriétaire. Même une ressource publiée ne rend pas son PDF accessible aux élèves.</p>'+
  (!targets.length?'<p>Ajoutez d’abord '+(type==="resource"?"une ressource":"un devoir")+' avant de joindre un PDF.</p>':
  '<form id="private-pdf-form" class="content-form">'+
  '<label>'+ (type==="resource"?"Ressource":"Devoir")+
@@ -57,7 +57,7 @@ window.physixFilesRender=(root,{tab,rows,session,rest,refresh,esc,opt,alertText}
   const file=form.elements.pdf.files?.[0],targetId=form.elements.target.value,role=form.elements.role.value;
   if(!file)return;
   if(!/\.pdf$/i.test(file.name)||file.size<1||file.size>MAX_BYTES||(file.type&&file.type!=="application/pdf")){
-   note("Choisissez un fichier PDF valide, de taille inférieure ou égale à 20 Mo.",true);return;
+   note("Choisissez un fichier PDF valide, de taille inférieure ou égale à 50 Mo.",true);return;
   }
   const signature=await file.slice(0,5).text();
   if(signature!=="%PDF-"){note("Ce fichier ne semble pas être un véritable PDF.",true);return;}
@@ -124,6 +124,10 @@ window.physixQuickPdfRender=(root,{rows,session,rest,refresh,esc,opt,alertText})
  section.id="quick-pdf-section";
  const chapters=rows.chapters;
  const attached=rows.files.filter(x=>x.resource_id);
+ const classesForChapter=id=>{
+  const chapter=chapters.find(x=>x.id===id);
+  return chapter?.level==="2BAC PC"?["2BAC PC BIOF"]:["1BAC BIOF G1","1BAC BIOF G2","1BAC BIOF G3"];
+ };
  const guessKind=name=>{
   const value=String(name||"").toLowerCase();
   if(/corrig|solution|réponse|reponse/.test(value))return "Correction";
@@ -138,9 +142,10 @@ window.physixQuickPdfRender=(root,{rows,session,rest,refresh,esc,opt,alertText})
  (chapters.length?'<form id="quick-pdf-form" class="quick-simple-form">'+
  '<label class="quick-simple-label" for="pdf-chapter">1. Dans quel chapitre ?</label>'+
  '<select id="pdf-chapter" name="chapter" required>'+opt(chapters.map(x=>[x.id,x.level+" · "+x.subject+" — "+x.title]),chapters[0].id)+'</select>'+
- '<label class="quick-simple-label" for="pdf-file">2. Choisissez votre document</label>'+
+ '<fieldset class="quick-class-fieldset"><legend>2. Pour quelle(s) classe(s) ?</legend><div id="quick-class-options" class="quick-class-options"></div><p class="quick-file-hint">Vous pouvez choisir plusieurs groupes pour un même PDF.</p></fieldset>'+
+ '<label class="quick-simple-label" for="pdf-file">3. Choisissez votre document</label>'+
  '<input id="pdf-file" type="file" name="pdf" accept=".pdf,application/pdf" required>'+
- '<span class="quick-file-hint">PDF uniquement · maximum 20 Mo</span>'+
+ '<span class="quick-file-hint">PDF uniquement · maximum 50 Mo</span>'+
  '<details class="quick-optional"><summary>Options facultatives</summary>'+
  '<label for="quick-kind">Type de document</label><select id="quick-kind" name="kind">'+
  opt(["Cours","Résumé","Exercices","Série","Correction","QCM","Présentation","Vidéo","Autre"],"Cours")+
@@ -154,11 +159,20 @@ window.physixQuickPdfRender=(root,{rows,session,rest,refresh,esc,opt,alertText})
  const chap=rows.chapters.find(c=>c.id===res?.chapter_id);
  return '<article class="content-item"><strong>'+esc(res?.title||x.filename)+'</strong>'+
  '<p>'+esc(chap?.title||"Chapitre non trouvé")+' · '+esc(res?.kind||"Document")+' · '+esc(x.filename)+'</p>'+
+ '<p><b>Classes :</b> '+esc((res?.target_classes||[]).join(", ")||"Non attribué")+'</p>'+
  '<div class="content-actions"><button type="button" data-quick-open="'+esc(x.id)+'">Ouvrir</button>'+
  '<button type="button" class="danger" data-quick-remove="'+esc(x.id)+'">Supprimer le PDF</button></div></article>';
  }).join("")||'<p>Vous n’avez pas encore importé de PDF.</p>')+'</div></details>';
  root.append(section);
  const form=section.querySelector("#quick-pdf-form");
+ const drawClassChoices=()=>{
+  if(!form)return;
+  const choices=classesForChapter(form.elements.chapter.value);
+  const host=form.querySelector("#quick-class-options");
+  host.innerHTML=choices.map(name=>'<label class="quick-class-chip"><input type="checkbox" name="target_class" value="'+esc(name)+'"'+(choices.length===1?' checked':'')+'><span>'+esc(name)+'</span></label>').join("");
+ };
+ form?.elements.chapter.addEventListener("change",drawClassChoices);
+ drawClassChoices();
  const note=(text,error=false)=>{const el=section.querySelector("#quick-pdf-message");if(el){el.textContent=text;el.className="content-note"+(error?" bad":"")}};
  let busy=false;
  form?.addEventListener("submit",async event=>{
@@ -166,8 +180,13 @@ window.physixQuickPdfRender=(root,{rows,session,rest,refresh,esc,opt,alertText})
   const file=form.elements.pdf.files?.[0],chapter_id=form.elements.chapter.value;
   const kind=form.querySelector("details.quick-optional")?.open?form.elements.kind.value:guessKind(file?.name);
   if(!file||!chapters.some(c=>c.id===chapter_id))return note("Choisissez un chapitre et un PDF.",true);
+  const target_classes=[...form.querySelectorAll('input[name="target_class"]:checked')].map(x=>x.value);
+  const validClasses=classesForChapter(chapter_id);
+  if(!target_classes.length||target_classes.some(x=>!validClasses.includes(x))){
+   note("Choisissez au moins une classe (G1, G2, G3 ou 2BAC) pour ce document.",true);return;
+  }
   if(!/\\.pdf$/i.test(file.name)||file.size<1||file.size>MAX_BYTES||(file.type&&file.type!=="application/pdf")){
-   note("PDF invalide : extension .pdf et taille maximale 20 Mo.",true);return;
+   note("PDF invalide : extension .pdf et taille maximale 50 Mo.",true);return;
   }
   if(await file.slice(0,5).text()!=="%PDF-"){note("Ce document ne semble pas être un vrai PDF.",true);return}
   const title=(form.elements.title.value.trim()||file.name.replace(/\\.pdf$/i,"")).slice(0,160);
@@ -176,7 +195,7 @@ window.physixQuickPdfRender=(root,{rows,session,rest,refresh,esc,opt,alertText})
   let newResource=null,uploadedPath=null,committed=false;
   note("Enregistrement du document dans votre espace privé…");
   try{
-   const result=await rest("resources","","POST",{owner_id:session.ownerId,chapter_id,title,kind,visibility:"private",state:"draft",sort_order:rows.resources.length});
+   const result=await rest("resources","","POST",{owner_id:session.ownerId,chapter_id,title,kind,target_classes,visibility:"private",state:"draft",sort_order:rows.resources.length});
    if(!Array.isArray(result)||result.length!==1)throw Error("Création de la ressource impossible.");
    newResource=result[0];
    const path=session.ownerId+"/resource/"+newResource.id+"/"+crypto.randomUUID()+".pdf";

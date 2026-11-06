@@ -6,6 +6,7 @@ m1=(root/"supabase/migrations/20261106001200_physix_activation_password_private_
 m2=(root/"supabase/migrations/20261106001300_physix_activated_student_secure_views.sql").read_text()
 mphoto=(root/"supabase/migrations/20261106001400_physix_enforce_uploaded_private_portrait.sql").read_text()
 msuspend=(root/"supabase/migrations/20261106001500_physix_teacher_suspend_activated_accounts.sql").read_text()
+mclass=(root/"supabase/migrations/20261106001600_physix_student_profile_class_consistency.sql").read_text()
 m0=(root/"supabase/migrations/20261106001100_physix_student_progress_class_board.sql").read_text()
 student=(root/"assets/eleve.js").read_text()
 teacher=(root/"assets/admin-tracking.js").read_text()
@@ -27,6 +28,7 @@ assert "storage.objects" in mphoto and "image/jpeg" in mphoto
 assert "physix_set_student_account_enabled" in msuspend
 assert "grant update(display_name,phone,avatar_path)" in msuspend
 assert "and sp.enabled" in msuspend
+assert "p.class_code=sp.class_code" in mclass
 assert "from public.physix_activity_grades" not in m2.lower()
 assert "private.physix_is_owner" in m1
 for term in ("physix_pupil_links","physix_pupil_objectives","physix_class_announcements","physix_class_work"):

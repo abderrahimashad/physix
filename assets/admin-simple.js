@@ -68,8 +68,8 @@ window.physixQuickPdfRender=(root,{rows,session,rest,refresh,esc,opt,alertText})
   connectButton.disabled=true;
   try{
    note("Ouverture sécurisée de Google. Choisissez votre compte Drive et le dossier PhysiX.");
-   await drive.connect();await drive.selectRootFolder();
-   note("Google Drive prêt. Vos fichiers seront stockés dans le dossier privé PhysiX.");
+   await drive.connect();
+   note("Google Drive connecté. Au premier import, choisissez le dossier privé de votre classe.");
    connectButton.textContent="✅ Google Drive connecté";
   }catch(error){note(error.message,true)}
   finally{connectButton.disabled=false}
@@ -123,7 +123,7 @@ window.physixQuickPdfRender=(root,{rows,session,rest,refresh,esc,opt,alertText})
    if(!Array.isArray(result)||result.length!==1)throw Error("Création de la fiche PDF refusée.");
    resource=result[0];
    if(driveEnabled){
-    const uploaded=await drive.uploadPdf(file,{onProgress:pct=>note("Transfert privé Google Drive : "+pct+" %")});
+    const uploaded=await drive.uploadPdf(file,{classCode:classroom.code,onProgress:pct=>note("Transfert privé Google Drive : "+pct+" %")});
     driveFileId=uploaded.id;uploadedPath="gdrive:"+driveFileId;
    }else{
     uploadedPath=session.ownerId+"/resource/"+resource.id+"/"+crypto.randomUUID()+".pdf";

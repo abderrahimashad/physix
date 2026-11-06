@@ -21,7 +21,7 @@ window.physixClassRender=(root,{rows,session,rest,refresh,esc,opt,alertText})=>{
  form.addEventListener("submit",async event=>{
   event.preventDefault();if(busy)return;busy=true;form.querySelector("button[type=submit]").disabled=true;
   try{
-   const level=form.elements.level.value,code=form.elements.code.value.trim().replace(/\\s+/g," ");
+   const level=form.elements.level.value,code=form.elements.code.value.trim().replace(/\s+/g," ");
    if(code.length<2||code.length>70)throw Error("Indiquez un nom de classe entre 2 et 70 caractères.");
    if(!["1BAC","2BAC PC"].includes(level))throw Error("Niveau invalide.");
    if(classes.some(c=>c.code.toLowerCase()===code.toLowerCase()))throw Error("Cette classe existe déjà. Réactivez-la si nécessaire.");

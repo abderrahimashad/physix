@@ -67,6 +67,18 @@
 .quick-advanced-menu{max-width:720px;margin:24px auto 0;padding:17px 22px;border:1px solid #dce6f6;background:#fff;border-radius:15px}
 @media(max-width:540px){.quick-simple-header h3{font-size:22px}.quick-simple-form>select,.quick-simple-form>input[type=file]{font-size:14px}#content-root .quick-upload-btn{font-size:17px}}
 
+
+/* Sélection simple : classe → type → fichier, options complémentaires repliées. */
+.quick-class-selector{width:100%;padding:16px;border:2px solid #c8dbfb;border-radius:13px;font-size:17px;color:#123565;background:#f8fbff}
+.quick-primary-pdf{max-width:780px;margin:0 auto}
+.quick-step{display:flex;flex-direction:column;gap:10px;margin:20px 0}
+.quick-step label{font-size:17px;font-weight:800;color:#17376b}
+.quick-step select,.quick-step input[type=file]{width:100%;padding:16px;border:2px solid #d2e0f8;border-radius:12px;background:#f8fbff}
+.quick-step input[type=file]{border-style:dashed;min-height:85px}
+#quick-main-upload{width:100%;margin:18px 0 8px;padding:18px;border:0;border-radius:14px;background:#216eea;color:#fff;font-size:19px;font-weight:800}
+#quick-main-upload:disabled{opacity:.6;cursor:wait}
+.physix-class-panel .content-form{margin-bottom:25px}
+.quick-documents .content-item{min-width:0}
 </style>
 </head>
 <body>
@@ -89,5 +101,7 @@
 <script src="/assets/admin-auth.js" defer></script>
 <script src="/assets/admin-content.js" defer></script>
 <script src="/assets/admin-files.js" defer></script>
+<script src="/assets/admin-classes.js" defer></script>
+<script src="/assets/admin-simple.js" defer></script>
 </body>
 </html>

@@ -56,7 +56,7 @@ assert "aucun accès" in sql_classes.lower() or "aucun droit" in sql_classes.low
 simple=(root/"assets/admin-simple.js").read_text(encoding="utf-8")
 class_ui=(root/"assets/admin-classes.js").read_text(encoding="utf-8")
 assert 'src="/assets/admin-simple.js"' in html and 'src="/assets/admin-classes.js"' in html
-for required in ['Pour quelle classe ?', 'Quel type de document ?', 'Choisir votre PDF', 'Devoir surveillé', 'MAX_BYTES=50*1024*1024','target_classes:[classroom.code]', 'data-class-manager','Documents généraux']:
+for required in ['Pour quelle classe ?', 'Type de document', 'Choisir votre PDF', 'Devoir surveillé', 'MAX_BYTES=50*1024*1024','target_classes:[classroom.code]', 'data-class-manager','simple-chapter-zone','simple-devoir-zone']:
     assert required in simple, f"Interface simplifiée manquante : {required}"
 for required in ['physixClassRender','Ajouter la classe','Retirer cette classe','Réactiver','rest("classes"']:
     assert required in class_ui, f"Gestion de classes manquante : {required}"
@@ -68,4 +68,22 @@ for required in ["create table if not exists public.physix_classes", "enable row
     assert required in dynamic_sql
 kind_sql=(root/"supabase/migrations/20261106000400_physix_document_devoir_kind.sql").read_text(encoding="utf-8")
 assert "Devoir surveillé" in kind_sql
+assert 'target_class:chosen.code' in simple
+assert 'c.target_class===chosen.code' in simple
+assert 'chapter.target_class!==classroom.code' in simple
+assert 'devoir_id:devoir?.id||null' in simple
+assert 'resource_id:resource?.id||null' in simple
+assert 'isDevoir?"subject":"content"' in simple
+assert 'target_class:classroom.code' in simple
+assert 'devoir_number:number' in simple and 'semester:semestre' in simple
+assert 'Devoirs surveillés — Semestre ' in simple
+assert 'simple-chapter-editor' in simple and 'simple-save-chapter' in simple
+assert 'select id="simple-chapter" name="chapter" required' in simple
+assert 'groupKey=className+" / "+category' in simple
+chapter_sql=(root/"supabase/migrations/20261106000800_physix_chapter_class_assignment.sql").read_text(encoding="utf-8")
+devoir_sql=(root/"supabase/migrations/20261106000700_physix_devoir_class_semester_assignment.sql").read_text(encoding="utf-8")
+assert "physix_validate_chapter_class" in chapter_sql
+assert "physix_validate_resource_classes" in chapter_sql
+assert "physix_validate_devoir_class" in devoir_sql
+assert "#simple-devoir-zone[hidden]" in html
 print("OK — CRUD propriétaire et import PDF direct contrôlés statiquement.")

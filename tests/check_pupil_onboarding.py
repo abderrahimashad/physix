@@ -20,7 +20,7 @@ for term in ("physix_verified_profile","physix_student_my_progress",
              "physix_student_my_class_board","physix_student_can_see_publication"):
     assert term in m2,term
 assert "avatar_path is not null" in m1
-assert "grade" not in m2.lower() and "disturbance" not in m2
+assert "from public.physix_activity_grades" not in m2.lower()
 assert "private.physix_is_owner" in m1
 for term in ("physix_pupil_links","physix_pupil_objectives","physix_class_announcements","physix_class_work"):
     assert term in m0

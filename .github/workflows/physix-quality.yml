@@ -46,5 +46,9 @@ jobs:
           node --check assets/admin-students.js
       - name: Check student privacy and publication invariants
         run: python3 tests/check_student_portal.py
+      - name: Check activity tracking JavaScript
+        run: node --check assets/admin-tracking.js
+      - name: Check private activity tracker and grade controls
+        run: python3 tests/check_activity_tracker.py
       - name: Check repository for accidental live credentials
         run: python3 tests/check_no_secrets.py

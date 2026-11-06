@@ -103,7 +103,7 @@ window.physixQuickPdfRender=(root,{rows,session,rest,refresh,esc,opt,alertText})
  const drawChapter=(preferredId="")=>{
   if(!form)return;
   const chosen=classes.find(c=>c.code===form.elements["class"].value);
-  const options=rows.chapters.filter(c=>c.level===chosen?.level);
+  const options=rows.chapters.filter(c=>c.level===chosen?.level&&c.target_class===chosen.code);
   const select=form.elements.chapter;
   const prior=preferredId||select.value;
   const validChoice=options.some(c=>c.id===prior)?prior:"";
@@ -139,13 +139,13 @@ window.physixQuickPdfRender=(root,{rows,session,rest,refresh,esc,opt,alertText})
   if(!chosen||title.length<2||title.length>160||!["Physique","Chimie"].includes(subject)||![1,2].includes(semester)){
    note("Indiquez un nom de chapitre valide et sa matière.",true);return;
   }
-  const existing=rows.chapters.find(c=>c.level===chosen.level&&c.subject===subject&&c.title.toLowerCase()===title.toLowerCase());
+  const existing=rows.chapters.find(c=>c.level===chosen.level&&c.target_class===chosen.code&&c.subject===subject&&c.title.toLowerCase()===title.toLowerCase());
   if(existing){drawChapter(existing.id);note("Ce chapitre existe déjà : il a été sélectionné.");return}
   busy=true;
   const button=section.querySelector("#simple-save-chapter");button.disabled=true;
   try{
    const created=await rest("chapters","","POST",{owner_id:session.ownerId,level:chosen.level,subject,title,
-    semester,sort_order:rows.chapters.length+1,state:"draft",description:""});
+    semester,target_class:chosen.code,sort_order:rows.chapters.length+1,state:"draft",description:""});
    if(!Array.isArray(created)||created.length!==1)throw Error("Création du chapitre non confirmée.");
    rows.chapters.push(created[0]);
    drawChapter(created[0].id);
@@ -164,7 +164,7 @@ window.physixQuickPdfRender=(root,{rows,session,rest,refresh,esc,opt,alertText})
   const chapter=rows.chapters.find(c=>c.id===chosenChapterId);
   if(!classroom||!kinds.includes(kind)||!file)
    return note("Choisissez la classe, le type et le PDF.",true);
-  if(!isDevoir&&(!chapter||chapter.level!==classroom.level))
+  if(!isDevoir&&(!chapter||chapter.level!==classroom.level||chapter.target_class!==classroom.code))
    return note("Choisissez ou créez d'abord un chapitre pour cette classe.",true);
   const semestre=Number(form.elements.devoirSemester.value);
   const number=Number(form.elements.devoirNumber.value);

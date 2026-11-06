@@ -33,3 +33,14 @@ input[type=file]{cursor:pointer;padding:13px}
 #signup-channel{display:block;width:100%;margin-top:6px;padding:14px;border:1px solid #bcd0ef;border-radius:12px;background:#f9fbff}
 
 .photo-edit-btn{align-self:end;border:1px solid #c6d9f5;background:#eef5ff;color:#1a56a7;padding:12px 15px;border-radius:12px;font-weight:750}
+
+.student-ai-controls{display:grid;grid-template-columns:1fr 2fr;gap:12px;margin:16px 0}
+.student-ai-statement{border:1px solid #d5e5fa;background:#f6faff;border-radius:13px;padding:16px;margin:14px 0}
+.student-ai-statement p,.student-ai-response{white-space:pre-wrap;overflow-wrap:anywhere;line-height:1.6}
+#student-ai-form label{display:block;font-size:13px;color:#305786;font-weight:800;margin:13px 0 7px}
+#student-ai-content{width:100%;box-sizing:border-box;border:1px solid #bacfec;border-radius:13px;padding:15px;font:inherit;resize:vertical}
+#student-ai-run{background:#166adf;color:#fff;border:0;border-radius:11px;padding:13px 20px;font-weight:750;margin:13px 0}
+#student-ai-run:disabled{opacity:.5}
+.student-ai-response{background:#fff;border-left:4px solid #1b77db;border-radius:10px;padding:18px;margin-top:14px}
+.student-ai-response:empty{display:none}
+@media(max-width:650px){.student-ai-controls{grid-template-columns:1fr}}

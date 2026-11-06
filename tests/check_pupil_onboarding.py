@@ -4,6 +4,7 @@ from pathlib import Path
 root=Path(__file__).resolve().parents[1]
 m1=(root/"supabase/migrations/20261106001200_physix_activation_password_private_portraits.sql").read_text()
 m2=(root/"supabase/migrations/20261106001300_physix_activated_student_secure_views.sql").read_text()
+mphoto=(root/"supabase/migrations/20261106001400_physix_enforce_uploaded_private_portrait.sql").read_text()
 m0=(root/"supabase/migrations/20261106001100_physix_student_progress_class_board.sql").read_text()
 student=(root/"assets/eleve.js").read_text()
 teacher=(root/"assets/admin-tracking.js").read_text()
@@ -20,6 +21,8 @@ for term in ("physix_verified_profile","physix_student_my_progress",
              "physix_student_my_class_board","physix_student_can_see_publication"):
     assert term in m2,term
 assert "avatar_path is not null" in m1
+assert "physix_guard_profile_portrait" in mphoto
+assert "storage.objects" in mphoto and "image/jpeg" in mphoto
 assert "from public.physix_activity_grades" not in m2.lower()
 assert "private.physix_is_owner" in m1
 for term in ("physix_pupil_links","physix_pupil_objectives","physix_class_announcements","physix_class_work"):

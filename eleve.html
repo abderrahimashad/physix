@@ -1,0 +1,22 @@
+<!doctype html>
+<html lang="fr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex,nofollow"><meta name="referrer" content="no-referrer">
+<meta name="theme-color" content="#0b1f46">
+<title>PhysiX — Mon espace élève</title><link rel="stylesheet" href="/assets/eleve.css"></head>
+<body><header class="topbar"><a class="brand" href="/" aria-label="Accueil PhysiX">⚛ Physi<span>X</span></a><div class="topnav"><span>Espace élève sécurisé</span><button id="logout" hidden>Déconnexion</button></div></header>
+<main class="container">
+<section class="hero"><span class="eyebrow">Physique · Chimie · BIOF</span><h1>Mes cours. Mes séries.<br><em>Mon espace.</em></h1><p>Retrouvez les documents que votre professeur a publiés pour votre classe. Vos fichiers restent privés.</p></section>
+<div id="status" class="status" role="status" aria-live="polite">Connectez-vous avec votre adresse e-mail autorisée par votre professeur.</div>
+<section id="login-panel" class="panel login">
+ <h2>Accéder à mes documents</h2><p>Utilisez l'adresse e-mail que votre professeur a autorisée pour votre classe.</p>
+ <form id="email-form"><label for="student-email">Adresse e-mail</label><input id="student-email" name="email" type="email" autocomplete="email" maxlength="254" placeholder="exemple@email.com" required>
+ <button class="primary" type="submit">Recevoir le lien de connexion</button></form>
+ <p class="hint">Consultez votre boîte e-mail et cliquez sur le lien reçu. Si votre professeur n'a pas encore autorisé votre adresse, aucun document ne sera visible.</p>
+ <details><summary>J'ai reçu un code de connexion</summary><form id="otp-form"><label for="otp-code">Code à 6 chiffres</label><input id="otp-code" inputmode="numeric" autocomplete="one-time-code" pattern="[0-9]{6,8}" minlength="6" maxlength="8" required placeholder="123456"><button type="submit">Valider mon code</button></form></details>
+</section>
+<section id="library-panel" hidden>
+<div class="panel library-head"><div><h2>Bibliothèque de ma classe</h2><p>Uniquement les documents autorisés pour votre adresse e-mail.</p></div><label>Ma classe<select id="class-filter"></select></label></div>
+<div class="filters"><button id="lessons-tab" class="active" aria-pressed="true">📚 Cours, séries et exercices</button><button id="devoirs-tab" aria-pressed="false">📝 Devoirs surveillés</button></div>
+<div id="library" class="library-list"></div>
+</section></main><footer>PhysiX © 2026 · Espace pédagogique privé · <a href="/">Accueil</a></footer>
+<script defer src="/assets/eleve.js"></script></body></html>

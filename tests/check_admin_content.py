@@ -24,6 +24,8 @@ sql=(root/"supabase/migrations/20261106000100_physix_private_pdf_storage_policie
 for requirement in ["physix_pdf_owner_select","physix_pdf_owner_insert","physix_pdf_owner_delete","for select to authenticated","for insert to authenticated","for delete to authenticated","private.physix_is_owner","bucket_id = 'physix-private'","public=false","array_length(storage.foldername"]:
     assert requirement in sql, f"Règle SQL manquante : {requirement}"
 assert "for update to authenticated" not in sql.lower()
+assert "Cette ressource possède des PDF" in source
+assert "Ce devoir possède des PDF" in source
 assert "root.scrollIntoView" in source, "Le panneau doit être affiché après connexion"
 assert "Connexion reconnue, mais le chargement" in source
 assert "#owner-form[hidden]{display:none!important}" in html

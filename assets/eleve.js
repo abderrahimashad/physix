@@ -5,7 +5,7 @@ const BASE="https://auqzfcucpglrnvwhjamo.supabase.co";
 const KEY="sb_publishable_5x4US_lL-yMa5RxlViAL6g_AokDwlx2";
 const el=id=>document.getElementById(id);
 const escape=s=>String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
-let token=null,email="",items=[],activeClass="",tab="lesson",busy=false;
+let token=null,email="",items=[],myProgress=[],classBoard=[],activeClass="",tab="lesson",busy=false;
 const notice=(message,error=false)=>{el("status").textContent=message;el("status").classList.toggle("error",error)};
 async function request(path,{method="GET",body,auth=false,blob=false}={}){
  const headers={"apikey":KEY};
@@ -20,17 +20,24 @@ async function request(path,{method="GET",body,auth=false,blob=false}={}){
 }
 function setAuthenticated(value){el("login-panel").hidden=value;el("library-panel").hidden=!value;el("logout").hidden=!value}
 async function loadLibrary(){
- const result=await request("/rest/v1/rpc/physix_my_student_library",{method:"POST",body:{},auth:true});
+ const [result,progress,board]=await Promise.all([
+  request("/rest/v1/rpc/physix_my_student_library",{method:"POST",body:{},auth:true}),
+  request("/rest/v1/rpc/physix_student_my_progress",{method:"POST",body:{},auth:true}),
+  request("/rest/v1/rpc/physix_student_my_class_board",{method:"POST",body:{},auth:true})
+ ]);
  items=Array.isArray(result)?result:[];
- const classes=[...new Set(items.map(x=>x.class_code))].sort();
+ myProgress=Array.isArray(progress)?progress:[];
+ classBoard=Array.isArray(board)?board:[];
+ const classes=[...new Set([...items.map(x=>x.class_code),...myProgress.map(p=>p.class_code),...classBoard.map(b=>b.class_code)])].sort();
  activeClass=classes.includes(activeClass)?activeClass:(classes[0]||"");
  el("class-filter").innerHTML=classes.map(c=>'<option value="'+escape(c)+'">'+escape(c)+'</option>').join("");
  el("class-filter").value=activeClass;el("class-filter").disabled=classes.length<2;
  setAuthenticated(true);
- notice(items.length?"Connexion vérifiée. Voici les documents publiés pour votre classe.":"Connexion réussie. Aucun document n'est encore publié pour votre adresse et votre classe.");
+ notice(classes.length?"Connexion vérifiée. Votre espace de classe est disponible.":"Connexion réussie. Aucun accès de classe n’est encore autorisé.");
  draw();
 }
 function draw(){
+ window.physixStudentExtras?.render({profiles:myProgress,board:classBoard,activeClass,escape});
  const collection=items.filter(x=>x.class_code===activeClass&&(tab==="devoir" ? x.category==="Devoir surveillé" : x.category!=="Devoir surveillé"));
  const groups=new Map();
  for(const x of collection){
@@ -95,7 +102,7 @@ el("otp-form").addEventListener("submit",async event=>{
  finally{busy=false}
 });
 el("logout").addEventListener("click",async()=>{
- const old=token;token=null;items=[];email="";
+ const old=token;token=null;items=[];myProgress=[];classBoard=[];email="";
  setAuthenticated(false);notice("Déconnecté. Vous pouvez vous reconnecter.");
  if(old)fetch(BASE+"/auth/v1/logout",{method:"POST",headers:{"apikey":KEY,Authorization:"Bearer "+old}}).catch(()=>{});
 });

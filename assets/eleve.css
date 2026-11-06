@@ -55,3 +55,14 @@ input[type=file]{cursor:pointer;padding:13px}
 .remise-card input[type=file]{display:block;width:100%;box-sizing:border-box;border:1px dashed #b4cef2;border-radius:10px;padding:11px;margin-top:5px}
 .remise-card button{background:#1c68d5;border:0;color:#fff;border-radius:10px;padding:12px;font-weight:750}
 .remise-card button:disabled{opacity:.55}
+
+.student-qcm-card{padding:20px;background:#fbfdff;border:1px solid #d9e7f9;border-radius:14px;margin:14px 0}
+.student-qcm-question{color:#173e7d;font-size:17px;margin-bottom:14px}
+.student-qcm-choice{display:flex;gap:12px;align-items:flex-start;border:1px solid #d6e5fa;background:#fff;border-radius:12px;padding:13px;margin:8px 0;cursor:pointer;color:#2d4c79}
+.student-qcm-choice:has(input:checked){border-color:#2370d3;background:#ecf5ff}
+.student-qcm-choice input{flex-shrink:0;width:20px;height:20px;accent-color:#1d65c5}
+.student-qcm-card fieldset{border:0;padding:0;margin:0;min-width:0}
+.student-qcm-card legend{font-size:13px;color:#6c83a4;margin-bottom:8px}
+.student-qcm-card button{background:#1765d5;color:#fff;border:0;border-radius:11px;padding:12px 18px;font-weight:800;margin-top:10px}
+.student-qcm-answered{background:#f0f7ff;border-radius:12px;padding:14px;color:#1c4b85;font-weight:700}
+.student-qcm-answered p{font-weight:400;font-size:14px;white-space:pre-wrap;overflow-wrap:anywhere}

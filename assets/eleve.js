@@ -119,6 +119,7 @@ el("verify-confirm").onsubmit=e=>submit(e,async()=>{
   {email:contact.toLowerCase(),token:el("verify-otp").value.trim(),type:"email"}:
   {phone:contact,token:el("verify-otp").value.trim(),type:"sms"}});
  if(!result.access_token)throw Error("Code de vérification invalide.");
+ el("activation-form").elements.code.value=el("signup-activation-code").value.trim().toUpperCase();
  await authenticate(result.access_token);
 });
 el("activation-form").onsubmit=e=>submit(e,async form=>{

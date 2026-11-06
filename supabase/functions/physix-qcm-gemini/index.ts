@@ -101,20 +101,37 @@ Deno.serve(async(req:Request)=>{
  const questions=generated?.questions;
  if(!Array.isArray(questions)||questions.length!==19)
   return fail(422,"Gemini n’a pas produit exactement 15 questions de cours et 4 applications. Aucun brouillon créé.");
+ // Normalize presentation differences only; never invent or change scientific answers.
+ const typed=questions.map((q:any)=>({...q,question_type:
+  typeof q?.question_type==="string"?q.question_type.trim().toLowerCase():q?.question_type}));
+ const cours=typed.filter((q:any)=>q.question_type==="cours");
+ const applications=typed.filter((q:any)=>q.question_type==="application");
+ if(cours.length!==15||applications.length!==4)
+  return fail(422,"Gemini a produit "+cours.length+" questions de cours et "+applications.length+
+   " applications au lieu de 15 et 4. Aucun brouillon créé.");
+ const ordered=[...cours,...applications];
  const drafts:any[]=[];
  for(let i=0;i<19;i++){
-  const item=questions[i],expected=i<15?"cours":"application";
-  if(!item||item.question_type!==expected||!goodText(item.question,10,1000)||
-    !Array.isArray(item.options)||item.options.length!==4||
-    !item.options.every((x:unknown)=>goodText(x,1,400))||
-    !Number.isInteger(item.correct_option)||item.correct_option<0||item.correct_option>3||
-    !goodText(item.explanation,15,1500)||
-    new Set(item.options.map((x:string)=>x.trim().toLocaleLowerCase("fr"))).size!==4)
-   return fail(422,"Certaines questions proposées sont invalides. Aucun brouillon créé.");
+  const item=ordered[i],expected=i<15?"cours":"application",position=i+1;
+  if(!goodText(item.question,10,1000))
+   return fail(422,"Question "+position+" : énoncé absent, trop court ou trop long. Aucun brouillon créé.");
+  if(!Array.isArray(item.options)||item.options.length!==4||
+    !item.options.every((x:unknown)=>goodText(x,1,400)))
+   return fail(422,"Question "+position+" : il faut quatre réponses non vides (400 caractères maximum). Aucun brouillon créé.");
+  if(new Set(item.options.map((x:string)=>x.trim().toLocaleLowerCase("fr"))).size!==4)
+   return fail(422,"Question "+position+" : deux réponses proposées sont identiques. Aucun brouillon créé.");
+  const rawCorrect=item.correct_option;
+  // Accept only unambiguous 0-3 integers (or their digit-string equivalents).
+  const correct=typeof rawCorrect==="string"&&/^[0-3]$/.test(rawCorrect.trim())
+   ?Number(rawCorrect.trim()):rawCorrect;
+  if(!Number.isInteger(correct)||correct<0||correct>3)
+   return fail(422,"Question "+position+" : numéro de la bonne réponse invalide. Aucun brouillon créé.");
+  if(!goodText(item.explanation,15,1500))
+   return fail(422,"Question "+position+" : correction détaillée absente, trop courte ou trop longue. Aucun brouillon créé.");
   drafts.push({owner_id:uid,class_code:classCode,chapter_id:chapterId,semester:chapter.semester,
    question_type:expected,question:item.question.trim(),option_a:item.options[0].trim(),
    option_b:item.options[1].trim(),option_c:item.options[2].trim(),
-   option_d:item.options[3].trim(),correct_option:item.correct_option,
+   option_d:item.options[3].trim(),correct_option:correct,
    explanation:item.explanation.trim(),published:false});
  }
  // If another request already created a QCM meanwhile, return without appending duplicates.

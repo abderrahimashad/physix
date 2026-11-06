@@ -32,3 +32,15 @@ Après connexion réelle du propriétaire dans `/admin` :
 Cette branche comporte du code prêt à tester et les policies Storage ont été appliquées sur le projet Supabase le 6 novembre 2026 ; **l'interface n'est pas en production tant que la PR n'est pas fusionnée**. La migration distante porte la version Supabase `20261106002110`, distincte du préfixe local `20261106000100` ; réconcilier l'historique des migrations avant d'automatiser `supabase db push`.
 
 Avertissement actif du Security Advisor : « Leaked Password Protection Disabled » ; voir https://supabase.com/docs/guides/auth/password-security#password-strength-and-leaked-password-protection.
+
+
+## Affectation aux classes (nouveau)
+
+Dans « Ajouter un PDF », sélectionner d'abord un **Chapitre**, puis cocher les classes destinataires :
+
+- Chapitre niveau `1BAC` : `1BAC BIOF G1`, `1BAC BIOF G2`, `1BAC BIOF G3` ; choix multiple possible.
+- Chapitre niveau `2BAC PC` : `2BAC PC BIOF` ; case cochée par défaut.
+- La sélection est obligatoire à l'import et enregistrée comme tableau `physix_resources.target_classes` avec la fiche privée.
+- Les PDF préexistants sans classe restent `target_classes = '{}'`, donc **non attribués** ; aucune classe n'est devinée automatiquement.
+- Ces classes sont de simples **métadonnées d'affectation** ; elles n'ouvrent **aucune lecture aux élèves**. Le contrôle effectif d'accès par élève reste à construire, vérifier et tester avant publication des documents.
+- Migration appliquée au projet Supabase sous `physix_resource_target_classes` ; fichier source `supabase/migrations/20261106000200_physix_resource_target_classes.sql`.

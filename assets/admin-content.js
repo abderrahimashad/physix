@@ -118,7 +118,15 @@ async function save(event){
  finally{busy=false;const b=document.querySelector("#content-form button[type=submit]");if(b)b.disabled=false}
 }
 async function remove(id){
- if(busy||!window.confirm("Supprimer définitivement cette fiche ? Les chapitres contenant des ressources ne peuvent pas être supprimés."))return;
+ if(busy)return;
+ // Éviter les PDF orphelins : d'abord supprimer les pièces jointes depuis l'éditeur privé.
+ if(tab==="resources"&&rows.files.some(f=>f.resource_id===id)){
+  alertText("Cette ressource possède des PDF. Supprimez d'abord ses fichiers privés.",true);return;
+ }
+ if(tab==="devoirs"&&rows.files.some(f=>f.devoir_id===id)){
+  alertText("Ce devoir possède des PDF. Supprimez d'abord ses fichiers privés.",true);return;
+ }
+ if(!window.confirm("Supprimer définitivement cette fiche ? Les chapitres contenant des ressources ne peuvent pas être supprimés."))return;
  busy=true;
  try{
   const result=await rest(tab,"?id=eq."+encodeURIComponent(id),"DELETE");

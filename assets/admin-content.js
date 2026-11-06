@@ -71,9 +71,11 @@ function render(){
  const nav=Object.keys(labels).map(t=>'<button type="button" data-tab="'+t+'" class="'+(t===tab?"selected":"")+'">'+labels[t]+'</button>').join("");
  if(tab==="documents"){
   const advanced=Object.keys(labels).filter(t=>t!=="documents").map(t=>'<button type="button" data-tab="'+t+'">'+labels[t]+'</button>').join("");
-  root.innerHTML='<div class="content-head"><div><h2>Mes documents de physique-chimie</h2><p>Gérez vos chapitres, vos devoirs et les documents accessibles aux élèves.</p></div><button type="button" id="owner-logout">Déconnexion</button></div>'+
+  root.innerHTML='<div class="content-head"><div><h2>Mon espace professeur</h2><p>Suivi des élèves, cours et QCM, au même endroit.</p></div><button type="button" id="owner-logout">Déconnexion</button></div>'+
   '<div id="content-message" class="content-note" role="status" aria-live="polite" hidden></div>'+
-  '<button type="button" id="open-tracking" class="track-entry">📊 Suivi des élèves et note d’activité</button><button type="button" id="open-pedagogy" class="track-entry">📘 Travail, annonces et objectifs</button><div class="overview-home-shortcuts"><button type="button" id="open-dashboard">📊 Tableau de bord</button><button type="button" id="open-portraits">📸 Trombinoscope</button><button type="button" id="open-ai">📝 Exercices à remettre</button><button type="button" id="open-remises">🔔 Copies à valider</button><button type="button" id="open-wheel">🎡 Roue aléatoire</button><button type="button" id="open-qcm">✅ QCM par chapitre</button></div>';
+  '<div class="px-simple-welcome"><h3>Bienvenue dans PhysiX</h3><p>Choisissez une action. Les options avancées restent disponibles plus bas.</p></div>'+
+  '<div class="px-simple-actions"><button type="button" id="open-dashboard">📊 Tableau de bord</button><button type="button" id="open-tracking">🙋 Participation et notes</button><button type="button" id="open-remises">📥 Copies à corriger</button><button type="button" id="open-wheel">🎡 Choisir un élève</button><button type="button" id="open-qcm">✅ QCM par chapitre</button><button type="button" id="open-pedagogy">📅 Devoirs et annonces</button></div>'+
+  '<details class="px-simple-secondary"><summary>Autres outils</summary><div class="overview-home-shortcuts"><button type="button" id="open-portraits">📸 Trombinoscope</button><button type="button" id="open-ai">📝 Exercices à remettre</button></div></details>';
   if(typeof window.physixQuickPdfRender==="function"){
     window.physixQuickPdfRender(root,{rows,session,rest,refresh,esc,opt,alertText});
     window.physixStudentAdminRender?.(root,{rows,session,rest,refresh,esc,opt,alertText});

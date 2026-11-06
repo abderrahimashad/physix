@@ -55,6 +55,7 @@ window.physixQuickPdfRender=(root,{rows,session,rest,refresh,esc,opt,alertText})
  '<div class="quick-step"><label for="simple-class">1. Pour quelle classe ?</label>'+
  '<select id="simple-class" class="quick-class-selector" name="class" required>'+
  opt(classes.map(c=>[c.code,c.code]),classes[0].code)+'</select>'+
+ '<fieldset class="quick-class-fieldset" id="simple-target-fieldset"><legend>Partager avec quelles classes ?</legend><div class="quick-class-options" id="simple-target-classes"></div><p class="quick-file-hint">Un seul PDF pour G1, G2 et G3. Les devoirs surveillés restent individuels par classe.</p></fieldset>'+
  '<button type="button" data-class-manager class="quick-manage-classes">+ Ajouter / retirer une classe</button></div>'+
  '<div id="simple-chapter-zone" class="quick-step"><label for="simple-chapter">2. Chapitre (pour cours, séries, exercices…)</label>'+
  '<select id="simple-chapter" name="chapter" required></select>'+
@@ -100,6 +101,19 @@ window.physixQuickPdfRender=(root,{rows,session,rest,refresh,esc,opt,alertText})
   }catch(error){note(error.message,true)}
   finally{connectButton.disabled=false}
  });
+ const updateTargets=()=>{
+  if(!form)return;
+  const primary=classes.find(c=>c.code===form.elements["class"].value);
+  const peers=classes.filter(c=>c.level===primary?.level);
+  const host=section.querySelector("#simple-target-classes");
+  const prior=[...host.querySelectorAll("input:checked")].map(input=>input.value);
+  const targets=prior.length?prior.filter(code=>peers.some(c=>c.code===code)):peers.map(c=>c.code);
+  if(primary&&!targets.includes(primary.code))targets.push(primary.code);
+  host.innerHTML=peers.map(c=>'<label class="quick-class-chip"><input type="checkbox" name="target_class" value="'+
+   esc(c.code)+'"'+(targets.includes(c.code)?' checked':'')+(c.code===primary?.code?' disabled':'')+
+   '><span>'+esc(c.code)+'</span></label>').join("");
+ };
+ updateTargets();
  const drawChapter=(preferredId="")=>{
   if(!form)return;
   const chosen=classes.find(c=>c.code===form.elements["class"].value);
@@ -113,12 +127,13 @@ window.physixQuickPdfRender=(root,{rows,session,rest,refresh,esc,opt,alertText})
   const editor=section.querySelector("#simple-chapter-editor");
   if(editor)editor.hidden=true;
  };
- form?.elements["class"].addEventListener("change",()=>drawChapter(""));
+ form?.elements["class"].addEventListener("change",()=>{updateTargets();drawChapter("")});
  const toggleKind=()=>{
   if(!form)return;
   const isDevoir=form.elements.kind.value==="Devoir surveillé";
   section.querySelector("#simple-chapter-zone").hidden=isDevoir;
   section.querySelector("#simple-devoir-zone").hidden=!isDevoir;
+  section.querySelector("#simple-target-fieldset").hidden=isDevoir;
   form.elements.chapter.required=!isDevoir;
   for(const name of ["devoirSemester","devoirSubject","devoirNumber","devoirDuration"])
    form.elements[name].disabled=!isDevoir;
@@ -159,6 +174,9 @@ window.physixQuickPdfRender=(root,{rows,session,rest,refresh,esc,opt,alertText})
   event.preventDefault();if(busy)return;
   const classroom=classes.find(c=>c.code===form.elements["class"].value);
   const kind=form.elements.kind.value,file=form.elements.pdf.files?.[0];
+  const target_classes=[...section.querySelectorAll('#simple-target-classes input:checked, #simple-target-classes input:disabled')].map(x=>x.value);
+  if(!target_classes.length||target_classes.some(code=>!classes.some(c=>c.code===code&&c.level===classroom?.level)))
+   return note("Choisissez au moins une classe du même niveau.",true);
   const isDevoir=kind==="Devoir surveillé";
   const chosenChapterId=form.elements.chapter.value;
   const chapter=rows.chapters.find(c=>c.id===chosenChapterId);
@@ -194,7 +212,7 @@ window.physixQuickPdfRender=(root,{rows,session,rest,refresh,esc,opt,alertText})
     devoir=created[0];
    }else{
     const created=await rest("resources","","POST",{owner_id:session.ownerId,chapter_id:chapter.id,title,kind,
-     target_classes:[classroom.code],visibility:"private",state:"draft",sort_order:rows.resources.length});
+     target_classes,visibility:"private",state:"draft",sort_order:rows.resources.length});
     if(!Array.isArray(created)||created.length!==1)throw Error("La fiche du document n'a pas pu être créée.");
     resource=created[0];
    }
@@ -226,7 +244,7 @@ window.physixQuickPdfRender=(root,{rows,session,rest,refresh,esc,opt,alertText})
     }
    }
    await refresh();
-   alertText("PDF enregistré : "+classroom.code+" · "+(isDevoir?"Devoir surveillé / Semestre "+semestre:chapter.title+" / "+kind)+"."+qcmSummary);
+   alertText("PDF enregistré : "+(isDevoir?classroom.code:target_classes.join(", "))+" · "+(isDevoir?"Devoir surveillé / Semestre "+semestre:chapter.title+" / "+kind)+"."+qcmSummary);
   }catch(error){
    if(createdFile)note("Le PDF est enregistré, mais la page n'a pas pu s'actualiser. Reconnectez-vous pour le retrouver.",true);
    else{

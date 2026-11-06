@@ -22,6 +22,9 @@ async function objectRequest(session,path,method,file){
 window.physixQuickPdfRender=(root,{rows,session,rest,refresh,esc,opt,alertText})=>{
  const classes=(rows.classes||[]).filter(c=>c.active);
  const attached=rows.files.filter(x=>x.resource_id);
+ const drive=window.physixDrive;
+ const driveEnabled=drive?.configured()===true;
+ if(driveEnabled)drive.prepare().catch(()=>{});
  const section=document.createElement("section");
  section.className="content-section quick-primary-pdf";
  section.id="quick-pdf-section";
@@ -45,13 +48,14 @@ window.physixQuickPdfRender=(root,{rows,session,rest,refresh,esc,opt,alertText})
  '<select id="simple-kind" name="kind" required>'+opt(kinds,"Cours")+'</select></div>'+
  '<div class="quick-step"><label for="simple-file">3. Choisir votre PDF</label>'+
  '<input id="simple-file" type="file" name="pdf" accept=".pdf,application/pdf" required>'+
- '<span class="quick-file-hint">Maximum 50 Mo avec la configuration Supabase actuelle.</span></div>'+
+ '<span class="quick-file-hint">'+(driveEnabled?"Google Drive connecté par votre accord : fichiers volumineux acceptés selon votre quota Drive.":"Stockage actuel Supabase : maximum 50 Mo.")+'</span></div>'+
  '<details class="quick-optional"><summary>Options facultatives : matière et chapitre</summary>'+
  '<label for="simple-subject">Matière</label><select id="simple-subject" name="subject">'+
  opt(["Physique","Chimie"],"Physique")+'</select>'+
  '<label for="simple-chapter">Chapitre</label><select id="simple-chapter" name="chapter"></select>'+
  '<label for="simple-title">Titre personnalisé</label>'+
  '<input id="simple-title" type="text" maxlength="160" name="title" placeholder="Par défaut : nom du PDF"></details>'+
+ (driveEnabled?'<button id="connect-google-drive" type="button">'+(drive.isConnected()?'✅ Google Drive connecté':'🔒 Autoriser mon Google Drive (compte '+esc(window.PHYSIX_DRIVE_CONFIG.expectedEmail)+')')+'</button>':'')+
  '<button id="quick-main-upload" type="submit">⬆ Enregistrer le PDF</button></form>':
  '<p>Aucune classe active. Ouvrez « Gestion avancée » → « Mes classes » pour en ajouter une.</p>')+
  '<div id="simple-feedback" class="content-note" role="status" aria-live="polite">🔒 Document privé : non accessible aux élèves actuellement.</div>'+
@@ -60,6 +64,17 @@ window.physixQuickPdfRender=(root,{rows,session,rest,refresh,esc,opt,alertText})
  root.append(section);
  const form=section.querySelector("#simple-upload");
  const note=(text,bad=false)=>{const target=section.querySelector("#simple-feedback");if(target){target.textContent=text;target.className="content-note"+(bad?" bad":"")}};
+ const connectButton=section.querySelector("#connect-google-drive");
+ connectButton?.addEventListener("click",async()=>{
+  connectButton.disabled=true;
+  try{
+   note("Ouverture sécurisée de Google. Choisissez votre compte Drive et le dossier PhysiX.");
+   await drive.connect();
+   note("Google Drive connecté. Au premier import, choisissez le dossier privé de votre classe.");
+   connectButton.textContent="✅ Google Drive connecté";
+  }catch(error){note(error.message,true)}
+  finally{connectButton.disabled=false}
+ });
  const drawChapter=()=>{
   if(!form)return;
   const chosen=classes.find(c=>c.code===form.elements["class"].value);
@@ -78,8 +93,8 @@ window.physixQuickPdfRender=(root,{rows,session,rest,refresh,esc,opt,alertText})
   const classroom=classes.find(c=>c.code===form.elements["class"].value);
   const kind=form.elements.kind.value,file=form.elements.pdf.files?.[0];
   if(!classroom||!kinds.includes(kind)||!file)return note("Sélectionnez la classe, le type et le PDF.",true);
-  if(!/\.pdf$/i.test(file.name)||file.size<=0||file.size>MAX_BYTES||(file.type&&file.type!=="application/pdf")){
-   return note("PDF invalide ou trop grand. Maximum 50 Mo sur l'offre actuelle.",true);
+  if(!/\.pdf$/i.test(file.name)||file.size<=0||(!driveEnabled&&file.size>MAX_BYTES)||(file.type&&file.type!=="application/pdf")){
+   return note(driveEnabled?"PDF invalide. Vérifiez l'extension, le contenu et la taille disponible dans Drive.":"PDF invalide ou trop grand pour Supabase (50 Mo maximum).",true);
   }
   if(await file.slice(0,5).text()!=="%PDF-")return note("Le fichier sélectionné n'est pas un PDF valide.",true);
   const title=(form.elements.title.value.trim()||file.name.replace(/\.pdf$/i,"")).slice(0,160);
@@ -88,9 +103,11 @@ window.physixQuickPdfRender=(root,{rows,session,rest,refresh,esc,opt,alertText})
   const subject=advanced?form.elements.subject.value:"Physique";
   const chosenChapter=advanced?form.elements.chapter.value:"auto";
   busy=true;form.querySelector("button[type=submit]").disabled=true;
-  let resource=null,uploadedPath=null,createdFile=false;
+  let resource=null,uploadedPath=null,driveFileId=null,createdFile=false;
   note("Enregistrement du PDF privé en cours…");
   try{
+   if(driveEnabled&&!drive.isConnected())throw Error("Cliquez sur « Autoriser mon Google Drive » avant d'enregistrer le PDF.");
+   if(driveEnabled)await drive.selectRootFolder(classroom.code);
    let chapter=chosenChapter==="auto"?null:rows.chapters.find(c=>c.id===chosenChapter);
    if(chapter&&(chapter.level!==classroom.level||chapter.subject!==subject))throw Error("Chapitre incompatible avec la classe.");
    if(!chapter){
@@ -107,11 +124,17 @@ window.physixQuickPdfRender=(root,{rows,session,rest,refresh,esc,opt,alertText})
     target_classes:[classroom.code],visibility:"private",state:"draft",sort_order:rows.resources.length});
    if(!Array.isArray(result)||result.length!==1)throw Error("Création de la fiche PDF refusée.");
    resource=result[0];
-   uploadedPath=session.ownerId+"/resource/"+resource.id+"/"+crypto.randomUUID()+".pdf";
-   await objectRequest(session,uploadedPath,"POST",file);
+   if(driveEnabled){
+    const uploaded=await drive.uploadPdf(file,{classCode:classroom.code,onProgress:pct=>note("Transfert privé Google Drive : "+pct+" %")});
+    driveFileId=uploaded.id;uploadedPath="gdrive:"+driveFileId;
+   }else{
+    uploadedPath=session.ownerId+"/resource/"+resource.id+"/"+crypto.randomUUID()+".pdf";
+    await objectRequest(session,uploadedPath,"POST",file);
+   }
    const meta=await rest("files","","POST",{owner_id:session.ownerId,resource_id:resource.id,
-     devoir_id:null,file_role:"content",storage_path:uploadedPath,filename:file.name.slice(0,200),
-     mime_type:"application/pdf",file_size:file.size});
+     devoir_id:null,file_role:"content",storage_path:uploadedPath,
+     storage_provider:driveEnabled?"google_drive":"supabase",drive_file_id:driveFileId,
+     filename:file.name.slice(0,200),mime_type:"application/pdf",file_size:file.size});
    if(!Array.isArray(meta)||meta.length!==1)throw Error("Le stockage a réussi mais la fiche PDF n'est pas enregistrée.");
    createdFile=true;
    await refresh();
@@ -120,7 +143,10 @@ window.physixQuickPdfRender=(root,{rows,session,rest,refresh,esc,opt,alertText})
    if(createdFile)note("Le PDF est enregistré, mais la page n'a pas pu s'actualiser. Reconnectez-vous pour le retrouver.",true);
    else{
     let cleanupFailed=false;
-    if(uploadedPath){try{await objectRequest(session,uploadedPath,"DELETE")}catch{cleanupFailed=true}}
+    if(driveFileId){try{await drive.removePdf(driveFileId)}catch{cleanupFailed=true}}
+    else if(uploadedPath&&!uploadedPath.startsWith("gdrive:")){
+     try{await objectRequest(session,uploadedPath,"DELETE")}catch{cleanupFailed=true}
+    }
     if(resource&&!cleanupFailed){try{await rest("resources","?id=eq."+encodeURIComponent(resource.id),"DELETE")}catch{cleanupFailed=true}}
     note(error.message+(cleanupFailed?" Vérifiez le stockage privé avant de réessayer.":""),true);
    }
@@ -128,6 +154,10 @@ window.physixQuickPdfRender=(root,{rows,session,rest,refresh,esc,opt,alertText})
  });
  section.querySelectorAll("[data-simple-open]").forEach(button=>button.addEventListener("click",async()=>{
   const doc=attached.find(f=>f.id===button.dataset.simpleOpen);if(!doc)return;
+  if(doc.storage_provider==="google_drive"){
+   try{drive.openPdf(doc.drive_file_id)}catch(error){note(error.message,true)}
+   return;
+  }
   const windowRef=window.open("","_blank");
   if(!windowRef){note("Autorisez les nouveaux onglets pour ouvrir les PDF.",true);return}
   button.disabled=true;
@@ -141,10 +171,13 @@ window.physixQuickPdfRender=(root,{rows,session,rest,refresh,esc,opt,alertText})
  }));
  section.querySelectorAll("[data-simple-delete]").forEach(button=>button.addEventListener("click",async()=>{
   const doc=attached.find(f=>f.id===button.dataset.simpleDelete);
-  if(!doc||busy||!confirm("Supprimer définitivement ce document PDF ?"))return;
+  if(!doc||busy||!confirm(doc.storage_provider==="google_drive"?"Mettre ce PDF dans la corbeille Google Drive ?":"Supprimer définitivement ce document PDF ?"))return;
   busy=true;button.disabled=true;
   try{
-   await objectRequest(session,doc.storage_path,"DELETE");
+   if(doc.storage_provider==="google_drive"){
+    if(!drive?.isConnected())throw Error("Reconnectez Google Drive pour supprimer ce fichier.");
+    await drive.removePdf(doc.drive_file_id);
+   }else await objectRequest(session,doc.storage_path,"DELETE");
    const deleted=await rest("files","?id=eq."+encodeURIComponent(doc.id),"DELETE");
    if(!Array.isArray(deleted)||deleted.length!==1)throw Error("Le PDF est supprimé mais sa fiche reste. Actualisez la page.");
    await refresh();alertText("PDF supprimé.");

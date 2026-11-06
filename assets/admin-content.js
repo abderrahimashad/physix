@@ -67,19 +67,21 @@ function rowMarkup(x){
 function render(){
  const root=document.getElementById("content-root");if(!root||!session)return;
  root.hidden=false;
- const labels={documents:"📄 Ajouter un PDF",classes:"Mes classes",chapters:"Chapitres",resources:"Ressources",devoirs:"Devoirs surveillés",tracking:"Suivi des élèves",pedagogy:"Travail et annonces"};
+ const labels={documents:"📄 Ajouter un PDF",classes:"Mes classes",chapters:"Chapitres",resources:"Ressources",devoirs:"Devoirs surveillés",tracking:"Suivi des élèves",pedagogy:"Travail et annonces",dashboard:"Tableau de bord",portraits:"Trombinoscope"};
  const nav=Object.keys(labels).map(t=>'<button type="button" data-tab="'+t+'" class="'+(t===tab?"selected":"")+'">'+labels[t]+'</button>').join("");
  if(tab==="documents"){
   const advanced=Object.keys(labels).filter(t=>t!=="documents").map(t=>'<button type="button" data-tab="'+t+'">'+labels[t]+'</button>').join("");
   root.innerHTML='<div class="content-head"><div><h2>Mes documents de physique-chimie</h2><p>Gérez vos chapitres, vos devoirs et les documents accessibles aux élèves.</p></div><button type="button" id="owner-logout">Déconnexion</button></div>'+
   '<div id="content-message" class="content-note" role="status" aria-live="polite" hidden></div>'+
-  '<button type="button" id="open-tracking" class="track-entry">📊 Suivi des élèves et note d’activité</button><button type="button" id="open-pedagogy" class="track-entry">📘 Travail, annonces et objectifs</button>';
+  '<button type="button" id="open-tracking" class="track-entry">📊 Suivi des élèves et note d’activité</button><button type="button" id="open-pedagogy" class="track-entry">📘 Travail, annonces et objectifs</button><div class="overview-home-shortcuts"><button type="button" id="open-dashboard">📊 Tableau de bord</button><button type="button" id="open-portraits">📸 Trombinoscope</button></div>';
   if(typeof window.physixQuickPdfRender==="function"){
     window.physixQuickPdfRender(root,{rows,session,rest,refresh,esc,opt,alertText});
     window.physixStudentAdminRender?.(root,{rows,session,rest,refresh,esc,opt,alertText});
     root.querySelector("[data-class-manager]")?.addEventListener("click",()=>{tab="classes";render()});
     root.querySelector("#open-tracking")?.addEventListener("click",()=>{tab="tracking";render()});
     root.querySelector("#open-pedagogy")?.addEventListener("click",()=>{tab="pedagogy";render()});
+    root.querySelector("#open-dashboard")?.addEventListener("click",()=>{tab="dashboard";render()});
+    root.querySelector("#open-portraits")?.addEventListener("click",()=>{tab="portraits";render()});
   }else alertText("Le module PDF est indisponible. Rechargez la page.",true);
   const menu=document.createElement("details");
   menu.className="quick-advanced-menu";
@@ -87,6 +89,18 @@ function render(){
   root.append(menu);
   menu.querySelectorAll("[data-tab]").forEach(b=>b.addEventListener("click",()=>{tab=b.dataset.tab;editing=null;render()}));
   root.querySelector("#owner-logout").addEventListener("click",()=>{window.physixDrive?.disconnect();location.reload()});
+  return;
+ }
+ if(tab==="dashboard"||tab==="portraits"){
+  const overview=tab;
+  root.innerHTML='<div class="content-head"><div><h2>'+
+    (overview==="dashboard"?"Tableau de bord pédagogique":"Trombinoscope des élèves")+
+    '</h2><p>Vue privée réservée au professeur PhysiX.</p></div>'+
+    '<button type="button" data-back-documents>← Mes documents</button></div>';
+  if(typeof window.physixOwnerOverview==="function")
+   window.physixOwnerOverview(root,{rows,session,rest,view:overview});
+  else root.insertAdjacentHTML("beforeend",'<p>Le module est indisponible. Actualisez la page.</p>');
+  root.querySelector("[data-back-documents]").addEventListener("click",()=>{tab="documents";render()});
   return;
  }
  if(tab==="pedagogy"){

@@ -7,7 +7,7 @@ const EVENTS={
  homework:["📘","Devoir à la maison"],
  expose:["🎤","Exposé"],
  notebook:["📒","Cahier à jour"],
- materials:["🎒","Matériel apporté"],
+
  positive:["⭐","Effort / progrès"],
  disturbance:["⚠️","Perturbation du cours"],
  absence:["🚫","Absence"],
@@ -67,7 +67,7 @@ window.physixTrackingRender=(root,{rows,session,rest})=>{
  function draw(){
   const filter=normalize(q("#track-search").value);
   const visible=pupils.filter(p=>normalize(p.full_name).includes(filter));
-  const positives=["participation","exercise","homework","expose","notebook","materials","positive"];
+  const positives=["participation","exercise","homework","expose","notebook","positive"];
   const positiveCount=events.filter(e=>positives.includes(e.kind)).length;
   q("#track-summary").innerHTML=ev("Élèves",pupils.length)+ev("Activités positives enregistrées",positiveCount)+
    ev("Absences",events.filter(e=>e.kind==="absence").length)+ev("Retards",events.filter(e=>e.kind==="late").length);
@@ -186,7 +186,7 @@ window.physixTrackingRender=(root,{rows,session,rest})=>{
  q("#track-search").addEventListener("input",draw);
  q("#track-export").addEventListener("click",()=>{
   if(!pupils.length)return status("Aucun élève à exporter.",true);
-  const order=["participation","exercise","homework","expose","notebook","materials","positive","disturbance","absence","late","note"];
+  const order=["participation","exercise","homework","expose","notebook","positive","disturbance","absence","late","note"];
   const lines=[["Élève","Classe","Semestre",...order.map(k=>EVENTS[k][1]),"Note activité /20"].map(csv).join(";")];
   pupils.forEach(p=>lines.push([p.full_name,classroom,String(semester),...order.map(k=>key(p,k)),grade(p)??""].map(csv).join(";")));
   const blob=new Blob(["\ufeff"+lines.join("\r\n")],{type:"text/csv;charset=utf-8"});

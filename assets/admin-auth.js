@@ -37,6 +37,7 @@ if(form){
   const email=form.elements.email.value.trim(),password=form.elements.password.value;
   if(!email||!password)return;
   button.disabled=true;say("Vérification de vos identifiants…");
+  let authenticated=false;
   try{
    const session=await request("/auth/v1/token?grant_type=password",{method:"POST",body:JSON.stringify({email,password})});
    if(!session.access_token)throw new Error("Session de connexion manquante.");
@@ -45,12 +46,16 @@ if(form){
     say("Compte reconnu, mais aucun droit propriétaire PhysiX n'est attribué à ce compte.","error");
     return;
    }
+   authenticated=true;
    form.reset();
    if(typeof window.physixAdminStart==="function"){
      await window.physixAdminStart(session.access_token,ownerId);
      say("Connexion propriétaire validée. Gestion des fiches sécurisées activée.","success");
    }else say("Compte propriétaire reconnu. Module de gestion indisponible sur cette page.","success");
-  }catch(_){say("Connexion impossible. Vérifiez votre email, votre mot de passe et l’activation du compte.","error")}
+  }catch(error){
+    if(authenticated){say("Compte connecté, mais erreur de chargement de la gestion. Consultez le message sous le formulaire.","error");}
+    else{say("Connexion impossible. Vérifiez votre email, votre mot de passe et l’activation du compte.","error")}
+  }
   finally{button.disabled=false}
  });
 }

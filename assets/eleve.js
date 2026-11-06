@@ -95,28 +95,31 @@ async function submit(event,fn){
  try{await fn(event.currentTarget)}catch(e){notice(e.message,true)}
  finally{busy=false;if(b)b.disabled=false}
 }
-el("email-form").addEventListener("submit",async event=>{
- event.preventDefault();if(busy)return;
- const address=el("student-email").value.trim().toLowerCase();
- if(!address||address.length>254)return;
- busy=true;const button=el("email-form").querySelector("button");button.disabled=true;
- try{
-  await request("/auth/v1/otp?redirect_to="+encodeURIComponent(location.origin+"/eleve.html"),{method:"POST",body:{email:address,create_user:true}});
-  notice("Un e-mail a été envoyé si l'adresse est autorisée. Cliquez sur le lien reçu pour ouvrir votre espace.");
- }catch(error){notice("Impossible d'envoyer le lien : "+error.message,true)}
- finally{button.disabled=false;busy=false}
+el("auth-existing").onclick=()=>{el("login-existing").hidden=false;el("login-new").hidden=true;};
+el("auth-new").onclick=()=>{el("login-existing").hidden=true;el("login-new").hidden=false;};
+el("signup-channel").onchange=()=>{el("signup-contact").type=el("signup-channel").value==="email"?"email":"tel";};
+el("password-form").onsubmit=e=>submit(e,async()=>{
+ const id=el("login-identifier").value.trim(),password=el("login-password").value;
+ const body=id.includes("@")?{email:id.toLowerCase(),password}:{phone:id,password};
+ const result=await request("/auth/v1/token?grant_type=password",{method:"POST",body});
+ if(!result.access_token)throw Error("Identifiant ou mot de passe incorrect.");
+ await authenticate(result.access_token);
 });
-el("otp-form").addEventListener("submit",async event=>{
- event.preventDefault();if(busy)return;
- const address=el("student-email").value.trim().toLowerCase();
- if(!address)return notice("Saisissez d'abord votre adresse e-mail.",true);
- busy=true;
- try{
-  const result=await request("/auth/v1/verify",{method:"POST",body:{email:address,token:el("otp-code").value.trim(),type:"email"}});
-  if(!result?.access_token)throw Error("Code de connexion incorrect.");
-  await authenticate(result.access_token);
- }catch(error){notice(error.message,true)}
- finally{busy=false}
+el("verify-request").onsubmit=e=>submit(e,async()=>{
+ const kind=el("signup-channel").value,contact=el("signup-contact").value.trim();
+ if(kind==="phone"&&!/^\+[1-9]\d{7,14}$/.test(contact))throw Error("Format téléphone requis : +2126XXXXXXXX.");
+ await request("/auth/v1/otp",{method:"POST",body:kind==="email"?
+  {email:contact.toLowerCase(),create_user:true}:{phone:contact,create_user:true}});
+ el("verify-confirm").hidden=false;
+ notice("Entrez le code de vérification reçu."+(kind==="phone"?" Le fournisseur SMS doit être actif dans Supabase.":""));
+});
+el("verify-confirm").onsubmit=e=>submit(e,async()=>{
+ const kind=el("signup-channel").value,contact=el("signup-contact").value.trim();
+ const result=await request("/auth/v1/verify",{method:"POST",body:kind==="email"?
+  {email:contact.toLowerCase(),token:el("verify-otp").value.trim(),type:"email"}:
+  {phone:contact,token:el("verify-otp").value.trim(),type:"sms"}});
+ if(!result.access_token)throw Error("Code de vérification invalide.");
+ await authenticate(result.access_token);
 });
 el("logout").addEventListener("click",async()=>{
  const old=token;token=null;items=[];myProgress=[];classBoard=[];email="";

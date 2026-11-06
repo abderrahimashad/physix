@@ -19,12 +19,12 @@ function request(session,path,{method="GET",body,file}={}){
 window.physixStudentAdminRender=async(root,{rows,session,rest,refresh})=>{
  const section=document.createElement("section");section.className="content-section student-admin-section";
  section.innerHTML='<h3>🎓 Accès élèves et publication des documents</h3>'+
- '<p>Par défaut, aucun fichier n’est visible aux élèves. Vous autorisez les adresses et publiez chaque PDF explicitement.</p>'+
- '<div class="student-admin-grid"><form id="student-allow-form"><h4>Autoriser un élève</h4>'+
+ '<p>Par défaut, aucun fichier n’est visible aux élèves. L’inscription se fait avec un code d’activation individuel généré dans « Suivi des élèves », puis vérification e-mail/SMS, mot de passe et photo obligatoire. Publiez explicitement chaque PDF.</p>'+
+ '<div class="student-admin-grid"><form id="student-allow-form"><h4>Invitations e-mail (anciens comptes)</h4>'+
  '<label>Adresse e-mail de l’élève<input name="email" type="email" maxlength="254" required placeholder="eleve@exemple.com" autocomplete="off"></label>'+
  '<label>Classe<select name="class" required></select></label>'+
  '<button type="submit">Autoriser cette adresse</button></form>'+
- '<div><h4>Accès autorisés</h4><div id="students-list">Chargement…</div></div></div>'+
+ '<div><h4>Invitations e-mail enregistrées</h4><div id="students-list">Chargement…</div></div></div>'+
  '<h4>Publier un PDF pour mes élèves</h4><p class="student-admin-help">Choisissez le fichier et sa classe. Pour les PDF Google Drive, une copie de lecture privée (50 Mo max.) est créée sur Supabase; le fichier Google original reste privé.</p>'+
  '<div id="student-docs-list">Chargement…</div>'+
  '<div id="student-admin-status" class="content-note" role="status" aria-live="polite"></div>';
@@ -135,7 +135,7 @@ window.physixStudentAdminRender=async(root,{rows,session,rest,refresh})=>{
    const old=access.find(x=>x.email===email&&x.class_code===classCode);
    if(old)await api("access","?id=eq."+encodeURIComponent(old.id),{method:"PATCH",body:{enabled:true}});
    else await api("access","?select=*",{method:"POST",body:{owner_id:session.ownerId,email,class_code:classCode,enabled:true}});
-   form.elements.email.value="";status("Adresse autorisée. L'élève peut utiliser /eleve.html pour recevoir un lien de connexion.");
+   form.elements.email.value="";status("Adresse autorisée. Donnez-lui un code d’activation depuis « Suivi des élèves ». L’e-mail invité seul ne donne pas accès.");
    await reload();
   }catch(e){status(e.message,true)}finally{pending=false;form.querySelector("button").disabled=false}
  });

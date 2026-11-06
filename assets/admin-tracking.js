@@ -41,7 +41,8 @@ window.physixTrackingRender=(root,{rows,session,rest})=>{
  '<details id="track-history" class="track-history"><summary>Historique des observations et annulation</summary><div id="track-history-list"></div></details>';
  root.append(area);
  const q=s=>area.querySelector(s),status=(text,bad=false)=>{const x=q("#track-status");x.textContent=text;x.classList.toggle("bad",bad)};
- let classroom=classes[0]?.code||"",semester=1,pupils=[],events=[],grades=[],busy=false,loading=false;
+ let classroom=classes[0]?.code||"",semester=1,pupils=[],events=[],grades=[],profiles=[],busy=false,loading=false;
+ const portraits=new Map();
  const now=new Date();q("#track-date").value=[now.getFullYear(),String(now.getMonth()+1).padStart(2,"0"),String(now.getDate()).padStart(2,"0")].join("-");
  q("#track-class").innerHTML=classes.map(c=>'<option value="'+esc(c.code)+'">'+esc(c.code)+'</option>').join("");
  const key=(p,k)=>events.filter(e=>e.pupil_id===p.id&&e.kind===k).length;
@@ -53,16 +54,35 @@ window.physixTrackingRender=(root,{rows,session,rest})=>{
   loading=true;status("Chargement des données privées…");
   try{
    const base="?select=*&order=full_name.asc&active=eq.true&class_code=eq."+encodeURIComponent(classroom);
-   const [a,b,c]=await Promise.all([
+   const [a,b,c,d]=await Promise.all([
     rest("pupils",base),
     rest("activity_events","?select=*&class_code=eq."+encodeURIComponent(classroom)+"&semester=eq."+semester+"&order=created_at.desc&limit=1000"),
-    rest("activity_grades","?select=*&semester=eq."+semester+"&limit=1000")
+    rest("activity_grades","?select=*&semester=eq."+semester+"&limit=1000"),
+    rest("student_profiles","?select=auth_user_id,pupil_id,avatar_path,phone,display_name,enabled&class_code=eq."+encodeURIComponent(classroom)+"&limit=500")
    ]);
-   pupils=a;events=b;grades=c.filter(g=>a.some(p=>p.id===g.pupil_id));
+   pupils=a;events=b;grades=c.filter(g=>a.some(p=>p.id===g.pupil_id));profiles=d;
+   await loadPortraits();
    draw();status((events.length===1000?"⚠ Historique limité aux 1000 événements les plus récents pour ce semestre.":"Données enregistrées et accessibles uniquement au professeur.")+
     " · "+pupils.length+" élève(s).");
   }catch(error){status("Impossible de charger le suivi : "+error.message,true)}
   finally{loading=false}
+ }
+ async function loadPortraits(){
+  for(const url of portraits.values())URL.revokeObjectURL(url);
+  portraits.clear();
+  for(const p of profiles){
+   if(!p.avatar_path)continue;
+   try{
+    const path=p.avatar_path.split("/").map(encodeURIComponent).join("/");
+    const response=await fetch("https://auqzfcucpglrnvwhjamo.supabase.co/storage/v1/object/authenticated/physix-avatars/"+path,{
+     headers:{apikey:"sb_publishable_5x4US_lL-yMa5RxlViAL6g_AokDwlx2",Authorization:"Bearer "+session.token},
+     cache:"no-store",referrerPolicy:"no-referrer"});
+    if(!response.ok)continue;
+    const blob=await response.blob();
+    if(blob.size<=2097152&&["image/jpeg","image/png","image/webp"].includes(blob.type))
+     portraits.set(p.pupil_id,URL.createObjectURL(blob));
+   }catch{/* Portrait indisponible : suivi sans photo. */}
+  }
  }
  function draw(){
   const filter=normalize(q("#track-search").value);
@@ -74,13 +94,19 @@ window.physixTrackingRender=(root,{rows,session,rest})=>{
   q("#track-list").innerHTML=visible.length?visible.map(p=>{
    const actions=labels.map(([k,[icon,name]])=>'<button type="button" class="'+(k==="disturbance"?"track-caution":"")+
     '" data-event="'+esc(k)+'" data-pupil="'+esc(p.id)+'" title="'+esc(name)+'">'+icon+' '+esc(name)+'</button>').join("");
-   return '<article class="track-pupil"><div class="track-pupil-head"><strong>'+esc(p.full_name)+'</strong>'+
+   return '<article class="track-pupil"><div class="track-pupil-head"><div class="track-ident">'+
+    (portraits.has(p.id)?'<img class="track-avatar" alt="Photo de '+esc(p.full_name)+'" src="'+esc(portraits.get(p.id))+'">':
+    '<span class="track-avatar-empty" aria-hidden="true">👤</span>')+
+    '<strong>'+esc(p.full_name)+'</strong></div>'+
     '<span class="track-total">Participation '+key(p,"participation")+' · Exercices '+key(p,"exercise")+
     ' · Devoirs '+key(p,"homework")+' · Absences '+key(p,"absence")+'</span></div>'+
     '<div class="track-actions">'+actions+'</div>'+
     '<div class="track-grade"><label>Note d’activité / 20 (saisie manuelle)<input type="number" min="0" max="20" step="0.25" placeholder="Non noté" value="'+
     (grade(p)===null?"":grade(p))+'" data-grade="'+esc(p.id)+'"></label>'+
     '<button type="button" data-save-grade="'+esc(p.id)+'">Enregistrer la note</button>'+
+    '<button type="button" data-code="'+esc(p.id)+'">🔑 Code d’activation</button>'+
+    (profiles.some(x=>x.pupil_id===p.id)?'<button type="button" data-suspend="'+esc(p.id)+'">'+
+    (profiles.find(x=>x.pupil_id===p.id).enabled?'Suspendre le compte':'Réactiver le compte')+'</button>':'')+
     '<button type="button" data-archive="'+esc(p.id)+'" class="track-secondary">Retirer de la liste</button></div></article>';
   }).join(""):'<p class="track-empty">'+(pupils.length?"Aucun élève ne correspond à la recherche.":"Ajoutez les élèves de cette classe pour commencer le suivi.")+'</p>';
   q("#track-history-list").innerHTML=events.length?events.slice(0,80).map(e=>{
@@ -92,6 +118,8 @@ window.physixTrackingRender=(root,{rows,session,rest})=>{
   q("#track-list").querySelectorAll("[data-event]").forEach(button=>button.addEventListener("click",()=>addEvent(button)));
   q("#track-list").querySelectorAll("[data-save-grade]").forEach(button=>button.addEventListener("click",()=>saveGrade(button)));
   q("#track-list").querySelectorAll("[data-archive]").forEach(button=>button.addEventListener("click",()=>archivePupil(button)));
+  q("#track-list").querySelectorAll("[data-code]").forEach(button=>button.addEventListener("click",()=>issueCode(button)));
+  q("#track-list").querySelectorAll("[data-suspend]").forEach(button=>button.addEventListener("click",()=>toggleAccount(button)));
   q("#track-history-list").querySelectorAll("[data-undo]").forEach(button=>button.addEventListener("click",()=>undo(button)));
  }
  async function addEvent(button){
@@ -115,6 +143,42 @@ window.physixTrackingRender=(root,{rows,session,rest})=>{
    if(!Array.isArray(result)||result.length!==1)throw Error("Enregistrement non confirmé.");
    events.unshift(result[0]);draw();status(EVENTS[kind][1]+" enregistré pour "+pupil.full_name+".");
   }catch(error){status(error.message,true)}
+  finally{busy=false;button.disabled=false}
+ }
+ async function toggleAccount(button){
+  if(busy)return;
+  const p=profiles.find(p=>p.pupil_id===button.dataset.suspend);
+  if(!p)return;
+  const enabled=!p.enabled;
+  if(!confirm(enabled?"Réactiver le compte de cet élève ?":"Suspendre l'accès de cet élève (historique conservé) ?"))return;
+  busy=true;button.disabled=true;
+  try{
+   const response=await fetch("https://auqzfcucpglrnvwhjamo.supabase.co/rest/v1/rpc/physix_set_student_account_enabled",{
+    method:"POST",headers:{apikey:"sb_publishable_5x4US_lL-yMa5RxlViAL6g_AokDwlx2",
+    Authorization:"Bearer "+session.token,"Content-Type":"application/json"},
+    body:JSON.stringify({p_pupil_id:p.pupil_id,p_enabled:enabled}),cache:"no-store",referrerPolicy:"no-referrer"});
+   if(!response.ok)throw Error("Modification non confirmée ("+response.status+").");
+   p.enabled=enabled;draw();status(enabled?"Compte réactivé.":"Compte suspendu, données pédagogiques conservées.");
+  }catch(e){status(e.message,true)}
+  finally{busy=false;button.disabled=false}
+ }
+ async function issueCode(button){
+  if(busy)return;
+  const pupil=pupils.find(x=>x.id===button.dataset.code);if(!pupil)return;
+  if(!confirm("Créer un nouveau code pour "+pupil.full_name+" ? L'ancien code, s'il existe, ne sera plus utilisable."))return;
+  busy=true;button.disabled=true;
+  try{
+   const response=await fetch("https://auqzfcucpglrnvwhjamo.supabase.co/rest/v1/rpc/physix_issue_activation",{
+    method:"POST",headers:{apikey:"sb_publishable_5x4US_lL-yMa5RxlViAL6g_AokDwlx2",
+     Authorization:"Bearer "+session.token,"Content-Type":"application/json"},
+    body:JSON.stringify({p_pupil_id:pupil.id}),cache:"no-store",referrerPolicy:"no-referrer"});
+   if(!response.ok)throw Error("Code non créé ("+response.status+").");
+   const code=await response.json();
+   if(typeof code!=="string"||!/^[A-F0-9]{24}$/.test(code))throw Error("Code non confirmé.");
+   prompt("Code valable 14 jours pour "+pupil.full_name+
+    " — à donner en privé à cet élève. Copiez-le maintenant :",code);
+   status("Code d’activation généré. Il doit être communiqué de façon privée à l’élève.");
+  }catch(e){status(e.message,true)}
   finally{busy=false;button.disabled=false}
  }
  async function saveGrade(button){

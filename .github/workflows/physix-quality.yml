@@ -50,5 +50,13 @@ jobs:
         run: node --check assets/admin-tracking.js
       - name: Check private activity tracker and grade controls
         run: python3 tests/check_activity_tracker.py
+      - name: Check student activation and class-board JavaScript
+        run: |
+          node --check assets/admin-pedagogy.js
+          node --check assets/eleve-progress.js
+          node --check assets/eleve.js
+          node --check assets/admin-tracking.js
+      - name: Check secure pupil onboarding and published classroom content
+        run: python3 tests/check_pupil_onboarding.py
       - name: Check repository for accidental live credentials
         run: python3 tests/check_no_secrets.py

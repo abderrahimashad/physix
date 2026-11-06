@@ -8,15 +8,59 @@
 <section class="hero"><span class="eyebrow">Physique · Chimie · BIOF</span><h1>Mes cours. Mes séries.<br><em>Mon espace.</em></h1><p>Retrouvez les documents que votre professeur a publiés pour votre classe. Vos fichiers restent privés.</p></section>
 <div id="status" class="status" role="status" aria-live="polite">Connectez-vous avec votre adresse e-mail autorisée par votre professeur.</div>
 <section id="login-panel" class="panel login">
- <h2>Accéder à mes documents</h2><p>Utilisez l'adresse e-mail que votre professeur a autorisée pour votre classe.</p>
- <form id="email-form"><label for="student-email">Adresse e-mail</label><input id="student-email" name="email" type="email" autocomplete="email" maxlength="254" placeholder="exemple@email.com" required>
- <button class="primary" type="submit">Recevoir le lien de connexion</button></form>
- <p class="hint">Consultez votre boîte e-mail et cliquez sur le lien reçu. Si votre professeur n'a pas encore autorisé votre adresse, aucun document ne sera visible.</p>
- <details><summary>J'ai reçu un code de connexion</summary><form id="otp-form"><label for="otp-code">Code à 6 chiffres</label><input id="otp-code" inputmode="numeric" autocomplete="one-time-code" pattern="[0-9]{6,8}" minlength="6" maxlength="8" required placeholder="123456"><button type="submit">Valider mon code</button></form></details>
+ <div class="student-auth-tabs"><button id="auth-existing" type="button" class="active">J'ai déjà un compte</button><button id="auth-new" type="button">Activer mon compte</button></div>
+ <div id="login-existing">
+  <h2>Connexion</h2><p>Connectez-vous avec votre e-mail ou votre numéro de téléphone et votre mot de passe.</p>
+  <form id="password-form"><label for="login-identifier">E-mail ou téléphone (+212…)</label>
+   <input id="login-identifier" autocomplete="username" required placeholder="adresse@email.com ou +2126…">
+   <label for="login-password">Mot de passe</label><input id="login-password" type="password" autocomplete="current-password" minlength="8" required>
+   <button type="submit">Se connecter</button></form>
+ </div>
+ <div id="login-new" hidden>
+  <h2>Activation de mon compte</h2>
+  <p>Votre professeur vous donne un code d'activation. Pour protéger votre compte, confirmez d'abord votre e-mail ou téléphone.</p>
+  <form id="verify-request">
+   <label for="signup-activation-code">Code d'activation donné par votre professeur</label>
+   <input id="signup-activation-code" pattern="[A-Fa-f0-9]{24}" minlength="24" maxlength="24" required autocomplete="off" placeholder="24 caractères">
+   <label for="signup-channel">Vérification</label><select id="signup-channel">
+    <option value="email">E-mail</option><option value="phone">Téléphone (SMS)</option></select>
+   <label for="signup-contact">E-mail ou numéro (+212…)</label><input id="signup-contact" required autocomplete="username" placeholder="adresse@email.com">
+   <button type="submit">Recevoir mon code de vérification</button>
+  </form>
+  <form id="verify-confirm" hidden><label for="verify-otp">Code reçu (6 chiffres)</label>
+   <input id="verify-otp" inputmode="numeric" autocomplete="one-time-code" pattern="[0-9]{6,8}" required maxlength="8">
+   <button type="submit">Vérifier mon identité</button></form>
+ </div>
+</section>
+<section id="activation-panel" class="panel login" hidden>
+ <h2>Mon inscription à PhysiX</h2><p>Entrez le code donné par votre professeur, votre nom exactement comme dans la liste et votre classe. Choisissez ensuite un mot de passe personnel.</p>
+ <form id="activation-form">
+  <label>Code d'activation<input name="code" maxlength="24" minlength="24" pattern="[A-Fa-f0-9]{24}" autocomplete="off" required placeholder="Code de 24 caractères"></label>
+  <label>Nom et prénom<input name="full_name" maxlength="120" minlength="2" required placeholder="Comme dans la liste de classe"></label>
+  <label>Classe<select name="class_code" required>
+   <option value="1BAC BIOF G1">1BAC BIOF G1</option><option value="1BAC BIOF G2">1BAC BIOF G2</option>
+   <option value="1BAC BIOF G3">1BAC BIOF G3</option><option value="2BAC PC BIOF">2BAC PC BIOF</option></select></label>
+  <label>Choisir un mot de passe<input name="password" type="password" autocomplete="new-password" minlength="10" maxlength="72" required></label>
+  <label>Confirmer le mot de passe<input name="confirmation" type="password" autocomplete="new-password" minlength="10" maxlength="72" required></label>
+  <button type="submit">Activer mon compte</button>
+ </form>
+</section>
+<section id="photo-panel" class="panel login" hidden>
+ <h2>📷 Ma photo de profil</h2>
+ <p>Votre photo est obligatoire pour finaliser votre compte PhysiX. Elle est privée : seuls vous et votre professeur pouvez la voir.</p>
+ <form id="photo-form">
+  <label>Votre photo (JPG, PNG ou WebP, maximum 2 Mo)
+   <input name="photo" type="file" accept="image/jpeg,image/png,image/webp" required></label>
+  <label>Téléphone facultatif si vous utilisez l'e-mail<input name="phone" type="tel" autocomplete="tel" placeholder="+2126…"></label>
+  <button type="submit">Enregistrer ma photo et continuer</button>
+ </form>
 </section>
 <section id="library-panel" hidden>
-<div class="panel library-head"><div><h2>Bibliothèque de ma classe</h2><p>Uniquement les documents autorisés pour votre adresse e-mail.</p></div><label>Ma classe<select id="class-filter"></select></label></div>
+<div class="panel library-head"><div><h2>Bibliothèque de ma classe</h2><p>Uniquement les documents autorisés pour votre adresse e-mail.</p></div><label>Ma classe<select id="class-filter"></select></label><button id="change-photo" type="button" class="photo-edit-btn">Changer ma photo</button></div>
+<div id="student-extras"></div>
+<h3 class="student-doc-title">Mes documents de cours</h3>
 <div class="filters"><button id="lessons-tab" class="active" aria-pressed="true">📚 Cours, séries et exercices</button><button id="devoirs-tab" aria-pressed="false">📝 Devoirs surveillés</button></div>
 <div id="library" class="library-list"></div>
 </section></main><footer>PhysiX © 2026 · Espace pédagogique privé · <a href="/">Accueil</a></footer>
+<script defer src="/assets/eleve-progress.js"></script>
 <script defer src="/assets/eleve.js"></script></body></html>

@@ -29,7 +29,6 @@ for required in [
     '"homework"',
     '"expose"',
     '"notebook"',
-    '"materials"',
     '"disturbance"',
     '"absence"',
     '"late"',

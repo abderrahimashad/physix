@@ -58,7 +58,7 @@ window.physixTrackingRender=(root,{rows,session,rest})=>{
     rest("pupils",base),
     rest("activity_events","?select=*&class_code=eq."+encodeURIComponent(classroom)+"&semester=eq."+semester+"&order=created_at.desc&limit=1000"),
     rest("activity_grades","?select=*&semester=eq."+semester+"&limit=1000"),
-    rest("student_profiles","?select=auth_user_id,pupil_id,avatar_path,phone,display_name&class_code=eq."+encodeURIComponent(classroom)+"&limit=500")
+    rest("student_profiles","?select=auth_user_id,pupil_id,avatar_path,phone,display_name,enabled&class_code=eq."+encodeURIComponent(classroom)+"&limit=500")
    ]);
    pupils=a;events=b;grades=c.filter(g=>a.some(p=>p.id===g.pupil_id));profiles=d;
    await loadPortraits();
@@ -105,6 +105,8 @@ window.physixTrackingRender=(root,{rows,session,rest})=>{
     (grade(p)===null?"":grade(p))+'" data-grade="'+esc(p.id)+'"></label>'+
     '<button type="button" data-save-grade="'+esc(p.id)+'">Enregistrer la note</button>'+
     '<button type="button" data-code="'+esc(p.id)+'">🔑 Code d’activation</button>'+
+    (profiles.some(x=>x.pupil_id===p.id)?'<button type="button" data-suspend="'+esc(p.id)+'">'+
+    (profiles.find(x=>x.pupil_id===p.id).enabled?'Suspendre le compte':'Réactiver le compte')+'</button>':'')+
     '<button type="button" data-archive="'+esc(p.id)+'" class="track-secondary">Retirer de la liste</button></div></article>';
   }).join(""):'<p class="track-empty">'+(pupils.length?"Aucun élève ne correspond à la recherche.":"Ajoutez les élèves de cette classe pour commencer le suivi.")+'</p>';
   q("#track-history-list").innerHTML=events.length?events.slice(0,80).map(e=>{
@@ -117,6 +119,7 @@ window.physixTrackingRender=(root,{rows,session,rest})=>{
   q("#track-list").querySelectorAll("[data-save-grade]").forEach(button=>button.addEventListener("click",()=>saveGrade(button)));
   q("#track-list").querySelectorAll("[data-archive]").forEach(button=>button.addEventListener("click",()=>archivePupil(button)));
   q("#track-list").querySelectorAll("[data-code]").forEach(button=>button.addEventListener("click",()=>issueCode(button)));
+  q("#track-list").querySelectorAll("[data-suspend]").forEach(button=>button.addEventListener("click",()=>toggleAccount(button)));
   q("#track-history-list").querySelectorAll("[data-undo]").forEach(button=>button.addEventListener("click",()=>undo(button)));
  }
  async function addEvent(button){
@@ -140,6 +143,23 @@ window.physixTrackingRender=(root,{rows,session,rest})=>{
    if(!Array.isArray(result)||result.length!==1)throw Error("Enregistrement non confirmé.");
    events.unshift(result[0]);draw();status(EVENTS[kind][1]+" enregistré pour "+pupil.full_name+".");
   }catch(error){status(error.message,true)}
+  finally{busy=false;button.disabled=false}
+ }
+ async function toggleAccount(button){
+  if(busy)return;
+  const p=profiles.find(p=>p.pupil_id===button.dataset.suspend);
+  if(!p)return;
+  const enabled=!p.enabled;
+  if(!confirm(enabled?"Réactiver le compte de cet élève ?":"Suspendre l'accès de cet élève (historique conservé) ?"))return;
+  busy=true;button.disabled=true;
+  try{
+   const response=await fetch("https://auqzfcucpglrnvwhjamo.supabase.co/rest/v1/rpc/physix_set_student_account_enabled",{
+    method:"POST",headers:{apikey:"sb_publishable_5x4US_lL-yMa5RxlViAL6g_AokDwlx2",
+    Authorization:"Bearer "+session.token,"Content-Type":"application/json"},
+    body:JSON.stringify({p_pupil_id:p.pupil_id,p_enabled:enabled}),cache:"no-store",referrerPolicy:"no-referrer"});
+   if(!response.ok)throw Error("Modification non confirmée ("+response.status+").");
+   p.enabled=enabled;draw();status(enabled?"Compte réactivé.":"Compte suspendu, données pédagogiques conservées.");
+  }catch(e){status(e.message,true)}
   finally{busy=false;button.disabled=false}
  }
  async function issueCode(button){

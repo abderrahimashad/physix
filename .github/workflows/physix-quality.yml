@@ -84,5 +84,7 @@ jobs:
         run: python3 tests/check_chapter_qcm_wheel.py
       - name: Check Gemini auto QCM and final-only corrections
         run: python3 tests/check_auto_qcm.py
+      - name: Check multi-class PDF and simple teacher dashboard
+        run: python3 tests/check_shared_pdf_dashboard.py
       - name: Check repository for accidental live credentials
         run: python3 tests/check_no_secrets.py

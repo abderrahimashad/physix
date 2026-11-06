@@ -152,6 +152,29 @@
 .track-log{display:flex;justify-content:space-between;gap:10px;align-items:center;border-top:1px solid #e9eff8;padding:11px 0;flex-wrap:wrap;font-size:13px}
 @media(max-width:700px){.track-toolbar{grid-template-columns:1fr 1fr}.track-toolbar label:first-child{grid-column:1/-1}.track-summary{grid-template-columns:repeat(2,minmax(0,1fr))}.track-grade button{flex:1 1 100%}.track-pupil{padding:12px}}
 
+
+/* Travaux, annonces, objectifs et liaison d'identité : propriétaire exclusivement. */
+.px-pedagogy{max-width:1080px;margin:18px auto}
+.px-pedagogy>h3{font-size:22px;color:#173a73}
+.px-pedagogy>p{color:#5c769e;line-height:1.5}
+.px-ped-toolbar{display:flex;flex-wrap:wrap;gap:13px;align-items:end;margin:16px 0}
+.px-ped-toolbar label{flex:1;min-width:175px;font-size:13px;font-weight:700;color:#305484}
+.px-pedagogy select,.px-pedagogy input,.px-pedagogy textarea{display:block;width:100%;box-sizing:border-box;padding:12px;margin-top:5px;border:1px solid #c2d5f1;border-radius:11px;background:#fff;color:#1d3c72;font:inherit}
+.px-ped-panels{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px;margin-top:18px}
+.px-ped-panels>section{background:#f9fbff;border:1px solid #dbe6f7;border-radius:15px;padding:17px;min-width:0}
+.px-ped-panels h4{font-size:18px;color:#224d90;margin:0 0 14px}
+.px-ped-panels p{font-size:13px;color:#6782a5;line-height:1.6}
+.px-ped-panels form{display:grid;gap:12px;margin-bottom:19px}
+.px-ped-panels label{display:block;font-size:13px;font-weight:700;color:#2d5689}
+.px-ped-panels form>button{justify-self:start}
+.px-ped-item{border-top:1px solid #dce8f9;display:flex;flex-wrap:wrap;justify-content:space-between;align-items:center;gap:10px;padding:14px 0}
+.px-ped-item>div:first-child{min-width:0;flex:1}
+.px-ped-item strong{color:#234a86;overflow-wrap:anywhere}
+.px-ped-item small{display:block;color:#607aa0;margin-top:7px;white-space:pre-wrap;overflow-wrap:anywhere}
+.px-ped-actions{display:flex;flex-wrap:wrap;gap:7px}
+#content-root .px-ped-item button{font-size:12px;padding:8px 11px}
+#content-root .px-ped-item button.danger{background:#fff1f3;color:#9e4354;border-color:#edcad3}
+@media(max-width:750px){.px-ped-panels{grid-template-columns:1fr}}
 </style>
 </head>
 <body>
@@ -180,5 +203,6 @@
 <script src="/assets/admin-simple.js" defer></script>
 <script src="/assets/admin-students.js" defer></script>
 <script src="/assets/admin-tracking.js" defer></script>
+<script src="/assets/admin-pedagogy.js" defer></script>
 </body>
 </html>

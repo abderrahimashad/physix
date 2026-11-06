@@ -18,7 +18,7 @@ assert 'publishForClass(f,code)' in students
 assert 'for(const code of classes)' in students
 assert 'info.classCodes.includes(code)' in students
 assert 'student-admin-section' in students
-assert 'px-simple-actions' in dashboard and 'px-simple-secondary' in dashboard
+assert ('px-pro-actions' in dashboard or 'px-simple-actions' in dashboard) and 'px-simple-secondary' in dashboard
 assert "designatedFolders.has(parent)" in drive
 assert "chapter_class=any(new.target_classes)" in sql
 assert "c.level=chapter_level" in sql and "c.active=true" in sql

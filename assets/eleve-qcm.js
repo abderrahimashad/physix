@@ -14,15 +14,16 @@ function currentQuiz(){return questions.filter(x=>x.class_code===classCode&&x.se
 function currentKey(){return classCode+":"+chapter}
 function progress(){
  const list=currentQuiz(),answers=selected.get(currentKey())||{};
- const number=list.filter(x=>Number.isInteger(answers[x.id])).length;
+ const finished=list.length>0&&list.every(x=>x.answered);
+ const number=finished?list.length:list.filter(x=>Number.isInteger(answers[x.id])).length;
  const status=q("#student-qcm-summary");
  if(status){
-  status.textContent=list.length?number+" / "+list.length+" réponse(s) sélectionnée(s). "+
+  status.textContent=list.length?(finished?"QCM terminé. ":number+" / "+list.length+" réponse(s) sélectionnée(s). ")+
    (list.length===19?"15 questions de cours + 4 exercices d’application.":"Complétez toutes les questions."):
    "Aucun QCM publié pour ce chapitre et ce semestre.";
  }
  const button=q("#student-qcm-submit");
- if(button)button.disabled=busy||!list.length||number!==list.length||list.some(x=>x.answered);
+ if(button)button.disabled=busy||!list.length||number!==list.length||finished;
 }
 function draw(){
  if(!token||!q("#student-qcm-questions"))return;

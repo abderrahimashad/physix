@@ -160,10 +160,25 @@ async function removePdf(id){
  if(!file.ownedByMe||file.mimeType!=="application/pdf"||!file.parents?.some(parent=>folders.has(parent)))throw Error("Suppression refusée : PDF extérieur aux dossiers PhysiX.");
  await api(url+"?fields=id,trashed",{method:"PATCH",headers:{"Content-Type":"application/json"},body:JSON.stringify({trashed:true})});
 }
+async function downloadPdf(id,classCode){
+ if(!isConnected())throw Error("Reconnectez votre Google Drive.");
+ if(!/^[A-Za-z0-9_-]{10,200}$/.test(id))throw Error("PDF Google invalide.");
+ const folderId=cfg.classFolders?.[classCode];
+ if(!folderId)throw Error("Dossier Google Drive de cette classe non configuré.");
+ const url=DRIVE+"/files/"+encodeURIComponent(id);
+ const meta=await (await api(url+"?fields=id,mimeType,ownedByMe,trashed,parents,size")).json();
+ if(!meta.ownedByMe||meta.trashed||meta.mimeType!=="application/pdf"||
+  !meta.parents?.includes(folderId))throw Error("Ce PDF n'appartient pas au dossier privé de la classe.");
+ if(Number(meta.size)>50*1024*1024)throw Error("Ce fichier dépasse 50 Mo, limite actuelle pour la copie privée destinée aux élèves.");
+ const blob=await (await api(url+"?alt=media")).blob();
+ if(!blob.size||blob.size>50*1024*1024||await blob.slice(0,5).text()!=="%PDF-")
+  throw Error("Le document reçu depuis Google Drive n'est pas un PDF valide.");
+ return blob;
+}
 function openPdf(id){
  if(!/^[A-Za-z0-9_-]{10,200}$/.test(id))throw Error("Identifiant Google invalide.");
  // Adresse privée : seul le compte Google autorisé peut l'ouvrir. Ne pas exposer aux élèves.
  window.open("https://drive.google.com/file/d/"+encodeURIComponent(id)+"/view","_blank","noopener,noreferrer");
 }
-window.physixDrive=Object.freeze({configured,prepare,connect,disconnect,selectRootFolder,uploadPdf,removePdf,openPdf,isConnected});
+window.physixDrive=Object.freeze({configured,prepare,connect,disconnect,selectRootFolder,uploadPdf,downloadPdf,removePdf,openPdf,isConnected});
 })();

@@ -86,6 +86,7 @@ async function authenticate(value){
  userId=u.id;
  const profile=await request("/rest/v1/physix_student_profiles?select=*&auth_user_id=eq."+encodeURIComponent(userId),{auth:true});
  if(!Array.isArray(profile)||!profile.length){screen("activate");notice("Code d’activation et mot de passe requis.");return}
+ if(profile[0].enabled===false)throw Error("Votre compte a été suspendu par le professeur.");
  if(!profile[0].avatar_path){screen("photo");notice("La photo de profil est obligatoire.");return}
  await loadLibrary();screen("library");
 }

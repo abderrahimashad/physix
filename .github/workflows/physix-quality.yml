@@ -82,5 +82,7 @@ jobs:
           node --check assets/eleve-qcm.js
       - name: Check private wheel and server-graded chapter QCM
         run: python3 tests/check_chapter_qcm_wheel.py
+      - name: Check Gemini auto QCM and final-only corrections
+        run: python3 tests/check_auto_qcm.py
       - name: Check repository for accidental live credentials
         run: python3 tests/check_no_secrets.py

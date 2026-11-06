@@ -28,19 +28,26 @@ window.physixQuickPdfRender=(root,{rows,session,rest,refresh,esc,opt,alertText})
  const section=document.createElement("section");
  section.className="content-section quick-primary-pdf";
  section.id="quick-pdf-section";
- const list=attached.map(file=>{
+ const groups=new Map();
+ for(const file of attached){
   const item=rows.resources.find(r=>r.id===file.resource_id);
   const devoir=rows.devoirs.find(d=>d.id===file.devoir_id);
   const chapter=rows.chapters.find(c=>c.id===item?.chapter_id);
   const isDevoir=!!file.devoir_id;
-  const names=isDevoir?(devoir?.target_class||"Classe historique non attribuée"):((item?.target_classes||[]).join(", ")||"Sans classe");
-  const classification=isDevoir?("Devoir surveillé · Semestre "+(devoir?.semester||"?")+" · N° "+(devoir?.devoir_number||"?")):
-   ((chapter?.subject||"Matière ?")+" — "+(chapter?.title||"Chapitre inconnu")+" · "+(item?.kind||"PDF"));
-  return '<article class="content-item"><strong>'+esc(devoir?.title||item?.title||file.filename)+'</strong>'+
-   '<p><b>Classe :</b> '+esc(names)+' · <b>Classement :</b> '+esc(classification)+'</p>'+
+  const className=isDevoir?(devoir?.target_class||"Classe historique non attribuée"):((item?.target_classes||[]).join(", ")||"Sans classe");
+  const category=isDevoir?("Devoirs surveillés — Semestre "+(devoir?.semester||"?")):
+    ((chapter?.subject||"Matière ?")+" — "+(chapter?.title||"Chapitre inconnu"));
+  const groupKey=className+" / "+category;
+  const card='<article class="content-item"><strong>'+esc(devoir?.title||item?.title||file.filename)+'</strong>'+
+   '<p>'+esc(isDevoir?"Devoir N° "+(devoir?.devoir_number||"?"):(item?.kind||"PDF"))+' · '+esc(file.filename)+'</p>'+
    '<div class="content-actions"><button type="button" data-simple-open="'+esc(file.id)+'">Ouvrir</button>'+
    '<button type="button" class="danger" data-simple-delete="'+esc(file.id)+'">Supprimer</button></div></article>';
- }).join("");
+  if(!groups.has(groupKey))groups.set(groupKey,[]);
+  groups.get(groupKey).push(card);
+ }
+ const list=[...groups.entries()].sort(([a],[b])=>a.localeCompare(b,"fr")).map(([heading,cards])=>
+  '<div class="quick-chapter-group"><h4 class="quick-chapter-heading">'+esc(heading)+'</h4><div class="content-items">'+cards.join("")+'</div></div>'
+ ).join("");
  section.innerHTML='<div class="quick-simple-header"><span class="quick-step-icon" aria-hidden="true">📄</span><div>'+
  '<h3>Ajouter un document</h3><p>Choisissez la classe, puis un chapitre pour les cours ou un semestre pour les devoirs.</p></div></div>'+
  (classes.length?
@@ -77,8 +84,8 @@ window.physixQuickPdfRender=(root,{rows,session,rest,refresh,esc,opt,alertText})
  '<button id="quick-main-upload" type="submit">⬆ Enregistrer le PDF</button></form>':
  '<p>Aucune classe active. Ouvrez « Gestion avancée » → « Mes classes » pour en ajouter une.</p>')+
  '<div id="simple-feedback" class="content-note" role="status" aria-live="polite">🔒 Document privé : non accessible aux élèves actuellement.</div>'+
- '<details class="quick-documents"><summary>Mes PDF ('+attached.length+')</summary><div class="content-items">'+
- (list||'<p>Aucun PDF pour le moment.</p>')+'</div></details>';
+ '<details class="quick-documents"><summary>Mes PDF ('+attached.length+')</summary>'+
+ (list||'<p>Aucun PDF pour le moment.</p>')+'</details>';
  root.append(section);
  const form=section.querySelector("#simple-upload");
  const note=(text,bad=false)=>{const target=section.querySelector("#simple-feedback");if(target){target.textContent=text;target.className="content-note"+(bad?" bad":"")}};

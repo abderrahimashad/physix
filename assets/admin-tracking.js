@@ -42,7 +42,7 @@ window.physixTrackingRender=(root,{rows,session,rest})=>{
  root.append(area);
  const q=s=>area.querySelector(s),status=(text,bad=false)=>{const x=q("#track-status");x.textContent=text;x.classList.toggle("bad",bad)};
  let classroom=classes[0]?.code||"",semester=1,pupils=[],events=[],grades=[],busy=false,loading=false;
- q("#track-date").value=new Date().toLocaleDateString("en-CA");
+ const now=new Date();q("#track-date").value=[now.getFullYear(),String(now.getMonth()+1).padStart(2,"0"),String(now.getDate()).padStart(2,"0")].join("-");
  q("#track-class").innerHTML=classes.map(c=>'<option value="'+esc(c.code)+'">'+esc(c.code)+'</option>').join("");
  const key=(p,k)=>events.filter(e=>e.pupil_id===p.id&&e.kind===k).length;
  const grade=p=>grades.find(x=>x.pupil_id===p.id)?.grade??null;
@@ -52,7 +52,7 @@ window.physixTrackingRender=(root,{rows,session,rest})=>{
   if(loading)return;
   loading=true;status("Chargement des données privées…");
   try{
-   const base="?select=*&order=full_name.asc&class_code=eq."+encodeURIComponent(classroom);
+   const base="?select=*&order=full_name.asc&active=eq.true&class_code=eq."+encodeURIComponent(classroom);
    const [a,b,c]=await Promise.all([
     rest("pupils",base),
     rest("activity_events","?select=*&class_code=eq."+encodeURIComponent(classroom)+"&semester=eq."+semester+"&order=created_at.desc&limit=1000"),

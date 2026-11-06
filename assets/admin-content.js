@@ -71,10 +71,11 @@ function render(){
  const nav=Object.keys(labels).map(t=>'<button type="button" data-tab="'+t+'" class="'+(t===tab?"selected":"")+'">'+labels[t]+'</button>').join("");
  if(tab==="documents"){
   const advanced=Object.keys(labels).filter(t=>t!=="documents").map(t=>'<button type="button" data-tab="'+t+'">'+labels[t]+'</button>').join("");
-  root.innerHTML='<div class="content-head"><div><h2>Mes documents de physique-chimie</h2><p>Choisissez votre classe, le type de document, puis le fichier PDF.</p></div><button type="button" id="owner-logout">Déconnexion</button></div>'+
+  root.innerHTML='<div class="content-head"><div><h2>Mes documents de physique-chimie</h2><p>Gérez vos chapitres, vos devoirs et les documents accessibles aux élèves.</p></div><button type="button" id="owner-logout">Déconnexion</button></div>'+
   '<div id="content-message" class="content-note" role="status" aria-live="polite" hidden></div>';
   if(typeof window.physixQuickPdfRender==="function"){
     window.physixQuickPdfRender(root,{rows,session,rest,refresh,esc,opt,alertText});
+    window.physixStudentAdminRender?.(root,{rows,session,rest,refresh,esc,opt,alertText});
     root.querySelector("[data-class-manager]")?.addEventListener("click",()=>{tab="classes";render()});
   }else alertText("Le module PDF est indisponible. Rechargez la page.",true);
   const menu=document.createElement("details");

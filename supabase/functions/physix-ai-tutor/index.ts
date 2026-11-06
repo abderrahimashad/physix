@@ -53,7 +53,7 @@ Deno.serve(async (req:Request)=>{
   result=await fetch("https://api.openai.com/v1/chat/completions",{method:"POST",
    headers:{"Content-Type":"application/json","Authorization":"Bearer "+PROVIDER_KEY},
    body:JSON.stringify({model:MODEL,messages:[{role:"system",content:instruction},{role:"user",content:JSON.stringify(task)}],
-     max_completion_tokens:600,temperature:0.2}),signal:abort.signal});
+     max_completion_tokens:600}),signal:abort.signal});
  }catch{return output(503,"Service IA indisponible. Réessayez plus tard.")}
  finally{clearTimeout(timer)}
  if(!result.ok)return output(503,"Le fournisseur IA est indisponible ou non configuré.");

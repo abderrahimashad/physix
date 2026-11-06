@@ -7,7 +7,7 @@ const KEY="sb_publishable_5x4US_lL-yMa5RxlViAL6g_AokDwlx2";
 const TYPES=["Cours","Résumé","Exercices","Série","Correction","QCM","Présentation","Vidéo","Autre"];
 const STATES=[["draft","Brouillon"],["published","Publié"],["archived","Archivé"]];
 const LEVELS=["1BAC","2BAC PC"],SUBJECTS=["Physique","Chimie"];
-const MAP={chapters:"physix_chapters",resources:"physix_resources",devoirs:"physix_devoirs",files:"physix_resource_files",classes:"physix_classes",pupils:"physix_pupils",activity_events:"physix_activity_events",activity_grades:"physix_activity_grades",student_access:"physix_student_access",pupil_links:"physix_pupil_links",pupil_objectives:"physix_pupil_objectives",class_work:"physix_class_work",class_announcements:"physix_class_announcements",student_profiles:"physix_student_profiles",ai_exercises:"physix_ai_exercises",ai_submissions:"physix_ai_submissions",submission_pages:"physix_submission_pages"};
+const MAP={chapters:"physix_chapters",resources:"physix_resources",devoirs:"physix_devoirs",files:"physix_resource_files",classes:"physix_classes",pupils:"physix_pupils",activity_events:"physix_activity_events",activity_grades:"physix_activity_grades",student_access:"physix_student_access",pupil_links:"physix_pupil_links",pupil_objectives:"physix_pupil_objectives",class_work:"physix_class_work",class_announcements:"physix_class_announcements",student_profiles:"physix_student_profiles",ai_exercises:"physix_ai_exercises",ai_submissions:"physix_ai_submissions",submission_pages:"physix_submission_pages",chapter_qcm:"physix_chapter_qcm",chapter_qcm_attempts:"physix_chapter_qcm_attempts"};
 const esc=s=>String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
 const opt=(values,chosen)=>values.map(x=>{const [value,label]=Array.isArray(x)?x:[x,x];return '<option value="'+esc(value)+'"'+(String(value)===String(chosen)?" selected":"")+'>'+esc(label)+'</option>'}).join("");
 const field=(title,name,value="",type="text")=>'<label>'+esc(title)+'<input name="'+esc(name)+'" type="'+type+'" value="'+esc(value)+'" required'+(type==="text"?' maxlength="160"':"")+'></label>';
@@ -67,13 +67,13 @@ function rowMarkup(x){
 function render(){
  const root=document.getElementById("content-root");if(!root||!session)return;
  root.hidden=false;
- const labels={documents:"📄 Ajouter un PDF",classes:"Mes classes",chapters:"Chapitres",resources:"Ressources",devoirs:"Devoirs surveillés",tracking:"Suivi des élèves",pedagogy:"Travail et annonces",dashboard:"Tableau de bord",portraits:"Trombinoscope",ai:"Exercices à remettre",remises:"Copies reçues"};
+ const labels={documents:"📄 Ajouter un PDF",classes:"Mes classes",chapters:"Chapitres",resources:"Ressources",devoirs:"Devoirs surveillés",tracking:"Suivi des élèves",pedagogy:"Travail et annonces",dashboard:"Tableau de bord",portraits:"Trombinoscope",ai:"Exercices à remettre",remises:"Copies reçues",wheel:"Roue aléatoire",qcm:"QCM par chapitre"};
  const nav=Object.keys(labels).map(t=>'<button type="button" data-tab="'+t+'" class="'+(t===tab?"selected":"")+'">'+labels[t]+'</button>').join("");
  if(tab==="documents"){
   const advanced=Object.keys(labels).filter(t=>t!=="documents").map(t=>'<button type="button" data-tab="'+t+'">'+labels[t]+'</button>').join("");
   root.innerHTML='<div class="content-head"><div><h2>Mes documents de physique-chimie</h2><p>Gérez vos chapitres, vos devoirs et les documents accessibles aux élèves.</p></div><button type="button" id="owner-logout">Déconnexion</button></div>'+
   '<div id="content-message" class="content-note" role="status" aria-live="polite" hidden></div>'+
-  '<button type="button" id="open-tracking" class="track-entry">📊 Suivi des élèves et note d’activité</button><button type="button" id="open-pedagogy" class="track-entry">📘 Travail, annonces et objectifs</button><div class="overview-home-shortcuts"><button type="button" id="open-dashboard">📊 Tableau de bord</button><button type="button" id="open-portraits">📸 Trombinoscope</button><button type="button" id="open-ai">📝 Exercices à remettre</button><button type="button" id="open-remises">🔔 Copies à valider</button></div>';
+  '<button type="button" id="open-tracking" class="track-entry">📊 Suivi des élèves et note d’activité</button><button type="button" id="open-pedagogy" class="track-entry">📘 Travail, annonces et objectifs</button><div class="overview-home-shortcuts"><button type="button" id="open-dashboard">📊 Tableau de bord</button><button type="button" id="open-portraits">📸 Trombinoscope</button><button type="button" id="open-ai">📝 Exercices à remettre</button><button type="button" id="open-remises">🔔 Copies à valider</button><button type="button" id="open-wheel">🎡 Roue aléatoire</button><button type="button" id="open-qcm">✅ QCM par chapitre</button></div>';
   if(typeof window.physixQuickPdfRender==="function"){
     window.physixQuickPdfRender(root,{rows,session,rest,refresh,esc,opt,alertText});
     window.physixStudentAdminRender?.(root,{rows,session,rest,refresh,esc,opt,alertText});
@@ -84,6 +84,8 @@ function render(){
     root.querySelector("#open-portraits")?.addEventListener("click",()=>{tab="portraits";render()});
     root.querySelector("#open-ai")?.addEventListener("click",()=>{tab="ai";render()});
     root.querySelector("#open-remises")?.addEventListener("click",()=>{tab="remises";render()});
+    root.querySelector("#open-wheel")?.addEventListener("click",()=>{tab="wheel";render()});
+    root.querySelector("#open-qcm")?.addEventListener("click",()=>{tab="qcm";render()});
   }else alertText("Le module PDF est indisponible. Rechargez la page.",true);
   const menu=document.createElement("details");
   menu.className="quick-advanced-menu";
@@ -91,6 +93,17 @@ function render(){
   root.append(menu);
   menu.querySelectorAll("[data-tab]").forEach(b=>b.addEventListener("click",()=>{tab=b.dataset.tab;editing=null;render()}));
   root.querySelector("#owner-logout").addEventListener("click",()=>{window.physixDrive?.disconnect();location.reload()});
+  return;
+ }
+ if(tab==="wheel"||tab==="qcm"){
+  const chosen=tab;
+  root.innerHTML='<div class="content-head"><div><h2>'+
+   (chosen==="wheel"?"🎡 Roue aléatoire des élèves":"✅ QCM par chapitre")+
+   '</h2><p>Outil pédagogique réservé à l’enseignant.</p></div>'+
+   '<button type="button" data-back-documents>← Mes documents</button></div>';
+  if(chosen==="wheel")window.physixClassWheel?.(root,{rows,session,rest});
+  else window.physixTeacherQcm?.(root,{rows,session,rest});
+  root.querySelector("[data-back-documents]").addEventListener("click",()=>{tab="documents";render()});
   return;
  }
  if(tab==="remises"){

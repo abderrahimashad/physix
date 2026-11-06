@@ -75,5 +75,12 @@ jobs:
           node --check assets/admin-notifications.js
       - name: Check private teacher-validated student submissions
         run: python3 tests/check_manual_submissions.py
+      - name: Check wheel and QCM JavaScript syntax
+        run: |
+          node --check assets/admin-wheel.js
+          node --check assets/admin-qcm.js
+          node --check assets/eleve-qcm.js
+      - name: Check private wheel and server-graded chapter QCM
+        run: python3 tests/check_chapter_qcm_wheel.py
       - name: Check repository for accidental live credentials
         run: python3 tests/check_no_secrets.py

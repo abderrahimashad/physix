@@ -244,6 +244,39 @@
 .copy-preview img{display:block;max-width:100%;height:auto;max-height:450px;object-fit:contain;margin:auto}
 .copy-preview figcaption{text-align:center;font-size:12px;color:#6080a0;margin-top:5px}
 @media(max-width:540px){.px-notifications{right:8px;bottom:10px;max-width:calc(100vw - 16px)}}
+
+/* Tirage au sort en classe, contenu réservé à l’enseignant */
+.px-wheel,.px-qcm-admin{max-width:1050px;margin:20px auto}
+.px-wheel h3,.px-qcm-admin h3{color:#1a427c;font-size:22px}
+.px-wheel p,.px-qcm-admin p{color:#647c9e;font-size:14px;line-height:1.6}
+.px-wheel-controls,.px-qcm-controls{display:flex;gap:13px;flex-wrap:wrap;align-items:end;margin:16px 0}
+.px-wheel-controls label,.px-qcm-controls label{flex:1;min-width:185px;font-size:13px;color:#28528c;font-weight:750}
+.px-wheel-controls select,.px-qcm-controls select{display:block;width:100%;box-sizing:border-box;margin-top:5px;padding:12px;border-radius:10px;border:1px solid #c3d6f0;background:#fff}
+.px-wheel-controls .px-wheel-checkbox{display:flex;gap:9px;align-items:center;font-size:14px}
+.px-wheel-controls input[type=checkbox]{height:19px;width:19px;flex-shrink:0}
+.px-wheel-stage{position:relative;display:grid;place-items:center;margin:20px auto;width:min(400px,90vw)}
+.px-wheel-disc{width:100%;aspect-ratio:1;border:12px solid #e5f0ff;border-radius:50%;box-sizing:border-box;box-shadow:0 14px 35px #1e437a26;display:grid;place-items:center;transition:transform 4.6s cubic-bezier(.14,.65,.12,1)}
+.px-wheel-center{width:31%;aspect-ratio:1;border-radius:50%;background:white;box-shadow:0 2px 15px #11325e44;display:grid;place-items:center;font-weight:800;font-size:clamp(12px,2vw,19px);text-align:center;color:#1a4f9e}
+.px-wheel-pointer{position:absolute;top:-16px;left:50%;transform:translateX(-50%);font-size:40px;color:#c9274c;z-index:2;text-shadow:0 2px 7px #fff}
+.px-wheel-winner{text-align:center;color:#0b539d;font-size:clamp(20px,3vw,30px);font-weight:900;min-height:60px;margin:20px 0}
+.px-wheel-actions{display:flex;flex-wrap:wrap;gap:12px;justify-content:center}
+#content-root .px-wheel-actions button:first-child{background:#1b67dc;color:white;border-color:#1b67dc;font-size:17px;padding:15px 22px}
+.px-wheel-left{text-align:center}
+.px-qcm-form-wrap{border:1px solid #dbe7f8;border-radius:16px;background:#fafcff;padding:20px;margin:22px 0}
+.px-qcm-form-wrap summary{cursor:pointer;color:#214a83;font-weight:800;font-size:17px}
+#qcm-owner-form{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:13px;margin-top:15px}
+#qcm-owner-form label{display:block;font-size:13px;color:#2f5485;font-weight:750}
+#qcm-owner-form textarea,#qcm-owner-form input,#qcm-owner-form select{display:block;width:100%;box-sizing:border-box;margin-top:6px;padding:12px;border:1px solid #bfd3ef;border-radius:10px;background:white;font:inherit}
+#qcm-owner-form label:first-child,#qcm-owner-form label:nth-last-child(2){grid-column:1/-1}
+#qcm-owner-form button{justify-self:start}
+.px-qcm-owner-item{border-bottom:1px solid #e1eafa;padding:18px 0;display:flex;flex-wrap:wrap;gap:15px;justify-content:space-between}
+.px-qcm-owner-item>div:first-child{flex:1;min-width:200px}.px-qcm-owner-item strong{color:#1b427b}
+.px-qcm-owner-item small{display:block;color:#6280a8;margin-top:7px}
+.px-qcm-owner-item ol{line-height:1.7;color:#2e4e7c}
+.px-qcm-actions{display:flex;gap:8px;flex-wrap:wrap;align-items:start}
+.px-qcm-stats{overflow-x:auto}.px-qcm-stats table{width:100%;border-collapse:collapse;text-align:left}
+.px-qcm-stats td,.px-qcm-stats th{padding:12px;border-bottom:1px solid #e3ebf9}
+@media(max-width:640px){#qcm-owner-form{grid-template-columns:1fr}#qcm-owner-form label:first-child,#qcm-owner-form label:nth-last-child(2){grid-column:auto}}
 </style>
 </head>
 <body>
@@ -277,5 +310,7 @@
 <script src="/assets/admin-ai.js" defer></script>
 <script src="/assets/admin-remises.js" defer></script>
 <script src="/assets/admin-notifications.js" defer></script>
+<script src="/assets/admin-wheel.js" defer></script>
+<script src="/assets/admin-qcm.js" defer></script>
 </body>
 </html>

@@ -69,10 +69,10 @@ Deno.serve(async(req:Request)=>{
   prepared.push({bytes,hash,mime:f.type,path:owner+"/"+exercise+"/"+user.user.id+"/"+crypto.randomUUID()+"."+ext});
  }
  const {data:dupes,error:dupesErr}=await admin.from("physix_submission_pages")
-  .select("id").eq("owner_id",owner).eq("exercise_id",exercise)
+  .select("id").eq("owner_id",owner)
   .in("sha256",prepared.map(p=>p.hash)).limit(1);
  if(dupesErr)return fail(503,"Vérification des images indisponible.");
- if(dupes?.length)return fail(409,"Une photo identique a déjà été remise pour cet exercice.");
+ if(dupes?.length)return fail(409,"Cette photo a déjà été remise pour un exercice.");
  const paths:string[]=[];
  try{
   for(const page of prepared){

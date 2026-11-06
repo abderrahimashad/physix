@@ -1,82 +1,104 @@
-/* PhysiX private handwritten-solution photo endpoint.
-   Signed-in pupil uploads image; teacher alone can view it.
-   SHA-256 calculated from received bytes SERVER-SIDE (never trust client hash).
-   An activity credit is issued ONLY after owner approval in SQL. */
+/* PhysiX — manual photo submissions: no AI, no automatic activity credit.
+   One upload per exercise, 1-4 private image pages, server-side exact SHA-256 deduplication. */
 import {createClient} from "npm:@supabase/supabase-js@2";
 const BASE=Deno.env.get("SUPABASE_URL")||"";
 function pubKey(){try{return JSON.parse(Deno.env.get("SUPABASE_PUBLISHABLE_KEYS")||"{}").default||Deno.env.get("SUPABASE_ANON_KEY")||""}catch{return Deno.env.get("SUPABASE_ANON_KEY")||""}}
 function secret(){try{return JSON.parse(Deno.env.get("SUPABASE_SECRET_KEYS")||"{}").default||Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")||""}catch{return Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")||""}}
-const err=(status:number,message:string)=>Response.json({message},{status,headers:{"Cache-Control":"no-store"}});
+const ORIGIN="https://physix-rho.vercel.app";
+const headers={"Access-Control-Allow-Origin":ORIGIN,
+ "Access-Control-Allow-Headers":"apikey, authorization, content-type, x-physix-exercise-id",
+ "Access-Control-Allow-Methods":"POST, GET, OPTIONS",
+ "Cache-Control":"no-store","Vary":"Origin"};
+const fail=(status:number,message:string)=>Response.json({message},{status,headers});
 function validImage(b:Uint8Array,mime:string){
  if(mime==="image/jpeg")return b.length>=4&&b[0]===255&&b[1]===216&&b[2]===255;
  if(mime==="image/png")return b.length>=8&&[137,80,78,71,13,10,26,10].every((x,i)=>b[i]===x);
- if(mime==="image/webp")return b.length>=12&&String.fromCharCode(...b.slice(0,4))==="RIFF"&&
- String.fromCharCode(...b.slice(8,12))==="WEBP";
+ if(mime==="image/webp")return b.length>=12&&String.fromCharCode(...b.slice(0,4))==="RIFF"&&String.fromCharCode(...b.slice(8,12))==="WEBP";
  return false;
 }
 Deno.serve(async(req:Request)=>{
  const origin=req.headers.get("origin");
- if(origin&&origin!=="https://physix-rho.vercel.app")return err(403,"Origine non autorisée.");
- if(!BASE||!pubKey()||!secret())return err(503,"Stockage non configuré.");
+ if(origin&&origin!==ORIGIN)return fail(403,"Origine non autorisée.");
+ if(req.method==="OPTIONS")return new Response(null,{status:204,headers});
+ if(!BASE||!pubKey()||!secret())return fail(503,"Stockage non configuré.");
  const jwt=(req.headers.get("authorization")||"").replace(/^Bearer /i,"");
- if(!jwt||jwt.length>4096)return err(401,"Connectez-vous.");
+ if(!jwt||jwt.length>4096)return fail(401,"Connectez-vous.");
  const member=createClient(BASE,pubKey(),{global:{headers:{Authorization:"Bearer "+jwt}},
   auth:{autoRefreshToken:false,persistSession:false}});
- const {data:userData,error:userError}=await member.auth.getUser(jwt);
- if(userError||!userData.user)return err(401,"Session expirée.");
- const user=userData.user;
- const service=createClient(BASE,secret(),{auth:{autoRefreshToken:false,persistSession:false}});
+ const {data:user,error:userError}=await member.auth.getUser(jwt);
+ if(userError||!user.user)return fail(401,"Session invalide ou expirée.");
+ const admin=createClient(BASE,secret(),{auth:{autoRefreshToken:false,persistSession:false}});
  if(req.method==="GET"){
-  const id=new URL(req.url).searchParams.get("id");
-  if(!id||!/^[0-9a-f-]{36}$/i.test(id))return err(400,"Copie invalide.");
-  const {data:row,error:lookupError}=await service.from("physix_ai_submissions")
+  const id=new URL(req.url).searchParams.get("page_id");
+  if(!id||!/^[a-f0-9-]{36}$/i.test(id))return fail(400,"Page invalide.");
+  const {data:page,error:lookupError}=await admin.from("physix_submission_pages")
    .select("owner_id,storage_path,mime_type").eq("id",id).maybeSingle();
-  if(lookupError||!row||row.owner_id!==user.id)return err(403,"Copie privée réservée au professeur.");
-  const {data:blob,error:downloadError}=await service.storage.from("physix-solutions").download(row.storage_path);
-  if(downloadError||!blob)return err(404,"Image introuvable.");
-  return new Response(blob,{headers:{"Content-Type":row.mime_type,"Cache-Control":"no-store",
+  if(lookupError||!page||page.owner_id!==user.user.id)return fail(403,"Copie privée du professeur.");
+  const {data:blob,error:e}=await admin.storage.from("physix-solutions").download(page.storage_path);
+  if(e||!blob)return fail(404,"Photo introuvable.");
+  return new Response(blob,{headers:{...headers,"Content-Type":page.mime_type,
    "Content-Disposition":"inline; filename=solution","X-Content-Type-Options":"nosniff"}});
  }
- if(req.method!=="POST")return err(405,"Méthode interdite.");
- const id=req.headers.get("x-physix-exercise-id")||"";
- if(!/^[0-9a-f-]{36}$/i.test(id))return err(400,"Exercice invalide.");
- const mime=(req.headers.get("content-type")||"").split(";")[0].toLowerCase();
- const len=Number(req.headers.get("content-length")||0);
- if(len>5242880)return err(413,"Image trop volumineuse (maximum 5 Mo).");
- const {data:context,error:contextError}=await member.rpc("physix_ai_upload_context",{p_exercise:id});
- if(contextError||!Array.isArray(context)||context.length!==1)return err(403,"Exercice inaccessible à votre compte.");
- const {owner_id:owner,pupil_id:pupil}=context[0];
- // Avoid unnecessary uploads for an existing response to same exercise.
- const {data:old,error:oldErr}=await service.from("physix_ai_submissions")
-  .select("id").eq("exercise_id",id).eq("pupil_id",pupil).maybeSingle();
- if(oldErr)return err(503,"Impossible de vérifier les copies existantes.");
- if(old)return err(409,"Vous avez déjà remis une solution pour cet exercice.");
- let bytes:Uint8Array;
- try{
-  const raw=await req.arrayBuffer();
-  if(raw.byteLength<1024||raw.byteLength>5242880)return err(413,"Photo invalide : de 1 Ko à 5 Mo.");
-  bytes=new Uint8Array(raw);
- }catch{return err(400,"Fichier non lisible.");}
- if(!validImage(bytes,mime))return err(415,"Seules de vraies images JPEG, PNG ou WebP sont admises.");
- const digest=Array.from(new Uint8Array(await crypto.subtle.digest("SHA-256",bytes))).map(x=>x.toString(16).padStart(2,"0")).join("");
- const {data:duplicate,error:dupErr}=await service.from("physix_ai_submissions")
-  .select("id").eq("owner_id",owner).eq("exercise_id",id).eq("sha256",digest).maybeSingle();
- if(dupErr)return err(503,"Contrôle des doublons indisponible.");
- if(duplicate)return err(409,"Cette image exacte a déjà été remise pour cet exercice.");
- const extension=mime==="image/jpeg"?"jpg":mime==="image/png"?"png":"webp";
- const storagePath=owner+"/"+id+"/"+user.id+"/"+crypto.randomUUID()+"."+extension;
- const {error:uploadErr}=await service.storage.from("physix-solutions").upload(storagePath,bytes,{
-  contentType:mime,cacheControl:"0",upsert:false});
- if(uploadErr)return err(503,"Impossible de sauvegarder la photo privée.");
- const {error:insertErr}=await service.from("physix_ai_submissions").insert({
-  owner_id:owner,exercise_id:id,pupil_id:pupil,auth_user_id:user.id,
-  storage_path:storagePath,sha256:digest,mime_type:mime,bytes_size:bytes.length
- });
- if(insertErr){
-  await service.storage.from("physix-solutions").remove([storagePath]);
-  return err(insertErr.code==="23505"?409:503,
-   insertErr.code==="23505"?"Copie déjà enregistrée ou image identique.":"Enregistrement impossible.");
+ if(req.method!=="POST")return fail(405,"Méthode non autorisée.");
+ const exercise=req.headers.get("x-physix-exercise-id")||"";
+ if(!/^[0-9a-f-]{36}$/i.test(exercise))return fail(400,"Exercice invalide.");
+ if(Number(req.headers.get("content-length")||0)>21*1024*1024)return fail(413,"Envoi trop volumineux.");
+ const {data:ctx,error:ctxError}=await member.rpc("physix_ai_upload_context",{p_exercise:exercise});
+ if(ctxError||!Array.isArray(ctx)||ctx.length!==1)return fail(403,"Exercice non autorisé.");
+ const {owner_id:owner,pupil_id:pupil}=ctx[0];
+ const {data:old,error:oldError}=await admin.from("physix_ai_submissions").select("id")
+  .eq("exercise_id",exercise).eq("pupil_id",pupil).maybeSingle();
+ if(oldError)return fail(503,"Impossible de vérifier les remises.");
+ if(old)return fail(409,"Une solution a déjà été remise pour cet exercice.");
+ let form:FormData;
+ try{form=await req.formData()}catch{return fail(400,"Fichiers illisibles.");}
+ const files=form.getAll("photos");
+ if(files.length<1||files.length>4||files.some(f=>!(f instanceof File)))
+  return fail(400,"Choisissez de 1 à 4 photos JPG, PNG ou WebP.");
+ const prepared:{bytes:Uint8Array,hash:string,mime:string,path:string}[]=[];
+ for(const item of files){
+  const f=item as File;
+  if(f.size<1024||f.size>5242880)return fail(413,"Chaque photo doit faire entre 1 Ko et 5 Mo.");
+  if(!["image/jpeg","image/png","image/webp"].includes(f.type))return fail(415,"Format d’image non accepté.");
+  const bytes=new Uint8Array(await f.arrayBuffer());
+  if(!validImage(bytes,f.type))return fail(415,"Fichier image non valide.");
+  const hash=Array.from(new Uint8Array(await crypto.subtle.digest("SHA-256",bytes)))
+   .map(n=>n.toString(16).padStart(2,"0")).join("");
+  if(prepared.some(p=>p.hash===hash))return fail(409,"Vous avez ajouté deux fois la même photo.");
+  const ext=f.type==="image/jpeg"?"jpg":f.type==="image/png"?"png":"webp";
+  prepared.push({bytes,hash,mime:f.type,path:owner+"/"+exercise+"/"+user.user.id+"/"+crypto.randomUUID()+"."+ext});
  }
- return Response.json({status:"pending",message:"Copie reçue. Elle sera comptée dans l'activité après validation du professeur."},
-  {status:201,headers:{"Cache-Control":"no-store"}});
+ const {data:dupes,error:dupesErr}=await admin.from("physix_submission_pages")
+  .select("id").eq("owner_id",owner).eq("exercise_id",exercise)
+  .in("sha256",prepared.map(p=>p.hash)).limit(1);
+ if(dupesErr)return fail(503,"Vérification des images indisponible.");
+ if(dupes?.length)return fail(409,"Une photo identique a déjà été remise pour cet exercice.");
+ const paths:string[]=[];
+ try{
+  for(const page of prepared){
+   const {error:e}=await admin.storage.from("physix-solutions").upload(page.path,page.bytes,{
+    contentType:page.mime,cacheControl:"0",upsert:false});
+   if(e)throw Error("Échec du stockage des copies.");
+   paths.push(page.path);
+  }
+  const first=prepared[0];
+  const {data:submission,error:insertErr}=await admin.from("physix_ai_submissions").insert({
+   owner_id:owner,exercise_id:exercise,pupil_id:pupil,auth_user_id:user.user.id,
+   storage_path:first.path,sha256:first.hash,mime_type:first.mime,bytes_size:first.bytes.length
+  }).select("id").single();
+  if(insertErr||!submission)throw Error(insertErr?.code==="23505"?"Solution déjà remise.":"Enregistrement refusé.");
+  const {error:pagesError}=await admin.from("physix_submission_pages").insert(prepared.map((p,i)=>({
+   submission_id:submission.id,owner_id:owner,exercise_id:exercise,page_number:i+1,
+   storage_path:p.path,sha256:p.hash,mime_type:p.mime,bytes_size:p.bytes.length
+  })));
+  if(pagesError){
+   await admin.from("physix_ai_submissions").delete().eq("id",submission.id);
+   throw Error(pagesError.code==="23505"?"Cette photo a déjà été remise.":"Enregistrement des pages impossible.");
+  }
+ }catch(e){
+  if(paths.length)await admin.storage.from("physix-solutions").remove(paths);
+  return fail(409,e instanceof Error?e.message:"Envoi impossible.");
+ }
+ return Response.json({status:"pending",message:"Photos reçues, en attente de la validation du professeur."},
+  {status:201,headers});
 });

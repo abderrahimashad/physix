@@ -1,4 +1,4 @@
-/* PhysiX — upload one private handwritten-solution image for each published exercise. */
+/* PhysiX — one manual homework submission with 1 to 4 photos. No paid AI. */
 (()=>{
 "use strict";
 const BASE="https://auqzfcucpglrnvwhjamo.supabase.co";
@@ -33,24 +33,25 @@ function draw(){
   return '<article class="remise-card"><div><strong>'+esc(x.title)+'</strong><small>'+esc(x.subject)+
    ' · Semestre '+x.semester+' · '+status+'</small>'+
    (submission?.status==="rejected"&&submission.teacher_feedback?'<p>'+esc(submission.teacher_feedback)+'</p>':"")+
-   '</div>'+(submission?"":'<form data-exercise="'+esc(x.id)+'"><label>Photo de ma solution'+
-   '<input type="file" name="photo" accept="image/jpeg,image/png,image/webp" required></label>'+
+   '</div>'+(submission?"":'<form data-exercise="'+esc(x.id)+'"><label>Photos de ma solution (1 à 4)'+
+   '<input type="file" name="photo" accept="image/jpeg,image/png,image/webp" multiple required></label>'+
    '<button type="submit">Remettre ma solution</button></form>')+'</article>';
  }).join(""):'<p>Aucun exercice publié pour cette classe.</p>';
  slot.querySelectorAll("form[data-exercise]").forEach(form=>form.onsubmit=e=>upload(e,form));
 }
 async function upload(e,form){
  e.preventDefault();if(busy||!token)return;
- const file=form.elements.photo.files?.[0],valid=["image/jpeg","image/png","image/webp"];
- if(!file||!valid.includes(file.type)||file.size<1024||file.size>5242880)
-  return notice("Choisissez une photo JPG, PNG ou WebP de 1 Ko à 5 Mo.",true);
+ const files=Array.from(form.elements.photo.files||[]),valid=["image/jpeg","image/png","image/webp"];
+ if(files.length<1||files.length>4||files.some(file=>!valid.includes(file.type)||file.size<1024||file.size>5242880))
+  return notice("Choisissez 1 à 4 photos JPG, PNG ou WebP, 5 Mo maximum chacune.",true);
  if(!confirm("Confirmer l’envoi de cette solution ? Une seule remise par exercice est acceptée."))return;
  busy=true;const b=form.querySelector("button");b.disabled=true;
  try{
+  const payload=new FormData();for(const file of files)payload.append("photos",file,file.name);
   const response=await fetch(BASE+"/functions/v1/physix-ai-submission",{
    method:"POST",headers:{apikey:KEY,Authorization:"Bearer "+token,
-    "Content-Type":file.type,"x-physix-exercise-id":form.dataset.exercise},
-   body:file,cache:"no-store",referrerPolicy:"no-referrer"});
+    "x-physix-exercise-id":form.dataset.exercise},
+   body:payload,cache:"no-store",referrerPolicy:"no-referrer"});
   const result=await response.json().catch(()=>({}));
   if(!response.ok)throw Error(result.message||"La copie n’a pas été envoyée.");
   notice("Photo reçue. L’exercice sera compté après validation par le professeur.");
@@ -65,7 +66,7 @@ window.physixStudentRemises={
   token=nextToken;classCode=activeClass;
   if(!el.querySelector("#remise-list")){
    el.innerHTML='<section class="student-module"><h3>📷 Remettre mes exercices</h3>'+
-    '<p class="student-help">Prenez une photo nette et lisible de votre propre solution. Une seule copie par exercice. Une photo exactement identique déjà envoyée pour le même exercice sera refusée. La validation du professeur ajoutera un exercice à votre Suivi, sans modifier votre note d’activité /20.</p>'+
+    '<p class="student-help">Prenez 1 à 4 photos nettes et lisibles de votre propre solution. Une seule remise par exercice. Les photos exactement identiques déjà envoyées pour cet exercice seront refusées. La validation du professeur ajoutera un exercice à votre Suivi, sans modifier votre note d’activité /20.</p>'+
     '<div id="remise-status" class="status" role="status"></div>'+
     '<div id="remise-list"></div></section>';
   }

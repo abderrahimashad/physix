@@ -25,8 +25,8 @@ window.physixPedagogyRender=(root,{rows,session,rest})=>{
  '<label>Élève<select name="pupil_id" required></select></label>'+
  '<label>Objectif<input name="title" maxlength="180" minlength="3" required placeholder="Participer davantage en classe"></label>'+
  '<button type="submit">Ajouter (privé)</button></form><div id="px-ped-goals"></div></section>'+
- '<section><h4>🔗 Associer les élèves à leur compte</h4>'+
- '<p>Invitez d’abord l’adresse depuis « Accès élèves », puis liez-la au bon élève. La correspondance de classe est vérifiée côté serveur.</p>'+
+ '<section><h4>🔗 Associations e-mail historiques</h4>'+
+ '<p>Pour les nouveaux élèves, utilisez « 🔑 Code d’activation » dans Suivi des élèves. Le lien au compte vérifié se crée automatiquement. Ce formulaire reste réservé aux anciennes invitations e-mail.</p>'+
  '<form id="px-ped-links"><label>Élève<select name="pupil_id" required></select></label>'+
  '<label>Adresse autorisée<select name="access_id" required></select></label>'+
  '<button type="submit">Associer</button></form><div id="px-ped-linked"></div></section>'+

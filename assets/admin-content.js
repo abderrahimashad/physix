@@ -1,5 +1,5 @@
-/* PhysiX — véritable gestion des métadonnées avec Supabase RLS.
-   Aucun téléchargement de fichiers, aucune donnée élève, aucun stockage local de JWT. */
+/* PhysiX — métadonnées et fichiers PDF privés via Supabase RLS.
+   Aucune donnée élève, aucun stockage local de JWT, aucun fichier invité accessible. */
 (()=>{
 "use strict";
 const API="https://auqzfcucpglrnvwhjamo.supabase.co/rest/v1/";
@@ -7,13 +7,13 @@ const KEY="sb_publishable_5x4US_lL-yMa5RxlViAL6g_AokDwlx2";
 const TYPES=["Cours","Résumé","Exercices","Série","Correction","QCM","Présentation","Vidéo","Autre"];
 const STATES=[["draft","Brouillon"],["published","Publié"],["archived","Archivé"]];
 const LEVELS=["1BAC","2BAC PC"],SUBJECTS=["Physique","Chimie"];
-const MAP={chapters:"physix_chapters",resources:"physix_resources",devoirs:"physix_devoirs"};
+const MAP={chapters:"physix_chapters",resources:"physix_resources",devoirs:"physix_devoirs",files:"physix_resource_files"};
 const esc=s=>String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
 const opt=(values,chosen)=>values.map(x=>{const [value,label]=Array.isArray(x)?x:[x,x];return '<option value="'+esc(value)+'"'+(String(value)===String(chosen)?" selected":"")+'>'+esc(label)+'</option>'}).join("");
 const field=(title,name,value="",type="text")=>'<label>'+esc(title)+'<input name="'+esc(name)+'" type="'+type+'" value="'+esc(value)+'" required'+(type==="text"?' maxlength="160"':"")+'></label>';
 const select=(title,name,values,chosen)=>'<label>'+esc(title)+'<select name="'+esc(name)+'" required>'+opt(values,chosen)+'</select></label>';
 const alertText=(message,error=false)=>{const target=document.getElementById("content-message");if(!target)return;target.textContent=message;target.className="content-note"+(error?" bad":"");};
-let session=null,rows={chapters:[],resources:[],devoirs:[]},tab="chapters",editing=null,busy=false;
+let session=null,rows={chapters:[],resources:[],devoirs:[],files:[]},tab="chapters",editing=null,busy=false;
 async function rest(table,query="",method="GET",body){
  if(!session)throw Error("Session terminée. Reconnectez-vous.");
  const resp=await fetch(API+MAP[table]+query,{
@@ -26,12 +26,13 @@ async function rest(table,query="",method="GET",body){
  return data;
 }
 async function refresh(){
- const [chapters,resources,devoirs]=await Promise.all([
+ const [chapters,resources,devoirs,files]=await Promise.all([
  rest("chapters","?select=*&order=sort_order.asc,created_at.asc"),
  rest("resources","?select=*&order=sort_order.asc,created_at.asc"),
- rest("devoirs","?select=*&order=semester.asc,devoir_number.asc")
+ rest("devoirs","?select=*&order=semester.asc,devoir_number.asc"),
+ rest("files","?select=*&order=created_at.desc")
  ]);
- rows={chapters,resources,devoirs};render();
+ rows={chapters,resources,devoirs,files};render();
 }
 function formMarkup(){
  const obj=rows[tab].find(x=>x.id===editing)||{};
@@ -68,7 +69,7 @@ function render(){
  const labels={chapters:"Chapitres",resources:"Ressources",devoirs:"Devoirs surveillés"};
  const nav=Object.keys(labels).map(t=>'<button type="button" data-tab="'+t+'" class="'+(t===tab?"selected":"")+'">'+labels[t]+'</button>').join("");
  const disabled=tab==="resources"&&rows.chapters.length===0;
- root.innerHTML='<div class="content-head"><div><h2>Gestion pédagogique sécurisée</h2><p>Les fiches sont enregistrées dans Supabase sous votre compte propriétaire. Aucun PDF n’est transmis ni publié.</p></div><button type="button" id="owner-logout">Déconnexion</button></div>'+
+ root.innerHTML='<div class="content-head"><div><h2>Gestion pédagogique sécurisée</h2><p>Fiches enregistrées dans Supabase. PDF conservés dans un espace privé, accessibles seulement au propriétaire.</p></div><button type="button" id="owner-logout">Déconnexion</button></div>'+
  '<nav class="content-tabs" aria-label="Modules">'+nav+'</nav>'+
  '<div class="content-counts"><span>'+rows.chapters.length+' chapitre(s)</span><span>'+rows.resources.length+' ressource(s)</span><span>'+rows.devoirs.length+' devoir(s)</span></div>'+
  '<div id="content-message" class="content-note" role="status" aria-live="polite"></div>'+
@@ -80,6 +81,11 @@ function render(){
  root.querySelectorAll("[data-delete]").forEach(b=>b.addEventListener("click",()=>remove(b.dataset.delete)));
  root.querySelector("#content-cancel")?.addEventListener("click",()=>{editing=null;render()});
  root.querySelector("#content-form")?.addEventListener("submit",save);
+ if(tab==="resources"||tab==="devoirs"){
+  if(typeof window.physixFilesRender==="function"){
+   window.physixFilesRender(root,{tab,rows,session,rest,refresh,esc,opt,alertText});
+  }
+ }
  root.querySelector("#owner-logout").addEventListener("click",async()=>{const token=session?.token;session=null;root.hidden=true;root.innerHTML="";document.getElementById("owner-form").hidden=false;if(token){fetch("https://auqzfcucpglrnvwhjamo.supabase.co/auth/v1/logout",{method:"POST",headers:{"apikey":KEY,"Authorization":"Bearer "+token}}).catch(()=>{})}alert("Session terminée sur cette page. Connectez-vous pour revenir à la gestion.")});
 }
 function values(form){

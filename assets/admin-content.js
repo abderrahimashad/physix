@@ -122,10 +122,31 @@ async function remove(id){
  finally{busy=false}
 }
 window.physixAdminStart=async function(token,ownerId){
- if(!token||!ownerId)return;
+ if(!token||!ownerId)throw Error("Identité du propriétaire manquante.");
  session={token,ownerId};editing=null;tab="chapters";
- document.getElementById("owner-form").hidden=true;
- try{await refresh();alertText("Connexion propriétaire confirmée. Vous pouvez gérer vos fiches.")}
- catch(error){document.getElementById("owner-form").hidden=false;session=null;throw error}
+ const login=document.getElementById("owner-form");
+ const root=document.getElementById("content-root");
+ const status=document.getElementById("auth-message");
+ if(!root||!login)throw Error("Module d'administration introuvable.");
+ // Donner un retour visible immédiatement, avant même les requêtes réseau.
+ root.hidden=false;
+ root.innerHTML='<div class="content-note" role="status">Connexion acceptée. Chargement de la gestion pédagogique…</div>';
+ root.scrollIntoView({behavior:"smooth",block:"start"});
+ try{
+  await refresh();
+  login.hidden=true;
+  document.querySelector(".entry-wrap")?.classList.add("owner-authenticated");
+  alertText("Connexion propriétaire confirmée. Vous pouvez gérer vos fiches.");
+  root.scrollIntoView({behavior:"smooth",block:"start"});
+ }catch(error){
+  // Ne jamais transformer une erreur REST en message « mot de passe incorrect ».
+  session=null;
+  login.hidden=false;
+  root.hidden=false;
+  root.innerHTML='<div class="content-note bad" role="alert">Connexion reconnue, mais le chargement des données a échoué. '+esc(error.message||"Erreur serveur")+'</div><button id="return-to-login" type="button">Revenir à la connexion</button>';
+  root.querySelector("#return-to-login").addEventListener("click",()=>{root.hidden=true;login.scrollIntoView({behavior:"smooth"})});
+  if(status)status.textContent="Authentification réussie ; erreur lors du chargement de la gestion.";
+  throw error;
+ }
 };
 })();

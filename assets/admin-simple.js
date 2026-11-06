@@ -21,7 +21,7 @@ async function objectRequest(session,path,method,file){
 }
 window.physixQuickPdfRender=(root,{rows,session,rest,refresh,esc,opt,alertText})=>{
  const classes=(rows.classes||[]).filter(c=>c.active);
- const attached=rows.files.filter(x=>x.resource_id);
+ const attached=rows.files.filter(x=>x.resource_id||x.devoir_id);
  const drive=window.physixDrive;
  const driveEnabled=drive?.configured()===true;
  if(driveEnabled)drive.prepare().catch(()=>{});
@@ -30,25 +30,28 @@ window.physixQuickPdfRender=(root,{rows,session,rest,refresh,esc,opt,alertText})
  section.id="quick-pdf-section";
  const list=attached.map(file=>{
   const item=rows.resources.find(r=>r.id===file.resource_id);
-  const names=(item?.target_classes||[]).join(", ")||"Sans classe";
+  const devoir=rows.devoirs.find(d=>d.id===file.devoir_id);
   const chapter=rows.chapters.find(c=>c.id===item?.chapter_id);
-  const chapterLabel=chapter?chapter.subject+" — "+chapter.title:"Chapitre non retrouvé";
-  return '<article class="content-item"><strong>'+esc(item?.title||file.filename)+'</strong>'+
-    '<p><b>Classe :</b> '+esc(names)+' · <b>Chapitre :</b> '+esc(chapterLabel)+' · <b>Type :</b> '+esc(item?.kind||"PDF")+'</p>'+
-    '<div class="content-actions"><button type="button" data-simple-open="'+esc(file.id)+'">Ouvrir</button>'+
-    '<button type="button" class="danger" data-simple-delete="'+esc(file.id)+'">Supprimer</button></div></article>';
+  const isDevoir=!!file.devoir_id;
+  const names=isDevoir?(devoir?.target_class||"Classe historique non attribuée"):((item?.target_classes||[]).join(", ")||"Sans classe");
+  const classification=isDevoir?("Devoir surveillé · Semestre "+(devoir?.semester||"?")+" · N° "+(devoir?.devoir_number||"?")):
+   ((chapter?.subject||"Matière ?")+" — "+(chapter?.title||"Chapitre inconnu")+" · "+(item?.kind||"PDF"));
+  return '<article class="content-item"><strong>'+esc(devoir?.title||item?.title||file.filename)+'</strong>'+
+   '<p><b>Classe :</b> '+esc(names)+' · <b>Classement :</b> '+esc(classification)+'</p>'+
+   '<div class="content-actions"><button type="button" data-simple-open="'+esc(file.id)+'">Ouvrir</button>'+
+   '<button type="button" class="danger" data-simple-delete="'+esc(file.id)+'">Supprimer</button></div></article>';
  }).join("");
  section.innerHTML='<div class="quick-simple-header"><span class="quick-step-icon" aria-hidden="true">📄</span><div>'+
- '<h3>Ajouter un document</h3><p>Classe → type → chapitre → PDF : chaque document reste bien rangé.</p></div></div>'+
+ '<h3>Ajouter un document</h3><p>Choisissez la classe, puis un chapitre pour les cours ou un semestre pour les devoirs.</p></div></div>'+
  (classes.length?
  '<form id="simple-upload" class="quick-simple-form">'+
  '<div class="quick-step"><label for="simple-class">1. Pour quelle classe ?</label>'+
  '<select id="simple-class" class="quick-class-selector" name="class" required>'+
  opt(classes.map(c=>[c.code,c.code]),classes[0].code)+'</select>'+
  '<button type="button" data-class-manager class="quick-manage-classes">+ Ajouter / retirer une classe</button></div>'+
- '<div class="quick-step"><label for="simple-kind">2. Quel type de document ?</label>'+
+ '<div class="quick-step"><label for="simple-kind">2. Que voulez-vous ajouter ?</label>'+
  '<select id="simple-kind" name="kind" required>'+opt(kinds,"Cours")+'</select></div>'+
- '<div class="quick-step"><label for="simple-chapter">3. Dans quel chapitre ?</label>'+
+ '<div id="simple-chapter-zone" class="quick-step"><label for="simple-chapter">3. Chapitre (obligatoire pour cours, séries, exercices…)</label>'+
  '<select id="simple-chapter" name="chapter" required></select>'+
  '<button type="button" id="simple-new-chapter">+ Ajouter un chapitre</button>'+
  '<div id="simple-chapter-editor" class="quick-new-chapter" hidden>'+
@@ -57,6 +60,13 @@ window.physixQuickPdfRender=(root,{rows,session,rest,refresh,esc,opt,alertText})
  '<input id="simple-new-title" name="newTitle" maxlength="160" type="text" placeholder="Ex. Ondes mécaniques progressives">'+
  '<label for="simple-new-semester">Semestre</label><select id="simple-new-semester" name="newSemester">'+opt([["1","Semestre 1"],["2","Semestre 2"]],"1")+'</select>'+
  '<button type="button" id="simple-save-chapter">Enregistrer ce chapitre</button></div></div>'+
+ '<div id="simple-devoir-zone" class="quick-step" hidden>'+
+ '<label for="simple-devoir-semester">3. Semestre du devoir</label><select id="simple-devoir-semester" name="devoirSemester">'+
+ opt([["1","Semestre 1"],["2","Semestre 2"]],"1")+'</select>'+
+ '<label for="simple-devoir-subject">Matière du devoir</label><select id="simple-devoir-subject" name="devoirSubject">'+opt(["Physique","Chimie"],"Physique")+'</select>'+
+ '<label for="simple-devoir-number">Numéro du devoir</label><input id="simple-devoir-number" type="number" name="devoirNumber" min="1" max="30" value="1" required>'+
+ '<label for="simple-devoir-duration">Durée (en minutes)</label><input id="simple-devoir-duration" type="number" name="devoirDuration" min="1" max="600" value="60" required>'+
+ '</div>'+
  '<div class="quick-step"><label for="simple-file">4. Choisir votre PDF</label>'+
  '<input id="simple-file" type="file" name="pdf" accept=".pdf,application/pdf" required>'+
  '<span class="quick-file-hint">'+(driveEnabled?"Google Drive connecté par votre accord : fichiers volumineux acceptés selon votre quota Drive.":"Stockage actuel Supabase : maximum 50 Mo.")+'</span></div>'+
@@ -97,7 +107,17 @@ window.physixQuickPdfRender=(root,{rows,session,rest,refresh,esc,opt,alertText})
   if(editor)editor.hidden=true;
  };
  form?.elements["class"].addEventListener("change",()=>drawChapter(""));
- drawChapter();
+ const toggleKind=()=>{
+  if(!form)return;
+  const isDevoir=form.elements.kind.value==="Devoir surveillé";
+  section.querySelector("#simple-chapter-zone").hidden=isDevoir;
+  section.querySelector("#simple-devoir-zone").hidden=!isDevoir;
+  form.elements.chapter.required=!isDevoir;
+  for(const name of ["devoirSemester","devoirSubject","devoirNumber","devoirDuration"])
+   form.elements[name].disabled=!isDevoir;
+ };
+ form?.elements.kind.addEventListener("change",toggleKind);
+ drawChapter();toggleKind();
  const editor=section.querySelector("#simple-chapter-editor");
  section.querySelector("#simple-new-chapter")?.addEventListener("click",()=>{
   editor.hidden=!editor.hidden;
@@ -106,7 +126,7 @@ window.physixQuickPdfRender=(root,{rows,session,rest,refresh,esc,opt,alertText})
  section.querySelector("#simple-save-chapter")?.addEventListener("click",async()=>{
   if(busy)return;
   const chosen=classes.find(c=>c.code===form.elements["class"].value);
-  const title=form.elements.newTitle.value.trim().replace(/\\s+/g," ");
+  const title=form.elements.newTitle.value.trim().replace(/\s+/g," ");
   const subject=form.elements.newSubject.value;
   const semester=Number(form.elements.newSemester.value);
   if(!chosen||title.length<2||title.length>160||!["Physique","Chimie"].includes(subject)||![1,2].includes(semester)){
@@ -132,10 +152,20 @@ window.physixQuickPdfRender=(root,{rows,session,rest,refresh,esc,opt,alertText})
   event.preventDefault();if(busy)return;
   const classroom=classes.find(c=>c.code===form.elements["class"].value);
   const kind=form.elements.kind.value,file=form.elements.pdf.files?.[0];
+  const isDevoir=kind==="Devoir surveillé";
   const chosenChapterId=form.elements.chapter.value;
   const chapter=rows.chapters.find(c=>c.id===chosenChapterId);
-  if(!classroom||!kinds.includes(kind)||!file||!chapter||chapter.level!==classroom.level)
-   return note("Sélectionnez la classe, le type, le chapitre et le PDF.",true);
+  if(!classroom||!kinds.includes(kind)||!file)
+   return note("Choisissez la classe, le type et le PDF.",true);
+  if(!isDevoir&&(!chapter||chapter.level!==classroom.level))
+   return note("Choisissez ou créez d'abord un chapitre pour cette classe.",true);
+  const semestre=Number(form.elements.devoirSemester.value);
+  const number=Number(form.elements.devoirNumber.value);
+  const duration=Number(form.elements.devoirDuration.value);
+  const devoirSubject=form.elements.devoirSubject.value;
+  if(isDevoir&&(![1,2].includes(semestre)||!Number.isInteger(number)||number<1||number>30||
+   !Number.isInteger(duration)||duration<1||duration>600||!["Physique","Chimie"].includes(devoirSubject)))
+   return note("Vérifiez le semestre, la matière et le numéro du devoir.",true);
   if(!/\.pdf$/i.test(file.name)||file.size<=0||(!driveEnabled&&file.size>MAX_BYTES)||(file.type&&file.type!=="application/pdf")){
    return note(driveEnabled?"PDF invalide. Vérifiez l'extension, le contenu et la taille disponible dans Drive.":"PDF invalide ou trop grand pour Supabase (50 Mo maximum).",true);
   }
@@ -144,30 +174,38 @@ window.physixQuickPdfRender=(root,{rows,session,rest,refresh,esc,opt,alertText})
   if(!title)return note("Le PDF doit avoir un titre.",true);
   // Classement explicite obligatoire : aucun chapitre générique automatique.
   busy=true;form.querySelector("button[type=submit]").disabled=true;
-  let resource=null,uploadedPath=null,driveFileId=null,createdFile=false;
+  let resource=null,devoir=null,uploadedPath=null,driveFileId=null,createdFile=false;
   note("Enregistrement du PDF privé en cours…");
   try{
    if(driveEnabled&&!drive.isConnected())throw Error("Cliquez sur « Autoriser mon Google Drive » avant d'enregistrer le PDF.");
    if(driveEnabled)await drive.selectRootFolder(classroom.code);
-   const result=await rest("resources","","POST",{owner_id:session.ownerId,chapter_id:chapter.id,title,kind,
-    target_classes:[classroom.code],visibility:"private",state:"draft",sort_order:rows.resources.length});
-   if(!Array.isArray(result)||result.length!==1)throw Error("Création de la fiche PDF refusée.");
-   resource=result[0];
+   if(isDevoir){
+    const created=await rest("devoirs","","POST",{owner_id:session.ownerId,level:classroom.level,
+     target_class:classroom.code,subject:devoirSubject,semester:semestre,
+     devoir_number:number,title,duration_minutes:duration,state:"draft",correction_state:"hidden"});
+    if(!Array.isArray(created)||created.length!==1)throw Error("Le devoir n'a pas pu être créé.");
+    devoir=created[0];
+   }else{
+    const created=await rest("resources","","POST",{owner_id:session.ownerId,chapter_id:chapter.id,title,kind,
+     target_classes:[classroom.code],visibility:"private",state:"draft",sort_order:rows.resources.length});
+    if(!Array.isArray(created)||created.length!==1)throw Error("La fiche du document n'a pas pu être créée.");
+    resource=created[0];
+   }
    if(driveEnabled){
     const uploaded=await drive.uploadPdf(file,{classCode:classroom.code,onProgress:pct=>note("Transfert privé Google Drive : "+pct+" %")});
     driveFileId=uploaded.id;uploadedPath="gdrive:"+driveFileId;
    }else{
-    uploadedPath=session.ownerId+"/resource/"+resource.id+"/"+crypto.randomUUID()+".pdf";
+    uploadedPath=session.ownerId+"/"+(isDevoir?"devoir/"+devoir.id:"resource/"+resource.id)+"/"+crypto.randomUUID()+".pdf";
     await objectRequest(session,uploadedPath,"POST",file);
    }
-   const meta=await rest("files","","POST",{owner_id:session.ownerId,resource_id:resource.id,
-     devoir_id:null,file_role:"content",storage_path:uploadedPath,
+   const meta=await rest("files","","POST",{owner_id:session.ownerId,resource_id:resource?.id||null,
+     devoir_id:devoir?.id||null,file_role:isDevoir?"subject":"content",storage_path:uploadedPath,
      storage_provider:driveEnabled?"google_drive":"supabase",drive_file_id:driveFileId,
      filename:file.name.slice(0,200),mime_type:"application/pdf",file_size:file.size});
    if(!Array.isArray(meta)||meta.length!==1)throw Error("Le stockage a réussi mais la fiche PDF n'est pas enregistrée.");
    createdFile=true;
    await refresh();
-   alertText("PDF enregistré dans votre espace privé : "+classroom.code+" · "+kind+".");
+   alertText("PDF enregistré : "+classroom.code+" · "+(isDevoir?"Devoir surveillé / Semestre "+semestre:chapter.title+" / "+kind)+".");
   }catch(error){
    if(createdFile)note("Le PDF est enregistré, mais la page n'a pas pu s'actualiser. Reconnectez-vous pour le retrouver.",true);
    else{
@@ -177,6 +215,7 @@ window.physixQuickPdfRender=(root,{rows,session,rest,refresh,esc,opt,alertText})
      try{await objectRequest(session,uploadedPath,"DELETE")}catch{cleanupFailed=true}
     }
     if(resource&&!cleanupFailed){try{await rest("resources","?id=eq."+encodeURIComponent(resource.id),"DELETE")}catch{cleanupFailed=true}}
+    if(devoir&&!cleanupFailed){try{await rest("devoirs","?id=eq."+encodeURIComponent(devoir.id),"DELETE")}catch{cleanupFailed=true}}
     note(error.message+(cleanupFailed?" Vérifiez le stockage privé avant de réessayer.":""),true);
    }
   }finally{busy=false;const btn=form.querySelector("button[type=submit]");if(btn)btn.disabled=false}

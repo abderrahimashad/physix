@@ -4,7 +4,7 @@
 const ORIGIN="https://auqzfcucpglrnvwhjamo.supabase.co";
 const KEY="sb_publishable_5x4US_lL-yMa5RxlViAL6g_AokDwlx2";
 const BUCKET="physix-private";
-const MAX_BYTES=20*1024*1024;
+const MAX_BYTES=50*1024*1024;
 const pathUrl=path=>path.split("/").map(encodeURIComponent).join("/");
 function authHeaders(session){return {"apikey":KEY,"Authorization":"Bearer "+session.token};}
 async function storage(session,path,method,body){
@@ -28,7 +28,7 @@ window.physixFilesRender=(root,{tab,rows,session,rest,refresh,esc,opt,alertText}
  section.className="content-section";
  section.id="physix-pdf-section";
  section.innerHTML='<h3>📄 Fichiers PDF privés</h3>'+
- '<p>PDF (20 Mo maximum). Fichiers visibles uniquement dans votre espace propriétaire. Même une ressource publiée ne rend pas son PDF accessible aux élèves.</p>'+
+ '<p>PDF (50 Mo maximum). Fichiers visibles uniquement dans votre espace propriétaire. Même une ressource publiée ne rend pas son PDF accessible aux élèves.</p>'+
  (!targets.length?'<p>Ajoutez d’abord '+(type==="resource"?"une ressource":"un devoir")+' avant de joindre un PDF.</p>':
  '<form id="private-pdf-form" class="content-form">'+
  '<label>'+ (type==="resource"?"Ressource":"Devoir")+
@@ -57,7 +57,7 @@ window.physixFilesRender=(root,{tab,rows,session,rest,refresh,esc,opt,alertText}
   const file=form.elements.pdf.files?.[0],targetId=form.elements.target.value,role=form.elements.role.value;
   if(!file)return;
   if(!/\.pdf$/i.test(file.name)||file.size<1||file.size>MAX_BYTES||(file.type&&file.type!=="application/pdf")){
-   note("Choisissez un fichier PDF valide, de taille inférieure ou égale à 20 Mo.",true);return;
+   note("Choisissez un fichier PDF valide, de taille inférieure ou égale à 50 Mo.",true);return;
   }
   const signature=await file.slice(0,5).text();
   if(signature!=="%PDF-"){note("Ce fichier ne semble pas être un véritable PDF.",true);return;}
@@ -145,7 +145,7 @@ window.physixQuickPdfRender=(root,{rows,session,rest,refresh,esc,opt,alertText})
  '<fieldset class="quick-class-fieldset"><legend>2. Pour quelle(s) classe(s) ?</legend><div id="quick-class-options" class="quick-class-options"></div><p class="quick-file-hint">Vous pouvez choisir plusieurs groupes pour un même PDF.</p></fieldset>'+
  '<label class="quick-simple-label" for="pdf-file">3. Choisissez votre document</label>'+
  '<input id="pdf-file" type="file" name="pdf" accept=".pdf,application/pdf" required>'+
- '<span class="quick-file-hint">PDF uniquement · maximum 20 Mo</span>'+
+ '<span class="quick-file-hint">PDF uniquement · maximum 50 Mo</span>'+
  '<details class="quick-optional"><summary>Options facultatives</summary>'+
  '<label for="quick-kind">Type de document</label><select id="quick-kind" name="kind">'+
  opt(["Cours","Résumé","Exercices","Série","Correction","QCM","Présentation","Vidéo","Autre"],"Cours")+
@@ -186,7 +186,7 @@ window.physixQuickPdfRender=(root,{rows,session,rest,refresh,esc,opt,alertText})
    note("Choisissez au moins une classe (G1, G2, G3 ou 2BAC) pour ce document.",true);return;
   }
   if(!/\\.pdf$/i.test(file.name)||file.size<1||file.size>MAX_BYTES||(file.type&&file.type!=="application/pdf")){
-   note("PDF invalide : extension .pdf et taille maximale 20 Mo.",true);return;
+   note("PDF invalide : extension .pdf et taille maximale 50 Mo.",true);return;
   }
   if(await file.slice(0,5).text()!=="%PDF-"){note("Ce document ne semble pas être un vrai PDF.",true);return}
   const title=(form.elements.title.value.trim()||file.name.replace(/\\.pdf$/i,"")).slice(0,160);

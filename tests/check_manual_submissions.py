@@ -39,7 +39,7 @@ for token in ("multiple required","new FormData()","payload.append(\"photos\"",
     "physix_ai_my_submission_status","En attente de validation","physix-ai-submission"):
     assert token in student,token
 for token in ("data-review","physix_ai_review_submission","data-open-copy",
-    "page_id","photos.filter","pupil?.full_name","copies-class"):
+    "page_id","pages.filter","pupil?.full_name","copies-class"):
     assert token in teacher,token
 for token in ("physix_teacher_pending_copies","pupil_name","class_code",
     "exercise_title","total_pending","setInterval(refresh,45000)",

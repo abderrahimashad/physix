@@ -62,5 +62,11 @@ jobs:
         run: node --check assets/admin-overview.js
       - name: Check owner-only dashboard and trombinoscope
         run: python3 tests/check_owner_overview.py
+      - name: Check AI teacher and pupil JavaScript syntax
+        run: |
+          node --check assets/admin-ai.js
+          node --check assets/eleve-ai.js
+      - name: Check reference correction privacy and AI quotas
+        run: python3 tests/check_ai_tutor.py
       - name: Check repository for accidental live credentials
         run: python3 tests/check_no_secrets.py

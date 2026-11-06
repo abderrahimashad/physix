@@ -130,6 +130,21 @@ el("activation-form").onsubmit=e=>submit(e,async form=>{
  await request("/auth/v1/user",{method:"PUT",auth:true,body:{password:v.password}});
  form.reset();screen("photo");notice("Compte activé. Ajoutez votre photo obligatoire.");
 });
+el("photo-form").onsubmit=e=>submit(e,async form=>{
+ const file=form.elements.photo.files?.[0],extensions={"image/jpeg":"jpg","image/png":"png","image/webp":"webp"};
+ if(!file||!(file.type in extensions)||file.size<1||file.size>2097152)
+  throw Error("Photo JPG/PNG/WebP obligatoire (maximum 2 Mo).");
+ const phone=form.elements.phone.value.trim();
+ if(phone&&!/^\+[1-9]\d{7,14}$/.test(phone))throw Error("Téléphone : +2126XXXXXXXX.");
+ const path=userId+"/"+crypto.randomUUID().replaceAll("-","").slice(0,24)+"."+extensions[file.type];
+ const response=await fetch("https://auqzfcucpglrnvwhjamo.supabase.co/storage/v1/object/physix-avatars/"+path,{
+  method:"POST",headers:{"apikey":KEY,"Authorization":"Bearer "+token,"Content-Type":file.type},
+  body:file,cache:"no-store",referrerPolicy:"no-referrer"});
+ if(!response.ok)throw Error("Photo refusée par le stockage privé ("+response.status+").");
+ await request("/rest/v1/physix_student_profiles?auth_user_id=eq."+encodeURIComponent(userId),{
+  method:"PATCH",auth:true,body:{avatar_path:path,...(phone?{phone}:{})}});
+ await loadLibrary();screen("library");
+});
 el("logout").addEventListener("click",async()=>{
  const old=token;token=null;items=[];myProgress=[];classBoard=[];email="";
  setAuthenticated(false);notice("Déconnecté. Vous pouvez vous reconnecter.");

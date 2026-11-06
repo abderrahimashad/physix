@@ -41,7 +41,8 @@ window.physixTrackingRender=(root,{rows,session,rest})=>{
  '<details id="track-history" class="track-history"><summary>Historique des observations et annulation</summary><div id="track-history-list"></div></details>';
  root.append(area);
  const q=s=>area.querySelector(s),status=(text,bad=false)=>{const x=q("#track-status");x.textContent=text;x.classList.toggle("bad",bad)};
- let classroom=classes[0]?.code||"",semester=1,pupils=[],events=[],grades=[],busy=false,loading=false;
+ let classroom=classes[0]?.code||"",semester=1,pupils=[],events=[],grades=[],profiles=[],busy=false,loading=false;
+ const portraits=new Map();
  const now=new Date();q("#track-date").value=[now.getFullYear(),String(now.getMonth()+1).padStart(2,"0"),String(now.getDate()).padStart(2,"0")].join("-");
  q("#track-class").innerHTML=classes.map(c=>'<option value="'+esc(c.code)+'">'+esc(c.code)+'</option>').join("");
  const key=(p,k)=>events.filter(e=>e.pupil_id===p.id&&e.kind===k).length;
@@ -53,16 +54,35 @@ window.physixTrackingRender=(root,{rows,session,rest})=>{
   loading=true;status("Chargement des données privées…");
   try{
    const base="?select=*&order=full_name.asc&active=eq.true&class_code=eq."+encodeURIComponent(classroom);
-   const [a,b,c]=await Promise.all([
+   const [a,b,c,d]=await Promise.all([
     rest("pupils",base),
     rest("activity_events","?select=*&class_code=eq."+encodeURIComponent(classroom)+"&semester=eq."+semester+"&order=created_at.desc&limit=1000"),
-    rest("activity_grades","?select=*&semester=eq."+semester+"&limit=1000")
+    rest("activity_grades","?select=*&semester=eq."+semester+"&limit=1000"),
+    rest("student_profiles","?select=auth_user_id,pupil_id,avatar_path,phone,display_name&class_code=eq."+encodeURIComponent(classroom)+"&limit=500")
    ]);
-   pupils=a;events=b;grades=c.filter(g=>a.some(p=>p.id===g.pupil_id));
+   pupils=a;events=b;grades=c.filter(g=>a.some(p=>p.id===g.pupil_id));profiles=d;
+   await loadPortraits();
    draw();status((events.length===1000?"⚠ Historique limité aux 1000 événements les plus récents pour ce semestre.":"Données enregistrées et accessibles uniquement au professeur.")+
     " · "+pupils.length+" élève(s).");
   }catch(error){status("Impossible de charger le suivi : "+error.message,true)}
   finally{loading=false}
+ }
+ async function loadPortraits(){
+  for(const url of portraits.values())URL.revokeObjectURL(url);
+  portraits.clear();
+  for(const p of profiles){
+   if(!p.avatar_path)continue;
+   try{
+    const path=p.avatar_path.split("/").map(encodeURIComponent).join("/");
+    const response=await fetch("https://auqzfcucpglrnvwhjamo.supabase.co/storage/v1/object/authenticated/physix-avatars/"+path,{
+     headers:{apikey:"sb_publishable_5x4US_lL-yMa5RxlViAL6g_AokDwlx2",Authorization:"Bearer "+session.token},
+     cache:"no-store",referrerPolicy:"no-referrer"});
+    if(!response.ok)continue;
+    const blob=await response.blob();
+    if(blob.size<=2097152&&["image/jpeg","image/png","image/webp"].includes(blob.type))
+     portraits.set(p.pupil_id,URL.createObjectURL(blob));
+   }catch{/* Portrait indisponible : suivi sans photo. */}
+  }
  }
  function draw(){
   const filter=normalize(q("#track-search").value);
@@ -74,7 +94,10 @@ window.physixTrackingRender=(root,{rows,session,rest})=>{
   q("#track-list").innerHTML=visible.length?visible.map(p=>{
    const actions=labels.map(([k,[icon,name]])=>'<button type="button" class="'+(k==="disturbance"?"track-caution":"")+
     '" data-event="'+esc(k)+'" data-pupil="'+esc(p.id)+'" title="'+esc(name)+'">'+icon+' '+esc(name)+'</button>').join("");
-   return '<article class="track-pupil"><div class="track-pupil-head"><strong>'+esc(p.full_name)+'</strong>'+
+   return '<article class="track-pupil"><div class="track-pupil-head"><div class="track-ident">'+
+    (portraits.has(p.id)?'<img class="track-avatar" alt="Photo de '+esc(p.full_name)+'" src="'+esc(portraits.get(p.id))+'">':
+    '<span class="track-avatar-empty" aria-hidden="true">👤</span>')+
+    '<strong>'+esc(p.full_name)+'</strong></div>'+
     '<span class="track-total">Participation '+key(p,"participation")+' · Exercices '+key(p,"exercise")+
     ' · Devoirs '+key(p,"homework")+' · Absences '+key(p,"absence")+'</span></div>'+
     '<div class="track-actions">'+actions+'</div>'+

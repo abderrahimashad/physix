@@ -9,7 +9,7 @@ const EVENTS={
  notebook:["📒","Cahier à jour"],
  materials:["🎒","Matériel apporté"],
  positive:["⭐","Effort / progrès"],
- disturbance:["⚠️","Incident de comportement"],
+ disturbance:["⚠️","Perturbation du cours"],
  absence:["🚫","Absence"],
  late:["🕒","Retard"],
  note:["📝","Observation"]

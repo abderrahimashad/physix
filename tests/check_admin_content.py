@@ -56,7 +56,7 @@ assert "aucun accès" in sql_classes.lower() or "aucun droit" in sql_classes.low
 simple=(root/"assets/admin-simple.js").read_text(encoding="utf-8")
 class_ui=(root/"assets/admin-classes.js").read_text(encoding="utf-8")
 assert 'src="/assets/admin-simple.js"' in html and 'src="/assets/admin-classes.js"' in html
-for required in ['Pour quelle classe ?', 'Type de document', 'Choisir votre PDF', 'Devoir surveillé', 'MAX_BYTES=50*1024*1024','target_classes:[classroom.code]', 'data-class-manager','simple-chapter-zone','simple-devoir-zone']:
+for required in ['Pour quelle classe ?', 'Type de document', 'Choisir votre PDF', 'Devoir surveillé', 'MAX_BYTES=50*1024*1024','target_classes,visibility:"private"', 'data-class-manager','simple-chapter-zone','simple-devoir-zone']:
     assert required in simple, f"Interface simplifiée manquante : {required}"
 for required in ['physixClassRender','Ajouter la classe','Retirer cette classe','Réactiver','rest("classes"']:
     assert required in class_ui, f"Gestion de classes manquante : {required}"
@@ -74,7 +74,7 @@ assert 'chapter.target_class!==classroom.code' in simple
 assert 'devoir_id:devoir?.id||null' in simple
 assert 'resource_id:resource?.id||null' in simple
 assert 'isDevoir?"subject":"content"' in simple
-assert 'target_class:classroom.code' in simple
+assert 'target_class:classroom.code' in simple  # Devoirs retain one class
 assert 'devoir_number:number' in simple and 'semester:semestre' in simple
 assert 'Devoirs surveillés — Semestre ' in simple
 assert 'simple-chapter-editor' in simple and 'simple-save-chapter' in simple

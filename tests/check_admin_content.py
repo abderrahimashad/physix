@@ -42,4 +42,15 @@ assert "guessKind(file?.name)" in files
 assert 'quick-optional' in files and 'quick-documents' in files
 assert "quick-advanced-menu" in source
 assert ".quick-simple-form" in html
+assert "1BAC BIOF G1" in files and "1BAC BIOF G2" in files and "1BAC BIOF G3" in files
+assert "2BAC PC BIOF" in files
+assert "target_classes" in files and "target_classes,visibility" in files
+assert "quick-class-options" in files and 'name="target_class"' in files
+assert "quick-class-chip" in html
+assert "classesForChapter(chapter_id)" in files
+assert "target_classes.some(x=>!validClasses.includes(x))" in files
+sql_classes=(root/"supabase/migrations/20261106000200_physix_resource_target_classes.sql").read_text(encoding="utf-8")
+assert "add column if not exists target_classes" in sql_classes
+assert "physix_resources_target_classes_allowed" in sql_classes
+assert "aucun accès" in sql_classes.lower() or "aucun droit" in sql_classes.lower()
 print("OK — CRUD propriétaire et import PDF direct contrôlés statiquement.")

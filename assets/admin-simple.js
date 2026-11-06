@@ -56,9 +56,7 @@ window.physixQuickPdfRender=(root,{rows,session,rest,refresh,esc,opt,alertText})
  '<select id="simple-class" class="quick-class-selector" name="class" required>'+
  opt(classes.map(c=>[c.code,c.code]),classes[0].code)+'</select>'+
  '<button type="button" data-class-manager class="quick-manage-classes">+ Ajouter / retirer une classe</button></div>'+
- '<div class="quick-step"><label for="simple-kind">2. Que voulez-vous ajouter ?</label>'+
- '<select id="simple-kind" name="kind" required>'+opt(kinds,"Cours")+'</select></div>'+
- '<div id="simple-chapter-zone" class="quick-step"><label for="simple-chapter">3. Chapitre (obligatoire pour cours, séries, exercices…)</label>'+
+ '<div id="simple-chapter-zone" class="quick-step"><label for="simple-chapter">2. Chapitre (pour cours, séries, exercices…)</label>'+
  '<select id="simple-chapter" name="chapter" required></select>'+
  '<button type="button" id="simple-new-chapter">+ Ajouter un chapitre</button>'+
  '<div id="simple-chapter-editor" class="quick-new-chapter" hidden>'+
@@ -67,8 +65,10 @@ window.physixQuickPdfRender=(root,{rows,session,rest,refresh,esc,opt,alertText})
  '<input id="simple-new-title" name="newTitle" maxlength="160" type="text" placeholder="Ex. Ondes mécaniques progressives">'+
  '<label for="simple-new-semester">Semestre</label><select id="simple-new-semester" name="newSemester">'+opt([["1","Semestre 1"],["2","Semestre 2"]],"1")+'</select>'+
  '<button type="button" id="simple-save-chapter">Enregistrer ce chapitre</button></div></div>'+
+ '<div class="quick-step"><label for="simple-kind">3. Type de document</label>'+
+ '<select id="simple-kind" name="kind" required>'+opt(kinds,"Cours")+'</select></div>'+
  '<div id="simple-devoir-zone" class="quick-step" hidden>'+
- '<label for="simple-devoir-semester">3. Semestre du devoir</label><select id="simple-devoir-semester" name="devoirSemester">'+
+ '<label for="simple-devoir-semester">2. Semestre du devoir</label><select id="simple-devoir-semester" name="devoirSemester">'+
  opt([["1","Semestre 1"],["2","Semestre 2"]],"1")+'</select>'+
  '<label for="simple-devoir-subject">Matière du devoir</label><select id="simple-devoir-subject" name="devoirSubject">'+opt(["Physique","Chimie"],"Physique")+'</select>'+
  '<label for="simple-devoir-number">Numéro du devoir</label><input id="simple-devoir-number" type="number" name="devoirNumber" min="1" max="30" value="1" required>'+

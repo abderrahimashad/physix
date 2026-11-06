@@ -2,6 +2,8 @@
 """Static gates for prepared Google Drive integration (not a live OAuth test)."""
 from pathlib import Path
 import json
+import re
+import subprocess
 root=Path(__file__).resolve().parents[1]
 bridge=(root/"assets/admin-drive.js").read_text(encoding="utf-8")
 simple=(root/"assets/admin-simple.js").read_text(encoding="utf-8")
@@ -11,7 +13,10 @@ cfg=json.loads((root/"vercel.json").read_text(encoding="utf-8"))
 csp=next(h["value"] for item in cfg["headers"] for h in item["headers"] if h["key"]=="Content-Security-Policy")
 files_sql=(root/"supabase/migrations/20261106000500_physix_google_drive_provider_metadata.sql").read_text(encoding="utf-8")
 big_sql=(root/"supabase/migrations/20261106000600_physix_google_drive_large_pdf_metadata.sql").read_text(encoding="utf-8")
-assert 'clientId:""' in config and 'pickerApiKey:""' in config and 'appId:""' in config
+values={name:re.search(r'\b'+name+r':"([^"]*)"',config).group(1) for name in ['clientId','pickerApiKey','appId']}
+assert not values['clientId'] or re.fullmatch(r'564247768952-[a-z0-9]+\.apps\.googleusercontent\.com',values['clientId'])
+assert not values['pickerApiKey'] or re.fullmatch(r'AIza[A-Za-z0-9_-]{35}',values['pickerApiKey'])
+assert values['appId'] in ['', '564247768952']
 assert "dahim78@gmail.com" in config and "1yMgX32A4in4MqJaOlWkhcQek-3Z_Lcf_" in config
 for name in ["1BAC BIOF G1","1BAC BIOF G2","1BAC BIOF G3","2BAC PC BIOF"]:
     assert name in config
@@ -39,3 +44,4 @@ assert "drive_file_id text" in files_sql and "storage_provider" in files_sql
 assert "storage_provider='google_drive'" in big_sql
 assert "5497558138880" in big_sql
 print("OK — Drive owner upload guarded by explicit OAuth configuration and private metadata")
+subprocess.run(['node','--test','tests/drive-behavior.test.cjs'],cwd=root,check=True)

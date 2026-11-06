@@ -33,10 +33,10 @@ assert "let authenticated=false" in auth
 assert 'tab="documents"' in source
 assert 'window.physixQuickPdfRender(root' in source
 assert "Créer une ressource privée" not in files or "physixQuickPdfRender" in files
-for required in ["quick-pdf-form","Ajouter le document PDF","Mes documents PDF","visibility:\"private\"","state:\"draft\"","committed=true","uploadedPath","MAX_BYTES","%PDF-"]:
+for required in ["quick-pdf-form","Ajouter un PDF","Mes PDF enregistrés","visibility:\"private\"","state:\"draft\"","committed=true","uploadedPath","MAX_BYTES","%PDF-"]:
     assert required in files, f"Import simple manquant : {required}"
 assert "1. Dans quel chapitre ?" in files
-assert "2. Choisissez votre document" in files
+assert "3. Choisissez votre document" in files
 assert "Enregistrer mon PDF" in files
 assert "guessKind(file?.name)" in files
 assert 'quick-optional' in files and 'quick-documents' in files

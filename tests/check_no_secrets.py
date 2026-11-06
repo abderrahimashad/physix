@@ -8,6 +8,8 @@ ROOT = Path(__file__).resolve().parents[1]
 SKIP = {".git", "node_modules", ".venv", "dist", "build", "__pycache__"}
 EXT = {".js", ".html", ".json", ".yml", ".yaml", ".sql", ".env", ".ts", ".py"}
 RULES = {
+    "Google OAuth client secret": re.compile(r"GOCSPX-" + r"[A-Za-z0-9_-]{16,}"),
+    "Google OAuth access token": re.compile(r"ya29\." + r"[A-Za-z0-9_-]{20,}"),
     "Supabase secret key": re.compile(r"sb_secret_[A-Za-z0-9_-]{16,}"),
     "JWT token": re.compile(r"eyJ[A-Za-z0-9_-]{24,}\.eyJ[A-Za-z0-9_-]{24,}\.[A-Za-z0-9_-]{20,}"),
     "Live private key": re.compile(r"-----BEGIN (?:RSA |EC |OPENSSH )?PRIVATE KEY-----"),

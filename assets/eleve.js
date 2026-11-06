@@ -146,8 +146,8 @@ el("photo-form").onsubmit=e=>submit(e,async form=>{
  await loadLibrary();screen("library");
 });
 el("logout").addEventListener("click",async()=>{
- const old=token;token=null;items=[];myProgress=[];classBoard=[];email="";
- setAuthenticated(false);notice("Déconnecté. Vous pouvez vous reconnecter.");
+ const old=token;token=null;userId="";items=[];myProgress=[];classBoard=[];email="";
+ screen("login");notice("Déconnecté. Vous pouvez vous reconnecter.");
  if(old)fetch(BASE+"/auth/v1/logout",{method:"POST",headers:{"apikey":KEY,Authorization:"Bearer "+old}}).catch(()=>{});
 });
 el("change-photo").addEventListener("click",()=>{screen("photo");notice("Choisissez votre nouvelle photo de profil.");});

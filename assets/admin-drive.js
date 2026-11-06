@@ -7,7 +7,8 @@ const SCOPE="https://www.googleapis.com/auth/drive.file";
 const DRIVE="https://www.googleapis.com/drive/v3";
 const UPLOAD="https://www.googleapis.com/upload/drive/v3/files?uploadType=resumable&fields=id,name,mimeType,size";
 const CHUNK=8*1024*1024;
-let accessToken=null,authorizedRoot=false,pendingToken=null;
+let accessToken=null;
+const authorizedFolders=new Set();
 const configured=()=>!!(cfg.clientId&&cfg.pickerApiKey&&cfg.appId&&cfg.rootFolderId&&cfg.expectedEmail);
 const loadScript=src=>new Promise((resolve,reject)=>{
  const existing=document.querySelector('script[data-drive-source="'+src+'"]');
@@ -38,7 +39,7 @@ async function account(){
  const result=await (await api(DRIVE+"/about?fields=user(emailAddress)")).json();
  const email=result.user?.emailAddress?.toLowerCase()||"";
  if(email!==cfg.expectedEmail.toLowerCase()){
-  accessToken=null;authorizedRoot=false;
+  accessToken=null;authorizedFolders.clear();
   throw Error("Le compte connecté n'est pas "+cfg.expectedEmail+". Reconnectez-vous avec le bon Gmail.");
  }
  return email;
@@ -51,7 +52,7 @@ async function connect(){
    client_id:cfg.clientId,scope:SCOPE,
    callback:response=>{
     if(response.error||!response.access_token)return reject(Error(response.error_description||response.error||"Autorisation Google annulée."));
-    accessToken=response.access_token;authorizedRoot=false;resolve();
+    accessToken=response.access_token;authorizedFolders.clear();resolve();
    },
    error_callback:()=>reject(Error("Connexion Google annulée ou bloquée par le navigateur."))
   });
@@ -59,20 +60,19 @@ async function connect(){
  });
  return account();
 }
-async function checkRoot(){
- if(authorizedRoot)return cfg.rootFolderId;
+async function checkFolder(folderId){
+ if(authorizedFolders.has(folderId))return folderId;
  try{
-  const res=await api(DRIVE+"/files/"+encodeURIComponent(cfg.rootFolderId)+"?fields=id,name,mimeType,capabilities(canAddChildren)");
+  const res=await api(DRIVE+"/files/"+encodeURIComponent(folderId)+"?fields=id,name,mimeType,capabilities(canAddChildren)");
   const data=await res.json();
-  if(data.mimeType!=="application/vnd.google-apps.folder"||data.capabilities?.canAddChildren===false)throw Error("Le dossier PhysiX n'autorise pas l'ajout.");
-  authorizedRoot=true;return cfg.rootFolderId;
- }catch{
-  return null;
- }
+  if(data.mimeType!=="application/vnd.google-apps.folder"||data.capabilities?.canAddChildren===false)throw Error("Dossier sans permission d'ajout.");
+  authorizedFolders.add(folderId);return folderId;
+ }catch{return null;}
 }
-async function selectRootFolder(){
+async function selectRootFolder(classCode=""){
  if(!accessToken)throw Error("Connectez d'abord Google Drive.");
- if(await checkRoot())return cfg.rootFolderId;
+ const folderId=cfg.classFolders?.[classCode]||cfg.rootFolderId;
+ if(await checkFolder(folderId))return folderId;
  await scriptReady();
  return new Promise((resolve,reject)=>{
   const view=new window.google.picker.DocsView(window.google.picker.ViewId.FOLDERS)
@@ -80,26 +80,26 @@ async function selectRootFolder(){
   const picker=new window.google.picker.PickerBuilder()
    .addView(view).setOAuthToken(accessToken)
    .setDeveloperKey(cfg.pickerApiKey).setAppId(cfg.appId)
-   .setTitle("Sélectionnez le dossier PhysiX déjà créé dans votre Google Drive")
+   .setTitle("Sélectionnez le dossier Drive « "+(classCode&&cfg.classFolders?.[classCode]?classCode:"PhysiX")+" »")
    .setCallback(async data=>{
      if(data.action===window.google.picker.Action.CANCEL)return reject(Error("Sélection du dossier annulée."));
      if(data.action!==window.google.picker.Action.PICKED)return;
      const picked=data.docs?.[0]?.id;
-     if(picked!==cfg.rootFolderId)return reject(Error("Choisissez uniquement le dossier principal « PhysiX », pas un autre dossier."));
-     authorizedRoot=false;
+     if(picked!==folderId)return reject(Error("Choisissez le dossier exact « "+(classCode||"PhysiX")+" ». Aucun accès à un autre dossier n'est demandé."));
+     authorizedFolders.delete(folderId);
      try{
-       if(!await checkRoot())throw Error("Google n'a pas donné l'accès en écriture au dossier sélectionné.");
-       resolve(cfg.rootFolderId);
+       if(!await checkFolder(folderId))throw Error("Google n'a pas permis l'écriture dans le dossier choisi.");
+       resolve(folderId);
      }catch(error){reject(error)}
    }).build();
   picker.setVisible(true);
  });
 }
-async function uploadPdf(file,{onProgress}={}){
+async function uploadPdf(file,{classCode='',onProgress}={}){
  if(!accessToken)throw Error("Connectez Google Drive avant de transférer le PDF.");
  if(file.type&&file.type!=="application/pdf")throw Error("Document non PDF.");
  if(!/\.pdf$/i.test(file.name)||file.size<=0)throw Error("Choisissez un PDF valide.");
- const root=await selectRootFolder();
+ const root=await selectRootFolder(classCode);
  const headers={
   "Content-Type":"application/json; charset=UTF-8",
   "X-Upload-Content-Type":"application/pdf",

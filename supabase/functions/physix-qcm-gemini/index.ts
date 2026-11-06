@@ -4,7 +4,8 @@
 import {createClient} from "npm:@supabase/supabase-js@2";
 const BASE=Deno.env.get("SUPABASE_URL")||"";
 const GEMINI_KEY=Deno.env.get("GEMINI_API_KEY")||"";
-const MODEL="gemini-2.5-flash";
+// Gemini 3 Flash appears with a free daily quota in the teacher's AI Studio project.
+const MODEL="gemini-3-flash-preview";
 const ORIGIN="https://physix-rho.vercel.app";
 const CORS={"Access-Control-Allow-Origin":ORIGIN,"Access-Control-Allow-Methods":"POST, OPTIONS",
  "Access-Control-Allow-Headers":"apikey, authorization, content-type","Vary":"Origin","Cache-Control":"no-store"};
@@ -19,7 +20,7 @@ Deno.serve(async(req:Request)=>{
  if(req.method==="OPTIONS")return new Response(null,{status:204,headers:CORS});
  if(req.method!=="POST")return fail(405,"Méthode non autorisée.");
  if(!BASE||!publicKey())return fail(503,"Configuration Supabase indisponible.");
- if(!GEMINI_KEY)return fail(503,"Gemini non activé : configurez GEMINI_API_KEY dans les secrets Supabase.");
+ if(!GEMINI_KEY)return fail(503,"Gemini non activé : configurez GEMINI_API_KEY dans les secrets Supabase. Aucun paiement nécessaire.");
  const jwt=(req.headers.get("authorization")||"").replace(/^Bearer /i,"");
  if(!jwt||jwt.length>4000)return fail(401,"Connexion professeur requise.");
  if(Number(req.headers.get("content-length")||0)>13*1024*1024)return fail(413,"PDF trop volumineux pour le générateur automatique (12 Mo maximum).");

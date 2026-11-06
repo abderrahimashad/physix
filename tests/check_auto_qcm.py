@@ -13,7 +13,7 @@ types=get("supabase/migrations/20261106002500_physix_qcm_15_cours_4_applications
 review=get("supabase/migrations/20261106002600_physix_qcm_review_only_after_finish.sql")
 ci=get(".github/workflows/physix-quality.yml")
 for s in ("GEMINI_API_KEY","const MODEL=\"gemini-2.5-flash\"",
- "typeof pdf","application/pdf","generateContent","responseMimeType:\"application/json\"",
+ "pdf instanceof File","application/pdf","generateContent","responseMimeType:\"application/json\"",
  "questions.length!==19","i<15?\"cours\":\"application\"","question_type:expected",
  "published:false","physix_qcm_claim_generation","client.auth.getUser(jwt)",
  "GEMINI_KEY","Quota gratuit Gemini","created:19,cours:15,applications:4"):

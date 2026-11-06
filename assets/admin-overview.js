@@ -104,15 +104,26 @@ window.physixOwnerOverview=(root,{rows,session,rest,view="dashboard"})=>{
    photos.set(p.pupil_id,URL.createObjectURL(blob));
   }catch{/* Private portrait absent or inaccessible. */}
  }
+ async function pages(table,query,max=10000){
+  const pageSize=500,output=[];
+  for(let offset=0;offset<max;offset+=pageSize){
+   const separator=query.includes("?")?"&":"?";
+   const page=await rest(table,query+separator+"limit="+pageSize+"&offset="+offset);
+   if(!Array.isArray(page))throw Error("Réponse non conforme du serveur.");
+   output.push(...page);
+   if(page.length<pageSize)break;
+  }
+  return output;
+ }
  async function load(){
   if(waiting||disposed)return;
   waiting=true;loaded=false;status("Chargement des données privées du professeur…");
   try{
    const [p,e,w,pr]=await Promise.all([
-    rest("pupils","?select=id,owner_id,class_code,full_name,active&order=class_code.asc,full_name.asc&limit=5000"),
-    rest("activity_events","?select=id,pupil_id,class_code,kind,semester&semester=eq."+semester+"&limit=10000"),
-    rest("class_work","?select=id,class_code,semester,published&limit=1000"),
-    view==="portraits"?rest("student_profiles","?select=pupil_id,avatar_path&limit=5000"):Promise.resolve([])
+    pages("pupils","?select=id,owner_id,class_code,full_name,active&order=class_code.asc,full_name.asc",5000),
+    pages("activity_events","?select=id,pupil_id,class_code,kind,semester&semester=eq."+semester+"&order=id.asc",10000),
+    pages("class_work","?select=id,class_code,semester,published&order=id.asc",1000),
+    view==="portraits"?pages("student_profiles","?select=pupil_id,avatar_path&order=pupil_id.asc",5000):Promise.resolve([])
    ]);
    if(disposed)return;
    pupils=p;events=e;work=w;profiles=pr;loaded=true;

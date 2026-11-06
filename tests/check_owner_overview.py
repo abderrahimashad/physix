@@ -8,10 +8,10 @@ html=(root/"admin.html").read_text(encoding="utf-8")
 ci=(root/".github/workflows/physix-quality.yml").read_text(encoding="utf-8")
 for required in [
     "window.physixOwnerOverview=",
-    'rest("pupils"',
-    'rest("activity_events"',
-    'rest("class_work"',
-    'rest("student_profiles"',
+    'pages("pupils"',
+    'pages("activity_events"',
+    'pages("class_work"',
+    'pages("student_profiles"',
     "session.token",
     "physix-avatars",
     "storage/v1/object/authenticated/",
@@ -26,6 +26,8 @@ for required in [
     "Devoirs faits (observations)",
     "En attente de photo",
     "p.active",
+    "offset=",
+    "pageSize=500",
 ]:
     assert required in app, f"Missing owner overview invariant: {required}"
 for forbidden in ["localStorage","sessionStorage","sb_secret_","service_role","/storage/v1/object/public/",

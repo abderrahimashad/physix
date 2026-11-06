@@ -223,6 +223,27 @@
 .ai-exercise strong{color:#173d78}.ai-exercise small{display:block;color:#6b84a6;margin-top:8px}
 .ai-exercise details{margin-top:12px}.ai-exercise details p{white-space:pre-wrap;overflow-wrap:anywhere;line-height:1.5}
 .ai-actions{display:flex;gap:8px;flex-wrap:wrap}.ai-actions button{font-size:13px}
+
+/* Private teacher notifications and manual photo review, without AI usage. */
+.px-notifications{position:fixed;right:18px;bottom:18px;z-index:9998;max-width:min(420px,calc(100vw - 36px));font:14px system-ui,sans-serif;color:#173b72}
+.px-notifications>#px-notify-toggle{background:#154ca6;color:white;padding:14px 19px;border:0;border-radius:24px;box-shadow:0 8px 28px #142b5760;font-weight:800;cursor:pointer}
+#px-notify-count{display:inline-block;background:#e92e49;color:white;border-radius:99px;padding:3px 8px;margin-left:5px}
+#px-notify-count[hidden]{display:none}
+#px-notify-menu{background:#fff;color:#173b72;border:1px solid #d8e6f9;border-radius:16px;box-shadow:0 12px 35px #142e4860;margin-bottom:10px;padding:18px;max-height:70vh;overflow:auto}
+#px-notify-menu[hidden]{display:none}
+#px-notify-menu h3{margin:0 0 10px;font-size:18px}
+.px-notification-item{border-top:1px solid #e6effb;padding:10px 2px;display:grid;gap:4px}
+.px-notification-item small{color:#47709b;overflow-wrap:anywhere}
+.px-notification-item time{font-size:11px;color:#6e87a5}
+#px-notify-open{background:#175dba;color:#fff;border:0;padding:12px;border-radius:10px;margin-top:12px;width:100%;cursor:pointer}
+.ai-remises .ai-toolbar{display:flex;gap:12px;flex-wrap:wrap;margin:15px 0}
+.ai-remises .ai-toolbar label{flex:1;min-width:180px}
+.ai-remises select{width:100%;padding:12px;margin-top:5px;border:1px solid #cbdcf2;border-radius:11px}
+.copy-preview{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:12px;margin:12px 0}
+.copy-preview figure{margin:0;padding:7px;background:#f5f9ff;border-radius:10px;border:1px solid #d8e8fa}
+.copy-preview img{display:block;max-width:100%;height:auto;max-height:450px;object-fit:contain;margin:auto}
+.copy-preview figcaption{text-align:center;font-size:12px;color:#6080a0;margin-top:5px}
+@media(max-width:540px){.px-notifications{right:8px;bottom:10px;max-width:calc(100vw - 16px)}}
 </style>
 </head>
 <body>
@@ -254,5 +275,7 @@
 <script src="/assets/admin-pedagogy.js" defer></script>
 <script src="/assets/admin-overview.js" defer></script>
 <script src="/assets/admin-ai.js" defer></script>
+<script src="/assets/admin-remises.js" defer></script>
+<script src="/assets/admin-notifications.js" defer></script>
 </body>
 </html>

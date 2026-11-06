@@ -40,5 +40,11 @@ jobs:
           node --check assets/admin-simple.js
       - name: Check private Google Drive integration security
         run: python3 tests/check_google_drive_upload.py
+      - name: Check student portal JavaScript syntax
+        run: |
+          node --check assets/eleve.js
+          node --check assets/admin-students.js
+      - name: Check student privacy and publication invariants
+        run: python3 tests/check_student_portal.py
       - name: Check repository for accidental live credentials
         run: python3 tests/check_no_secrets.py

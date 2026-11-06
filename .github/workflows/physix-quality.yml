@@ -29,6 +29,8 @@ jobs:
         run: node --check assets/admin-auth.js
       - name: Check owner content editor syntax
         run: node --check assets/admin-content.js
+      - name: Check private PDF manager syntax
+        run: node --check assets/admin-files.js
       - name: Check RLS-backed admin content invariants
         run: python3 tests/check_admin_content.py
       - name: Check repository for accidental live credentials

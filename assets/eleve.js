@@ -71,12 +71,29 @@ async function openPdf(button){
  }catch(error){win.close();notice("Lecture refusée : "+error.message,true)}
  finally{busy=false;button.disabled=false}
 }
+function screen(step){
+ el("login-panel").hidden=step!=="login";
+ el("activation-panel").hidden=step!=="activate";
+ el("photo-panel").hidden=step!=="photo";
+ el("library-panel").hidden=step!=="library";
+ el("logout").hidden=step==="login";
+}
 async function authenticate(value){
  token=value;
- const user=await request("/auth/v1/user",{auth:true});
- if(!user?.id||!user.email_confirmed_at)throw Error("L'adresse e-mail doit être vérifiée.");
- email=user.email||"";
- await loadLibrary();
+ const u=await request("/auth/v1/user",{auth:true});
+ if(!u?.id||(!u.email_confirmed_at&&!u.phone_confirmed_at))
+  throw Error("Veuillez confirmer votre e-mail ou téléphone.");
+ userId=u.id;
+ const profile=await request("/rest/v1/physix_student_profiles?select=*&auth_user_id=eq."+encodeURIComponent(userId),{auth:true});
+ if(!Array.isArray(profile)||!profile.length){screen("activate");notice("Code d’activation et mot de passe requis.");return}
+ if(!profile[0].avatar_path){screen("photo");notice("La photo de profil est obligatoire.");return}
+ await loadLibrary();screen("library");
+}
+async function submit(event,fn){
+ event.preventDefault();if(busy)return;busy=true;
+ const b=event.currentTarget.querySelector('button[type="submit"]');if(b)b.disabled=true;
+ try{await fn(event.currentTarget)}catch(e){notice(e.message,true)}
+ finally{busy=false;if(b)b.disabled=false}
 }
 el("email-form").addEventListener("submit",async event=>{
  event.preventDefault();if(busy)return;

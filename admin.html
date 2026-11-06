@@ -179,6 +179,37 @@
 .track-ident{display:flex;align-items:center;gap:11px;min-width:0}
 .track-avatar,.track-avatar-empty{display:inline-grid;place-items:center;width:48px;height:48px;min-width:48px;border-radius:50%;object-fit:cover;background:#e8f2ff;border:2px solid #bfd4f3;font-size:23px}
 .track-ident strong{overflow-wrap:anywhere}
+
+/* Trombinoscope privé et bilan pédagogique du professeur. */
+.overview-home-shortcuts{max-width:720px;margin:12px auto 0;display:grid;grid-template-columns:1fr 1fr;gap:12px}
+#content-root .overview-home-shortcuts button{background:#fff;color:#1d58a9;border:2px solid #c4d9f7;padding:17px;font-size:16px;font-weight:800}
+.px-overview{max-width:1140px;margin:18px auto}
+.px-overview-title{display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:15px}
+.px-overview-title h3{margin:0 0 8px;color:#1d427e;font-size:23px}
+.px-overview-title p{margin:0;color:#627d9d;font-size:14px;line-height:1.55}
+.px-overview-toolbar{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:13px;margin:20px 0}
+.px-overview-toolbar label{font-size:13px;font-weight:800;color:#264e83}
+.px-overview-toolbar select,.px-overview-toolbar input{display:block;width:100%;box-sizing:border-box;margin-top:7px;border:1px solid #bfd5f2;background:white;color:#173d77;border-radius:11px;padding:12px}
+.px-overview-stats{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:13px;margin:20px 0}
+.px-overview-metric{display:flex;flex-direction:column;align-items:flex-start;gap:5px;background:#f6f9ff;border:1px solid #d9e6f9;border-radius:15px;padding:18px}
+.px-overview-metric>span{font-size:25px}.px-overview-metric strong{font-size:28px;font-weight:850;color:#165bb8}.px-overview-metric small{font-size:12px;color:#627d9d}
+.px-overview h4{font-size:18px;color:#1e4886;margin:24px 0 12px}
+.px-overview-table-wrap{width:100%;overflow-x:auto;border:1px solid #e0e9f6;border-radius:12px}
+.px-overview table{width:100%;border-collapse:collapse;min-width:700px;font-size:13px;text-align:left}
+.px-overview th,.px-overview td{padding:13px;border-bottom:1px solid #e5edf9;white-space:nowrap}
+.px-overview thead th{background:#edf4ff;color:#254f89}
+.px-overview tbody tr:nth-child(even){background:#f9fbff}
+.px-overview-hint{color:#7283a1;font-size:13px;line-height:1.6}
+.px-portrait-summary{display:flex;gap:10px;align-items:center;color:#3b5b8c;margin:15px 0}
+.px-portrait-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:15px;margin-top:18px}
+.px-portrait-card{display:flex;align-items:center;flex-direction:column;gap:8px;min-width:0;background:#fafcff;border:1px solid #d9e7fa;border-radius:17px;padding:15px 11px;text-align:center}
+.px-portrait-image{height:130px;width:130px;display:grid;place-items:center;background:#e8f2ff;border-radius:14px;overflow:hidden;color:#597cab}
+.px-portrait-image img{height:100%;width:100%;object-fit:cover}.px-portrait-image>span{font-size:45px}
+.px-portrait-card strong{color:#163e7b;overflow-wrap:anywhere;font-size:14px}
+.px-portrait-card small{color:#5a769c;font-size:12px}
+.px-portrait-label{color:#6182a5;font-size:11px}
+@media(max-width:720px){.px-overview-toolbar{grid-template-columns:1fr 1fr}.px-overview-toolbar label:first-child{grid-column:1/-1}.px-overview-stats{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:480px){.overview-home-shortcuts{grid-template-columns:1fr}.px-portrait-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}.px-portrait-image{width:100%;height:110px}}
 </style>
 </head>
 <body>
@@ -208,5 +239,6 @@
 <script src="/assets/admin-students.js" defer></script>
 <script src="/assets/admin-tracking.js" defer></script>
 <script src="/assets/admin-pedagogy.js" defer></script>
+<script src="/assets/admin-overview.js" defer></script>
 </body>
 </html>

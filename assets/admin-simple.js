@@ -39,7 +39,8 @@ window.physixQuickPdfRender=(root,{rows,session,rest,refresh,esc,opt,alertText})
  '<form id="simple-upload" class="quick-simple-form">'+
  '<div class="quick-step"><label for="simple-class">1. Pour quelle classe ?</label>'+
  '<select id="simple-class" class="quick-class-selector" name="class" required>'+
- opt(classes.map(c=>[c.code,c.code]),classes[0].code)+'</select></div>'+
+ opt(classes.map(c=>[c.code,c.code]),classes[0].code)+'</select>'+
+ '<button type="button" data-class-manager class="quick-manage-classes">+ Ajouter / retirer une classe</button></div>'+
  '<div class="quick-step"><label for="simple-kind">2. Quel type de document ?</label>'+
  '<select id="simple-kind" name="kind" required>'+opt(kinds,"Cours")+'</select></div>'+
  '<div class="quick-step"><label for="simple-file">3. Choisir votre PDF</label>'+

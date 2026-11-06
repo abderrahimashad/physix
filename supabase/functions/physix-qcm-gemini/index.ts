@@ -38,12 +38,12 @@ Deno.serve(async(req:Request)=>{
  if(String.fromCharCode(...signature)!=="%PDF-")return fail(415,"Ce fichier n’est pas un PDF valide.");
  const uid=identity.user.id;
  const [cResult,kResult]=await Promise.all([
-  client.from("physix_chapters").select("id,owner_id,title,subject,semester,level")
+  client.from("physix_chapters").select("id,owner_id,title,subject,semester,level,target_class")
    .eq("id",chapterId).eq("owner_id",uid).maybeSingle(),
   client.from("physix_classes").select("code,active").eq("code",classCode).eq("owner_id",uid).eq("active",true).maybeSingle()
  ]);
  const chapter=cResult.data;
- if(cResult.error||kResult.error||!chapter||!kResult.data)
+ if(cResult.error||kResult.error||!chapter||!kResult.data||chapter.target_class!==classCode)
   return fail(403,"Le chapitre ou la classe n’appartient pas au professeur connecté.");
  // Don't duplicate QCM for the same chapter automatically on every extra PDF upload.
  const {count:existing,error:countError}=await client.from("physix_chapter_qcm")

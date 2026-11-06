@@ -30,4 +30,9 @@ assert "root.scrollIntoView" in source, "Le panneau doit être affiché après c
 assert "Connexion reconnue, mais le chargement" in source
 assert "#owner-form[hidden]{display:none!important}" in html
 assert "let authenticated=false" in auth
-print("OK — contrat statique du CRUD propriétaire (tests RLS réels à exécuter).")
+assert 'tab="documents"' in source
+assert 'window.physixQuickPdfRender(root' in source
+assert "Créer une ressource privée" not in files or "physixQuickPdfRender" in files
+for required in ["quick-pdf-form","Ajouter le document PDF","Mes documents PDF","visibility:\"private\"","state:\"draft\"","committed=true","uploadedPath","MAX_BYTES","%PDF-"]:
+    assert required in files, f"Import simple manquant : {required}"
+print("OK — CRUD propriétaire et import PDF direct contrôlés statiquement.")

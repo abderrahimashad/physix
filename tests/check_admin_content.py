@@ -14,4 +14,8 @@ assert "/assets/admin-content.js" in html
 assert "localStorage" not in source and "sessionStorage" not in source
 assert "service_role" not in source and "sb_secret_" not in source
 assert "physix_resource_files" not in source, "Fichiers réels interdits dans ce module"
+assert "root.scrollIntoView" in source, "Le panneau doit être affiché après connexion"
+assert "Connexion reconnue, mais le chargement" in source
+assert "#owner-form[hidden]{display:none!important}" in html
+assert "let authenticated=false" in auth
 print("OK — contrat statique du CRUD propriétaire (tests RLS réels à exécuter).")

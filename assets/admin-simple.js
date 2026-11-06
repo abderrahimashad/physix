@@ -31,13 +31,15 @@ window.physixQuickPdfRender=(root,{rows,session,rest,refresh,esc,opt,alertText})
  const list=attached.map(file=>{
   const item=rows.resources.find(r=>r.id===file.resource_id);
   const names=(item?.target_classes||[]).join(", ")||"Sans classe";
+  const chapter=rows.chapters.find(c=>c.id===item?.chapter_id);
+  const chapterLabel=chapter?chapter.subject+" — "+chapter.title:"Chapitre non retrouvé";
   return '<article class="content-item"><strong>'+esc(item?.title||file.filename)+'</strong>'+
-    '<p>'+esc(names)+' · '+esc(item?.kind||"PDF")+' · '+esc(file.filename)+'</p>'+
+    '<p><b>Classe :</b> '+esc(names)+' · <b>Chapitre :</b> '+esc(chapterLabel)+' · <b>Type :</b> '+esc(item?.kind||"PDF")+'</p>'+
     '<div class="content-actions"><button type="button" data-simple-open="'+esc(file.id)+'">Ouvrir</button>'+
     '<button type="button" class="danger" data-simple-delete="'+esc(file.id)+'">Supprimer</button></div></article>';
  }).join("");
  section.innerHTML='<div class="quick-simple-header"><span class="quick-step-icon" aria-hidden="true">📄</span><div>'+
- '<h3>Ajouter un document</h3><p>Choisissez la classe, le type de document et le PDF.</p></div></div>'+
+ '<h3>Ajouter un document</h3><p>Classe → type → chapitre → PDF : chaque document reste bien rangé.</p></div></div>'+
  (classes.length?
  '<form id="simple-upload" class="quick-simple-form">'+
  '<div class="quick-step"><label for="simple-class">1. Pour quelle classe ?</label>'+
@@ -46,13 +48,19 @@ window.physixQuickPdfRender=(root,{rows,session,rest,refresh,esc,opt,alertText})
  '<button type="button" data-class-manager class="quick-manage-classes">+ Ajouter / retirer une classe</button></div>'+
  '<div class="quick-step"><label for="simple-kind">2. Quel type de document ?</label>'+
  '<select id="simple-kind" name="kind" required>'+opt(kinds,"Cours")+'</select></div>'+
- '<div class="quick-step"><label for="simple-file">3. Choisir votre PDF</label>'+
+ '<div class="quick-step"><label for="simple-chapter">3. Dans quel chapitre ?</label>'+
+ '<select id="simple-chapter" name="chapter" required></select>'+
+ '<button type="button" id="simple-new-chapter">+ Ajouter un chapitre</button>'+
+ '<div id="simple-chapter-editor" class="quick-new-chapter" hidden>'+
+ '<label for="simple-new-subject">Matière</label><select id="simple-new-subject" name="newSubject">'+opt(["Physique","Chimie"],"Physique")+'</select>'+
+ '<label for="simple-new-title">Nom du nouveau chapitre</label>'+
+ '<input id="simple-new-title" name="newTitle" maxlength="160" type="text" placeholder="Ex. Ondes mécaniques progressives">'+
+ '<label for="simple-new-semester">Semestre</label><select id="simple-new-semester" name="newSemester">'+opt([["1","Semestre 1"],["2","Semestre 2"]],"1")+'</select>'+
+ '<button type="button" id="simple-save-chapter">Enregistrer ce chapitre</button></div></div>'+
+ '<div class="quick-step"><label for="simple-file">4. Choisir votre PDF</label>'+
  '<input id="simple-file" type="file" name="pdf" accept=".pdf,application/pdf" required>'+
  '<span class="quick-file-hint">'+(driveEnabled?"Google Drive connecté par votre accord : fichiers volumineux acceptés selon votre quota Drive.":"Stockage actuel Supabase : maximum 50 Mo.")+'</span></div>'+
- '<details class="quick-optional"><summary>Options facultatives : matière et chapitre</summary>'+
- '<label for="simple-subject">Matière</label><select id="simple-subject" name="subject">'+
- opt(["Physique","Chimie"],"Physique")+'</select>'+
- '<label for="simple-chapter">Chapitre</label><select id="simple-chapter" name="chapter"></select>'+
+ '<details class="quick-optional"><summary>Option facultative : titre</summary>'+
  '<label for="simple-title">Titre personnalisé</label>'+
  '<input id="simple-title" type="text" maxlength="160" name="title" placeholder="Par défaut : nom du PDF"></details>'+
  (driveEnabled?'<button id="connect-google-drive" type="button">'+(drive.isConnected()?'✅ Google Drive connecté':'🔒 Autoriser mon Google Drive (compte '+esc(window.PHYSIX_DRIVE_CONFIG.expectedEmail)+')')+'</button>':'')+
@@ -75,51 +83,72 @@ window.physixQuickPdfRender=(root,{rows,session,rest,refresh,esc,opt,alertText})
   }catch(error){note(error.message,true)}
   finally{connectButton.disabled=false}
  });
- const drawChapter=()=>{
+ const drawChapter=(preferredId="")=>{
   if(!form)return;
   const chosen=classes.find(c=>c.code===form.elements["class"].value);
-  const subject=form.elements.subject.value;
-  const options=rows.chapters.filter(c=>c.level===chosen?.level&&c.subject===subject);
+  const options=rows.chapters.filter(c=>c.level===chosen?.level);
   const select=form.elements.chapter;
-  select.innerHTML='<option value="auto">Sans chapitre précis (classement automatique)</option>'+
-   opt(options.map(c=>[c.id,c.title]),"auto");
+  const prior=preferredId||select.value;
+  const validChoice=options.some(c=>c.id===prior)?prior:"";
+  select.innerHTML='<option value="" disabled'+(!validChoice?' selected':'')+'>Choisissez le chapitre…</option>'+
+   opt(options.map(c=>[c.id,c.subject+" — "+c.title]),validChoice);
+  if(validChoice)select.value=validChoice;
+  const editor=section.querySelector("#simple-chapter-editor");
+  if(editor)editor.hidden=true;
  };
- form?.elements["class"].addEventListener("change",drawChapter);
- form?.elements.subject.addEventListener("change",drawChapter);
+ form?.elements["class"].addEventListener("change",()=>drawChapter(""));
  drawChapter();
+ const editor=section.querySelector("#simple-chapter-editor");
+ section.querySelector("#simple-new-chapter")?.addEventListener("click",()=>{
+  editor.hidden=!editor.hidden;
+  if(!editor.hidden)form.elements.newTitle.focus();
+ });
+ section.querySelector("#simple-save-chapter")?.addEventListener("click",async()=>{
+  if(busy)return;
+  const chosen=classes.find(c=>c.code===form.elements["class"].value);
+  const title=form.elements.newTitle.value.trim().replace(/\\s+/g," ");
+  const subject=form.elements.newSubject.value;
+  const semester=Number(form.elements.newSemester.value);
+  if(!chosen||title.length<2||title.length>160||!["Physique","Chimie"].includes(subject)||![1,2].includes(semester)){
+   note("Indiquez un nom de chapitre valide et sa matière.",true);return;
+  }
+  const existing=rows.chapters.find(c=>c.level===chosen.level&&c.subject===subject&&c.title.toLowerCase()===title.toLowerCase());
+  if(existing){drawChapter(existing.id);note("Ce chapitre existe déjà : il a été sélectionné.");return}
+  busy=true;
+  const button=section.querySelector("#simple-save-chapter");button.disabled=true;
+  try{
+   const created=await rest("chapters","","POST",{owner_id:session.ownerId,level:chosen.level,subject,title,
+    semester,sort_order:rows.chapters.length+1,state:"draft",description:""});
+   if(!Array.isArray(created)||created.length!==1)throw Error("Création du chapitre non confirmée.");
+   rows.chapters.push(created[0]);
+   drawChapter(created[0].id);
+   form.elements.newTitle.value="";
+   note("Chapitre « "+title+" » ajouté et sélectionné. Vous pouvez maintenant choisir votre PDF.");
+  }catch(error){note(error.message,true)}
+  finally{busy=false;button.disabled=false}
+ });
  let busy=false;
  form?.addEventListener("submit",async event=>{
   event.preventDefault();if(busy)return;
   const classroom=classes.find(c=>c.code===form.elements["class"].value);
   const kind=form.elements.kind.value,file=form.elements.pdf.files?.[0];
-  if(!classroom||!kinds.includes(kind)||!file)return note("Sélectionnez la classe, le type et le PDF.",true);
+  const chosenChapterId=form.elements.chapter.value;
+  const chapter=rows.chapters.find(c=>c.id===chosenChapterId);
+  if(!classroom||!kinds.includes(kind)||!file||!chapter||chapter.level!==classroom.level)
+   return note("Sélectionnez la classe, le type, le chapitre et le PDF.",true);
   if(!/\.pdf$/i.test(file.name)||file.size<=0||(!driveEnabled&&file.size>MAX_BYTES)||(file.type&&file.type!=="application/pdf")){
    return note(driveEnabled?"PDF invalide. Vérifiez l'extension, le contenu et la taille disponible dans Drive.":"PDF invalide ou trop grand pour Supabase (50 Mo maximum).",true);
   }
   if(await file.slice(0,5).text()!=="%PDF-")return note("Le fichier sélectionné n'est pas un PDF valide.",true);
   const title=(form.elements.title.value.trim()||file.name.replace(/\.pdf$/i,"")).slice(0,160);
   if(!title)return note("Le PDF doit avoir un titre.",true);
-  const advanced=form.querySelector(".quick-optional").open;
-  const subject=advanced?form.elements.subject.value:"Physique";
-  const chosenChapter=advanced?form.elements.chapter.value:"auto";
+  // Classement explicite obligatoire : aucun chapitre générique automatique.
   busy=true;form.querySelector("button[type=submit]").disabled=true;
   let resource=null,uploadedPath=null,driveFileId=null,createdFile=false;
   note("Enregistrement du PDF privé en cours…");
   try{
    if(driveEnabled&&!drive.isConnected())throw Error("Cliquez sur « Autoriser mon Google Drive » avant d'enregistrer le PDF.");
    if(driveEnabled)await drive.selectRootFolder(classroom.code);
-   let chapter=chosenChapter==="auto"?null:rows.chapters.find(c=>c.id===chosenChapter);
-   if(chapter&&(chapter.level!==classroom.level||chapter.subject!==subject))throw Error("Chapitre incompatible avec la classe.");
-   if(!chapter){
-    const defaultTitle="Documents généraux";
-    chapter=rows.chapters.find(c=>c.level===classroom.level&&c.subject===subject&&c.title===defaultTitle);
-    if(!chapter){
-     const result=await rest("chapters","","POST",{owner_id:session.ownerId,level:classroom.level,subject,title:defaultTitle,
-       semester:1,sort_order:0,state:"draft",description:"Classement automatique des documents importés"});
-     if(!Array.isArray(result)||result.length!==1)throw Error("Impossible de créer le rangement du document.");
-     chapter=result[0];
-    }
-   }
    const result=await rest("resources","","POST",{owner_id:session.ownerId,chapter_id:chapter.id,title,kind,
     target_classes:[classroom.code],visibility:"private",state:"draft",sort_order:rows.resources.length});
    if(!Array.isArray(result)||result.length!==1)throw Error("Création de la fiche PDF refusée.");

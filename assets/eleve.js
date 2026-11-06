@@ -150,6 +150,7 @@ el("logout").addEventListener("click",async()=>{
  setAuthenticated(false);notice("Déconnecté. Vous pouvez vous reconnecter.");
  if(old)fetch(BASE+"/auth/v1/logout",{method:"POST",headers:{"apikey":KEY,Authorization:"Bearer "+old}}).catch(()=>{});
 });
+el("change-photo").addEventListener("click",()=>{screen("photo");notice("Choisissez votre nouvelle photo de profil.");});
 el("class-filter").addEventListener("change",event=>{activeClass=event.target.value;draw()});
 el("lessons-tab").addEventListener("click",()=>{tab="lesson";draw()});
 el("devoirs-tab").addEventListener("click",()=>{tab="devoir";draw()});

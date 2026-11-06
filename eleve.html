@@ -20,6 +20,8 @@
   <h2>Activation de mon compte</h2>
   <p>Votre professeur vous donne un code d'activation. Pour protéger votre compte, confirmez d'abord votre e-mail ou téléphone.</p>
   <form id="verify-request">
+   <label for="signup-activation-code">Code d'activation donné par votre professeur</label>
+   <input id="signup-activation-code" pattern="[A-Fa-f0-9]{24}" minlength="24" maxlength="24" required autocomplete="off" placeholder="24 caractères">
    <label for="signup-channel">Vérification</label><select id="signup-channel">
     <option value="email">E-mail</option><option value="phone">Téléphone (SMS)</option></select>
    <label for="signup-contact">E-mail ou numéro (+212…)</label><input id="signup-contact" required autocomplete="username" placeholder="adresse@email.com">

@@ -78,11 +78,11 @@ window.physixQuickPdfRender=(root,{rows,session,rest,refresh,esc,opt,alertText})
   const classroom=classes.find(c=>c.code===form.elements["class"].value);
   const kind=form.elements.kind.value,file=form.elements.pdf.files?.[0];
   if(!classroom||!kinds.includes(kind)||!file)return note("Sélectionnez la classe, le type et le PDF.",true);
-  if(!/\\.pdf$/i.test(file.name)||file.size<=0||file.size>MAX_BYTES||(file.type&&file.type!=="application/pdf")){
+  if(!/\.pdf$/i.test(file.name)||file.size<=0||file.size>MAX_BYTES||(file.type&&file.type!=="application/pdf")){
    return note("PDF invalide ou trop grand. Maximum 50 Mo sur l'offre actuelle.",true);
   }
   if(await file.slice(0,5).text()!=="%PDF-")return note("Le fichier sélectionné n'est pas un PDF valide.",true);
-  const title=(form.elements.title.value.trim()||file.name.replace(/\\.pdf$/i,"")).slice(0,160);
+  const title=(form.elements.title.value.trim()||file.name.replace(/\.pdf$/i,"")).slice(0,160);
   if(!title)return note("Le PDF doit avoir un titre.",true);
   const advanced=form.querySelector(".quick-optional").open;
   const subject=advanced?form.elements.subject.value:"Physique";
@@ -110,7 +110,7 @@ window.physixQuickPdfRender=(root,{rows,session,rest,refresh,esc,opt,alertText})
    uploadedPath=session.ownerId+"/resource/"+resource.id+"/"+crypto.randomUUID()+".pdf";
    await objectRequest(session,uploadedPath,"POST",file);
    const meta=await rest("files","","POST",{owner_id:session.ownerId,resource_id:resource.id,
-     devoir_id:null,file_role:"content",storage_path:uploadedPath,filename:file.name.split(/[\\\\/]/).pop().slice(0,200),
+     devoir_id:null,file_role:"content",storage_path:uploadedPath,filename:file.name.slice(0,200),
      mime_type:"application/pdf",file_size:file.size});
    if(!Array.isArray(meta)||meta.length!==1)throw Error("Le stockage a réussi mais la fiche PDF n'est pas enregistrée.");
    createdFile=true;

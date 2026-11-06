@@ -16,7 +16,7 @@ for s in ("GEMINI_API_KEY","const MODEL=\"gemini-2.5-flash\"",
  "typeof pdf","application/pdf","generateContent","responseMimeType:\"application/json\"",
  "questions.length!==19","i<15?\"cours\":\"application\"","question_type:expected",
  "published:false","physix_qcm_claim_generation","client.auth.getUser(jwt)",
- "GEMINI_KEY","La limite gratuite","created:19,cours:15,applications:4"):
+ "GEMINI_KEY","Quota gratuit Gemini","created:19,cours:15,applications:4"):
     assert s in generator,s
 assert "OPENAI_API_KEY" not in generator
 assert "SUPABASE_SERVICE_ROLE_KEY" not in generator

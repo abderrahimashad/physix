@@ -31,7 +31,7 @@ for token in ("physix_ai_upload_context","member.auth.getUser(jwt)","getAll(\"ph
     "files.length>4","SHA-256","physix_submission_pages",
     "storage.from(\"physix-solutions\")","req.method===\"GET\"","page_id",
     "Access-Control-Allow-Headers","req.method===\"OPTIONS\"",
-    "owner_id:owner","pupil_id:pupil","sha256:hash"):
+    "owner_id:owner","pupil_id:pupil","sha256:p.hash"):
     assert token in edge,token
 assert "OPENAI_API_KEY" not in edge and "GEMINI_API_KEY" not in edge
 assert "createClient(BASE,secret()" in edge and "user.user.id" in edge

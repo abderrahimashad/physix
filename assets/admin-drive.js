@@ -171,7 +171,7 @@ async function downloadPdf(id,classCode){
  const url=DRIVE+"/files/"+encodeURIComponent(id);
  const meta=await (await api(url+"?fields=id,mimeType,ownedByMe,trashed,parents,size")).json();
  if(!meta.ownedByMe||meta.trashed||meta.mimeType!=="application/pdf"||
-  !meta.parents?.includes(folderId))throw Error("Ce PDF n'appartient pas au dossier privé de la classe.");
+  !meta.parents?.some(parent=>designatedFolders.has(parent)))throw Error("Ce PDF n'appartient pas aux dossiers privés PhysiX.");
  if(Number(meta.size)>50*1024*1024)throw Error("Ce fichier dépasse 50 Mo, limite actuelle pour la copie privée destinée aux élèves.");
  const blob=await (await api(url+"?alt=media")).blob();
  if(!blob.size||blob.size>50*1024*1024||await blob.slice(0,5).text()!=="%PDF-")

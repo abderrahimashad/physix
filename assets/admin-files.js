@@ -91,6 +91,10 @@ window.physixFilesRender=(root,{tab,rows,session,rest,refresh,esc,opt,alertText}
  section.querySelectorAll("[data-file-open]").forEach(button=>button.addEventListener("click",async()=>{
   const record=relevant.find(x=>x.id===button.dataset.fileOpen);
   if(!record)return;
+  if(record.storage_provider==="google_drive"){
+   try{window.physixDrive.openPdf(record.drive_file_id)}catch(error){note(error.message,true)}
+   return;
+  }
   const tabWindow=window.open("","_blank");
   if(!tabWindow){note("Autorisez l'ouverture d'un nouvel onglet pour consulter le PDF.",true);return}
   button.disabled=true;note("Ouverture sécurisée du PDF…");
@@ -105,10 +109,13 @@ window.physixFilesRender=(root,{tab,rows,session,rest,refresh,esc,opt,alertText}
  }));
  section.querySelectorAll("[data-file-remove]").forEach(button=>button.addEventListener("click",async()=>{
   const record=relevant.find(x=>x.id===button.dataset.fileRemove);
-  if(!record||pending||!window.confirm("Supprimer définitivement le PDF « "+record.filename+" » ?"))return;
+  if(!record||pending||!window.confirm(record.storage_provider==="google_drive"?"Mettre ce PDF dans la corbeille Google Drive ?":"Supprimer définitivement le PDF « "+record.filename+" » ?"))return;
   pending=true;button.disabled=true;
   try{
-   await storage(session,record.storage_path,"DELETE");
+   if(record.storage_provider==="google_drive"){
+    if(!window.physixDrive?.isConnected())throw Error("Reconnectez Google Drive depuis Mes documents pour supprimer ce PDF.");
+    await window.physixDrive.removePdf(record.drive_file_id);
+   }else await storage(session,record.storage_path,"DELETE");
    const deleted=await rest("files","?id=eq."+encodeURIComponent(record.id),"DELETE");
    if(!Array.isArray(deleted)||deleted.length!==1)throw Error("PDF supprimé du stockage, mais sa fiche n'a pas été supprimée. Rafraîchissez la page.");
    await refresh();alertText("PDF privé supprimé.");

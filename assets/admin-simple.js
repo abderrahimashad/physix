@@ -24,6 +24,7 @@ window.physixQuickPdfRender=(root,{rows,session,rest,refresh,esc,opt,alertText})
  const attached=rows.files.filter(x=>x.resource_id);
  const drive=window.physixDrive;
  const driveEnabled=drive?.configured()===true;
+ if(driveEnabled)drive.prepare().catch(()=>{});
  const section=document.createElement("section");
  section.className="content-section quick-primary-pdf";
  section.id="quick-pdf-section";
@@ -54,7 +55,7 @@ window.physixQuickPdfRender=(root,{rows,session,rest,refresh,esc,opt,alertText})
  '<label for="simple-chapter">Chapitre</label><select id="simple-chapter" name="chapter"></select>'+
  '<label for="simple-title">Titre personnalisé</label>'+
  '<input id="simple-title" type="text" maxlength="160" name="title" placeholder="Par défaut : nom du PDF"></details>'+
- (driveEnabled?'<button id="connect-google-drive" type="button">🔒 Autoriser mon Google Drive (compte '+esc(window.PHYSIX_DRIVE_CONFIG.expectedEmail)+')</button>':'')+
+ (driveEnabled?'<button id="connect-google-drive" type="button">'+(drive.isConnected()?'✅ Google Drive connecté':'🔒 Autoriser mon Google Drive (compte '+esc(window.PHYSIX_DRIVE_CONFIG.expectedEmail)+')')+'</button>':'')+
  '<button id="quick-main-upload" type="submit">⬆ Enregistrer le PDF</button></form>':
  '<p>Aucune classe active. Ouvrez « Gestion avancée » → « Mes classes » pour en ajouter une.</p>')+
  '<div id="simple-feedback" class="content-note" role="status" aria-live="polite">🔒 Document privé : non accessible aux élèves actuellement.</div>'+
@@ -106,6 +107,7 @@ window.physixQuickPdfRender=(root,{rows,session,rest,refresh,esc,opt,alertText})
   note("Enregistrement du PDF privé en cours…");
   try{
    if(driveEnabled&&!drive.isConnected())throw Error("Cliquez sur « Autoriser mon Google Drive » avant d'enregistrer le PDF.");
+   if(driveEnabled)await drive.selectRootFolder(classroom.code);
    let chapter=chosenChapter==="auto"?null:rows.chapters.find(c=>c.id===chosenChapter);
    if(chapter&&(chapter.level!==classroom.level||chapter.subject!==subject))throw Error("Chapitre incompatible avec la classe.");
    if(!chapter){
@@ -169,7 +171,7 @@ window.physixQuickPdfRender=(root,{rows,session,rest,refresh,esc,opt,alertText})
  }));
  section.querySelectorAll("[data-simple-delete]").forEach(button=>button.addEventListener("click",async()=>{
   const doc=attached.find(f=>f.id===button.dataset.simpleDelete);
-  if(!doc||busy||!confirm("Supprimer définitivement ce document PDF ?"))return;
+  if(!doc||busy||!confirm(doc.storage_provider==="google_drive"?"Mettre ce PDF dans la corbeille Google Drive ?":"Supprimer définitivement ce document PDF ?"))return;
   busy=true;button.disabled=true;
   try{
    if(doc.storage_provider==="google_drive"){

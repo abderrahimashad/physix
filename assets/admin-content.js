@@ -82,7 +82,7 @@ function render(){
   menu.innerHTML='<summary>⚙ Gestion avancée : classes, chapitres, ressources et devoirs</summary><nav class="content-tabs" aria-label="Gestion avancée">'+advanced+'</nav>';
   root.append(menu);
   menu.querySelectorAll("[data-tab]").forEach(b=>b.addEventListener("click",()=>{tab=b.dataset.tab;editing=null;render()}));
-  root.querySelector("#owner-logout").addEventListener("click",()=>location.reload());
+  root.querySelector("#owner-logout").addEventListener("click",()=>{window.physixDrive?.disconnect();location.reload()});
   return;
  }
  if(tab==="classes"){
@@ -111,7 +111,7 @@ function render(){
    window.physixFilesRender(root,{tab,rows,session,rest,refresh,esc,opt,alertText});
   }
  }
- root.querySelector("#owner-logout").addEventListener("click",async()=>{const token=session?.token;session=null;root.hidden=true;root.innerHTML="";document.getElementById("owner-form").hidden=false;if(token){fetch("https://auqzfcucpglrnvwhjamo.supabase.co/auth/v1/logout",{method:"POST",headers:{"apikey":KEY,"Authorization":"Bearer "+token}}).catch(()=>{})}alert("Session terminée sur cette page. Connectez-vous pour revenir à la gestion.")});
+ root.querySelector("#owner-logout").addEventListener("click",async()=>{const token=session?.token;session=null;window.physixDrive?.disconnect();root.hidden=true;root.innerHTML="";document.getElementById("owner-form").hidden=false;if(token){fetch("https://auqzfcucpglrnvwhjamo.supabase.co/auth/v1/logout",{method:"POST",headers:{"apikey":KEY,"Authorization":"Bearer "+token}}).catch(()=>{})}alert("Session terminée sur cette page. Connectez-vous pour revenir à la gestion.")});
 }
 function values(form){
  const raw=Object.fromEntries(new FormData(form).entries());

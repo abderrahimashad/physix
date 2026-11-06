@@ -81,6 +81,7 @@ window.physixTrackingRender=(root,{rows,session,rest})=>{
     '<div class="track-grade"><label>Note d’activité / 20 (saisie manuelle)<input type="number" min="0" max="20" step="0.25" placeholder="Non noté" value="'+
     (grade(p)===null?"":grade(p))+'" data-grade="'+esc(p.id)+'"></label>'+
     '<button type="button" data-save-grade="'+esc(p.id)+'">Enregistrer la note</button>'+
+    '<button type="button" data-code="'+esc(p.id)+'">🔑 Code d’activation</button>'+
     '<button type="button" data-archive="'+esc(p.id)+'" class="track-secondary">Retirer de la liste</button></div></article>';
   }).join(""):'<p class="track-empty">'+(pupils.length?"Aucun élève ne correspond à la recherche.":"Ajoutez les élèves de cette classe pour commencer le suivi.")+'</p>';
   q("#track-history-list").innerHTML=events.length?events.slice(0,80).map(e=>{
@@ -92,6 +93,7 @@ window.physixTrackingRender=(root,{rows,session,rest})=>{
   q("#track-list").querySelectorAll("[data-event]").forEach(button=>button.addEventListener("click",()=>addEvent(button)));
   q("#track-list").querySelectorAll("[data-save-grade]").forEach(button=>button.addEventListener("click",()=>saveGrade(button)));
   q("#track-list").querySelectorAll("[data-archive]").forEach(button=>button.addEventListener("click",()=>archivePupil(button)));
+  q("#track-list").querySelectorAll("[data-code]").forEach(button=>button.addEventListener("click",()=>issueCode(button)));
   q("#track-history-list").querySelectorAll("[data-undo]").forEach(button=>button.addEventListener("click",()=>undo(button)));
  }
  async function addEvent(button){
@@ -115,6 +117,25 @@ window.physixTrackingRender=(root,{rows,session,rest})=>{
    if(!Array.isArray(result)||result.length!==1)throw Error("Enregistrement non confirmé.");
    events.unshift(result[0]);draw();status(EVENTS[kind][1]+" enregistré pour "+pupil.full_name+".");
   }catch(error){status(error.message,true)}
+  finally{busy=false;button.disabled=false}
+ }
+ async function issueCode(button){
+  if(busy)return;
+  const pupil=pupils.find(x=>x.id===button.dataset.code);if(!pupil)return;
+  if(!confirm("Créer un nouveau code pour "+pupil.full_name+" ? L'ancien code, s'il existe, ne sera plus utilisable."))return;
+  busy=true;button.disabled=true;
+  try{
+   const response=await fetch("https://auqzfcucpglrnvwhjamo.supabase.co/rest/v1/rpc/physix_issue_activation",{
+    method:"POST",headers:{apikey:"sb_publishable_5x4US_lL-yMa5RxlViAL6g_AokDwlx2",
+     Authorization:"Bearer "+session.token,"Content-Type":"application/json"},
+    body:JSON.stringify({p_pupil_id:pupil.id}),cache:"no-store",referrerPolicy:"no-referrer"});
+   if(!response.ok)throw Error("Code non créé ("+response.status+").");
+   const code=await response.json();
+   if(typeof code!=="string"||!/^[A-F0-9]{24}$/.test(code))throw Error("Code non confirmé.");
+   prompt("Code valable 14 jours pour "+pupil.full_name+
+    " — à donner en privé à cet élève. Copiez-le maintenant :",code);
+   status("Code d’activation généré. Il doit être communiqué de façon privée à l’élève.");
+  }catch(e){status(e.message,true)}
   finally{busy=false;button.disabled=false}
  }
  async function saveGrade(button){

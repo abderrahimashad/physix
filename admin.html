@@ -35,6 +35,29 @@
 .content-note{border-radius:12px;background:#e4f1fa;color:#214f77;padding:12px;margin:14px 0;font-size:14px}
 .content-note.bad{background:#ffebee;color:#9c263a}
 @media(max-width:640px){.content-form,.content-items{grid-template-columns:1fr}.content-form .full{grid-column:auto}}
+
+/* Ecran simple : l'ajout de PDF d'abord, les réglages avancés ensuite. */
+#quick-pdf-section{max-width:720px;margin:18px auto;padding:clamp(20px,4vw,38px);box-shadow:0 12px 32px #152a5b0a}
+.quick-simple-header{display:flex;gap:16px;align-items:center;margin-bottom:24px}
+.quick-step-icon{width:62px;height:62px;display:grid;place-items:center;background:#e8f1ff;border-radius:18px;font-size:30px;flex-shrink:0}
+.quick-simple-header h3{font-size:26px;margin:0 0 5px;color:#153a7d}
+.quick-simple-header p{font-size:15px;color:#607399;margin:0;line-height:1.5}
+.quick-simple-form{display:flex;flex-direction:column;gap:11px}
+.quick-simple-label{display:block;font-size:17px;font-weight:750;color:#18386e;margin-top:12px}
+.quick-simple-form>select,.quick-simple-form>input[type=file]{display:block;width:100%;box-sizing:border-box;background:#f9fbff;color:#162c54;border:2px solid #ccdcfa;border-radius:13px;padding:17px;font:600 16px Inter,'Segoe UI',Arial,sans-serif}
+.quick-simple-form>input[type=file]{cursor:pointer;border-style:dashed;background:#f4f8ff;min-height:92px}
+.quick-file-hint{font-size:13px;color:#6980a7}
+#content-root .quick-upload-btn{display:block;width:100%;margin:16px 0 4px;padding:18px 16px;border:0;border-radius:14px;background:#216eea;color:white;font-size:19px;font-weight:800;box-shadow:0 7px 18px #216eea33}
+#content-root .quick-upload-btn:disabled{opacity:.55}
+.quick-optional{border:1px solid #e0e9fa;border-radius:12px;padding:12px 16px;margin-top:7px;background:#f8faff}
+.quick-optional summary,.quick-documents summary,.quick-advanced-menu summary{cursor:pointer;font-weight:700;color:#325c9c;line-height:1.6}
+.quick-optional label{display:block;font-size:13px;font-weight:650;margin-top:14px}
+.quick-optional select,.quick-optional input{width:100%;padding:11px;border:1px solid #b9cbeb;border-radius:10px;margin-top:6px;background:white}
+.quick-documents{margin-top:24px;padding:18px 0;border-top:1px solid #e1e9f5}
+.quick-documents>.content-items{margin-top:15px}
+.quick-advanced-menu{max-width:720px;margin:24px auto 0;padding:17px 22px;border:1px solid #dce6f6;background:#fff;border-radius:15px}
+@media(max-width:540px){.quick-simple-header h3{font-size:22px}.quick-simple-form>select,.quick-simple-form>input[type=file]{font-size:14px}#content-root .quick-upload-btn{font-size:17px}}
+
 </style>
 </head>
 <body>

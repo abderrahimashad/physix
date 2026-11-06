@@ -69,14 +69,18 @@ function render(){
  const labels={documents:"📄 Ajouter un PDF",chapters:"Chapitres",resources:"Ressources",devoirs:"Devoirs surveillés"};
  const nav=Object.keys(labels).map(t=>'<button type="button" data-tab="'+t+'" class="'+(t===tab?"selected":"")+'">'+labels[t]+'</button>').join("");
  if(tab==="documents"){
-  root.innerHTML='<div class="content-head"><div><h2>Ajouter un document PDF</h2><p>Choisissez le chapitre, le type de document et le PDF. Un seul bouton pour tout enregistrer, sans créer une ressource avant.</p></div><button type="button" id="owner-logout">Déconnexion</button></div>'+
-  '<nav class="content-tabs" aria-label="Modules">'+nav+'</nav>'+
-  '<div id="content-message" class="content-note" role="status" aria-live="polite"></div>';
-  root.querySelectorAll("[data-tab]").forEach(b=>b.addEventListener("click",()=>{tab=b.dataset.tab;editing=null;render()}));
-  root.querySelector("#owner-logout").addEventListener("click",()=>location.reload());
+  const advanced=Object.keys(labels).filter(t=>t!=="documents").map(t=>'<button type="button" data-tab="'+t+'">'+labels[t]+'</button>').join("");
+  root.innerHTML='<div class="content-head"><div><h2>Mes documents de physique-chimie</h2><p>Pour ajouter un PDF, il suffit de choisir un chapitre et un fichier.</p></div><button type="button" id="owner-logout">Déconnexion</button></div>'+
+  '<div id="content-message" class="content-note" role="status" aria-live="polite" hidden></div>';
   if(typeof window.physixQuickPdfRender==="function"){
     window.physixQuickPdfRender(root,{rows,session,rest,refresh,esc,opt,alertText});
   }else alertText("Le module PDF est indisponible. Rechargez la page.",true);
+  const menu=document.createElement("details");
+  menu.className="quick-advanced-menu";
+  menu.innerHTML='<summary>⚙ Gestion avancée : chapitres, ressources et devoirs</summary><nav class="content-tabs" aria-label="Gestion avancée">'+advanced+'</nav>';
+  root.append(menu);
+  menu.querySelectorAll("[data-tab]").forEach(b=>b.addEventListener("click",()=>{tab=b.dataset.tab;editing=null;render()}));
+  root.querySelector("#owner-logout").addEventListener("click",()=>location.reload());
   return;
  }
  const disabled=tab==="resources"&&rows.chapters.length===0;

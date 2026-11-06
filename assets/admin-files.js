@@ -124,17 +124,31 @@ window.physixQuickPdfRender=(root,{rows,session,rest,refresh,esc,opt,alertText})
  section.id="quick-pdf-section";
  const chapters=rows.chapters;
  const attached=rows.files.filter(x=>x.resource_id);
- section.innerHTML='<h3>Importer un PDF en une seule étape</h3>'+
- (chapters.length?'<p>1. Choisir le chapitre &nbsp; 2. Choisir le type &nbsp; 3. Choisir le PDF &nbsp; 4. Ajouter</p>'+
- '<form id="quick-pdf-form" class="content-form">'+
- '<label>Chapitre<select name="chapter" required>'+opt(chapters.map(x=>[x.id,x.level+" · "+x.subject+" — "+x.title]),chapters[0].id)+'</select></label>'+
- '<label>Type de document<select name="kind" required>'+opt(["Cours","Résumé","Exercices","Série","Correction","QCM","Présentation","Vidéo","Autre"],"Cours")+'</select></label>'+
- '<label class="full">Titre (facultatif, sinon nom du PDF)<input type="text" name="title" maxlength="160" placeholder="Ex. Série 1 — Ondes mécaniques"></label>'+
- '<label class="full">Choisir le fichier PDF (20 Mo maximum)<input type="file" name="pdf" accept=".pdf,application/pdf" required></label>'+
- '<div class="full"><button type="submit" class="quick-upload-btn">Ajouter le document PDF</button></div></form>':
- '<p>Ajoutez d’abord un chapitre dans l’onglet « Chapitres », puis revenez ici.</p>')+
- '<div id="quick-pdf-message" class="content-note" role="status" aria-live="polite">Les documents sont enregistrés en mode privé. Aucun élève ne peut encore les consulter.</div>'+
- '<h3>Mes documents PDF ('+attached.length+')</h3><div class="content-items">'+
+ const guessKind=name=>{
+  const value=String(name||"").toLowerCase();
+  if(/corrig|solution|réponse|reponse/.test(value))return "Correction";
+  if(/s[eé]rie|serie/.test(value))return "Série";
+  if(/exercice|exos?/.test(value))return "Exercices";
+  if(/résumé|resume|fiche/.test(value))return "Résumé";
+  if(/qcm|quiz/.test(value))return "QCM";
+  if(/pr[eé]sentation|diapo/.test(value))return "Présentation";
+  return "Cours";
+ };
+ section.innerHTML='<div class="quick-simple-header"><span class="quick-step-icon" aria-hidden="true">📄</span><div><h3>Ajouter un PDF</h3><p>Choisissez votre chapitre, puis votre PDF. C’est tout.</p></div></div>'+
+ (chapters.length?'<form id="quick-pdf-form" class="quick-simple-form">'+
+ '<label class="quick-simple-label" for="pdf-chapter">1. Dans quel chapitre ?</label>'+
+ '<select id="pdf-chapter" name="chapter" required>'+opt(chapters.map(x=>[x.id,x.level+" · "+x.subject+" — "+x.title]),chapters[0].id)+'</select>'+
+ '<label class="quick-simple-label" for="pdf-file">2. Choisissez votre document</label>'+
+ '<input id="pdf-file" type="file" name="pdf" accept=".pdf,application/pdf" required>'+
+ '<span class="quick-file-hint">PDF uniquement · maximum 20 Mo</span>'+
+ '<details class="quick-optional"><summary>Options facultatives</summary>'+
+ '<label for="quick-kind">Type de document</label><select id="quick-kind" name="kind">'+
+ opt(["Cours","Résumé","Exercices","Série","Correction","QCM","Présentation","Vidéo","Autre"],"Cours")+
+ '</select><label for="quick-title">Titre personnalisé</label><input id="quick-title" type="text" name="title" maxlength="160" placeholder="Sinon le nom du PDF sera utilisé"></details>'+
+ '<button type="submit" class="quick-upload-btn">⬆ Enregistrer mon PDF</button></form>':
+ '<p>Vous n’avez pas encore de chapitre. Allez dans « Gestion avancée » pour en ajouter un.</p>')+
+ '<div id="quick-pdf-message" class="content-note" role="status" aria-live="polite">🔒 Votre PDF reste privé. Il n’est pas visible par les élèves.</div>'+
+ '<details class="quick-documents"><summary>Mes PDF enregistrés ('+attached.length+')</summary><div class="content-items">'+
  (attached.map(x=>{
  const res=rows.resources.find(r=>r.id===x.resource_id);
  const chap=rows.chapters.find(c=>c.id===res?.chapter_id);
@@ -142,14 +156,15 @@ window.physixQuickPdfRender=(root,{rows,session,rest,refresh,esc,opt,alertText})
  '<p>'+esc(chap?.title||"Chapitre non trouvé")+' · '+esc(res?.kind||"Document")+' · '+esc(x.filename)+'</p>'+
  '<div class="content-actions"><button type="button" data-quick-open="'+esc(x.id)+'">Ouvrir</button>'+
  '<button type="button" class="danger" data-quick-remove="'+esc(x.id)+'">Supprimer le PDF</button></div></article>';
- }).join("")||'<p>Vous n’avez pas encore importé de PDF.</p>')+'</div>';
+ }).join("")||'<p>Vous n’avez pas encore importé de PDF.</p>')+'</div></details>';
  root.append(section);
  const form=section.querySelector("#quick-pdf-form");
  const note=(text,error=false)=>{const el=section.querySelector("#quick-pdf-message");if(el){el.textContent=text;el.className="content-note"+(error?" bad":"")}};
  let busy=false;
  form?.addEventListener("submit",async event=>{
   event.preventDefault();if(busy)return;
-  const file=form.elements.pdf.files?.[0],chapter_id=form.elements.chapter.value,kind=form.elements.kind.value;
+  const file=form.elements.pdf.files?.[0],chapter_id=form.elements.chapter.value;
+  const kind=form.querySelector("details.quick-optional")?.open?form.elements.kind.value:guessKind(file?.name);
   if(!file||!chapters.some(c=>c.id===chapter_id))return note("Choisissez un chapitre et un PDF.",true);
   if(!/\\.pdf$/i.test(file.name)||file.size<1||file.size>MAX_BYTES||(file.type&&file.type!=="application/pdf")){
    note("PDF invalide : extension .pdf et taille maximale 20 Mo.",true);return;

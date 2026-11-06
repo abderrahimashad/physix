@@ -4,7 +4,7 @@
 const esc=s=>String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
 const BASE="https://auqzfcucpglrnvwhjamo.supabase.co";
 const KEY="sb_publishable_5x4US_lL-yMa5RxlViAL6g_AokDwlx2";
-window.physixQcmGenerateFromPdf=async({file,chapterId,classCode,session,onStatus})=>{
+window.physixQcmGenerateFromPdf=async({file,chapterId,classCode,classCodes,session,onStatus})=>{
  if(!file||file.size>12*1024*1024)throw Error("QCM automatique : PDF de cours de 12 Mo maximum.");
  if(file.size<200)throw Error("Le PDF est trop petit pour générer un QCM.");
  onStatus?.("🤖 Gemini prépare 15 questions de cours et 4 exercices d’application à partir de votre PDF…");
@@ -12,6 +12,7 @@ window.physixQcmGenerateFromPdf=async({file,chapterId,classCode,session,onStatus
  form.append("pdf",file,file.name);
  form.append("chapter_id",chapterId);
  form.append("class_code",classCode);
+ if(Array.isArray(classCodes)&&classCodes.length)form.append("class_codes",JSON.stringify(classCodes));
  const ctrl=new AbortController(),timeout=setTimeout(()=>ctrl.abort(),75000);
  try{
   const response=await fetch(BASE+"/functions/v1/physix-qcm-gemini",{
@@ -29,6 +30,7 @@ window.physixTeacherQcm=(root,{rows,session,rest})=>{
  '<p>Lors de l’ajout d’un PDF de cours, Gemini propose automatiquement 15 questions de cours et 4 exercices d’application. Relisez les 19 réponses avant publication. Les élèves voient tout le corrigé uniquement à la fin du QCM.</p>'+
  '<div class="px-qcm-controls"><label>Classe<select id="qcm-class">'+classes.map(c=>
  '<option value="'+esc(c.code)+'">'+esc(c.code)+'</option>').join("")+'</select></label>'+
+ '<fieldset class="quick-class-fieldset"><legend>Partager le même QCM avec plusieurs classes</legend><div id="qcm-class-targets" class="quick-class-options"></div><p class="quick-file-hint">Choisissez G1, G2 et G3. Les classes doivent avoir le même chapitre (nom, matière et semestre).</p></fieldset>'+
  '<label>Semestre<select id="qcm-sem"><option value="1">Semestre 1</option><option value="2">Semestre 2</option></select></label>'+
  '<label>Chapitre<select id="qcm-chapter"></select></label></div>'+
  '<div id="qcm-owner-notice" class="content-note" role="status"></div>'+
@@ -48,6 +50,16 @@ window.physixTeacherQcm=(root,{rows,session,rest})=>{
  root.append(pane);
  const q=s=>pane.querySelector(s);
  let classCode=classes[0]?.code||"",semester=1,chapterId="",questions=[],attempts=[],busy=false;
+ const getSelectedClasses=()=>[...q("#qcm-class-targets").querySelectorAll("input:checked,input:disabled")].map(x=>x.value);
+ function drawClassTargets(){
+  const primary=classes.find(c=>c.code===classCode),sameLevel=classes.filter(c=>c.level===primary?.level);
+  const previously=getSelectedClasses();
+  const selected=previously.length?previously.filter(x=>sameLevel.some(c=>c.code===x)):sameLevel.map(c=>c.code);
+  if(!selected.includes(classCode))selected.push(classCode);
+  q("#qcm-class-targets").innerHTML=sameLevel.map(c=>'<label class="quick-class-chip"><input type="checkbox" value="'+esc(c.code)+'"'+
+   (selected.includes(c.code)?' checked':'')+(c.code===classCode?' disabled':'')+'><span>'+esc(c.code)+'</span></label>').join("");
+ }
+ drawClassTargets();
  const feedback=(message,bad=false)=>{q("#qcm-owner-notice").textContent=message;q("#qcm-owner-notice").classList.toggle("bad",bad)};
  function chaptersFor(){return chapters.filter(c=>c.semester===semester&&c.target_class===classCode&&(c.state==="published"||c.state==="draft"))}
  function pickChapter(){
@@ -173,7 +185,7 @@ window.physixTeacherQcm=(root,{rows,session,rest})=>{
   if(!file)return;
   operation(button,async()=>{
    const result=await window.physixQcmGenerateFromPdf({
-    file,chapterId,classCode,session,onStatus:feedback
+    file,chapterId,classCode,classCodes:getSelectedClasses(),session,onStatus:feedback
    });
    feedback(result.message||"QCM préparé. Vérifiez avant publication.");
    form.reset();
@@ -181,7 +193,7 @@ window.physixTeacherQcm=(root,{rows,session,rest})=>{
  };
  q("#qcm-owner-publish-all").onclick=publishAll;
  q("#qcm-owner-refresh").onclick=load;
- q("#qcm-class").onchange=e=>{classCode=e.target.value;load()};
+ q("#qcm-class").onchange=e=>{classCode=e.target.value;chapterId="";drawClassTargets();load()};
  q("#qcm-sem").onchange=e=>{semester=Number(e.target.value);chapterId="";load()};
  q("#qcm-chapter").onchange=e=>{chapterId=e.target.value;load()};
  load();

@@ -31,6 +31,13 @@ Deno.serve(async(req:Request)=>{
  let form:FormData;
  try{form=await req.formData()}catch{return fail(400,"Fichier ou formulaire invalide.");}
  const pdf=form.get("pdf"),chapterId=form.get("chapter_id"),classCode=form.get("class_code");
+ const rawCodes=form.get("class_codes");
+ let selectedCodes:string[]=[];
+ try{selectedCodes=rawCodes?JSON.parse(String(rawCodes)):[String(classCode)];}catch{return fail(400,"Liste des classes invalide.");}
+ if(!Array.isArray(selectedCodes)||selectedCodes.length<1||selectedCodes.length>8||
+  !selectedCodes.every(x=>typeof x==="string"&&x.length>=2&&x.length<=100)||
+  new Set(selectedCodes).size!==selectedCodes.length||!selectedCodes.includes(classCode as string))
+  return fail(400,"Choisissez des classes distinctes, dont la classe principale.");
  if(!(pdf instanceof File)||pdf.size<200||pdf.size>12*1024*1024||
  typeof chapterId!=="string"||!/^[a-f0-9-]{36}$/i.test(chapterId)||
  typeof classCode!=="string"||classCode.length<2||classCode.length>100)
@@ -46,12 +53,30 @@ Deno.serve(async(req:Request)=>{
  const chapter=cResult.data;
  if(cResult.error||kResult.error||!chapter||!kResult.data||chapter.target_class!==classCode)
   return fail(403,"Le chapitre ou la classe n’appartient pas au professeur connecté.");
- // Don't duplicate QCM for the same chapter automatically on every extra PDF upload.
+ // Every target class needs its own same-lesson chapter: keep independent grades/attempts.
+ const {data:otherChapters,error:chaptersError}=await client.from("physix_chapters")
+  .select("id,owner_id,title,subject,semester,level,target_class")
+  .eq("owner_id",uid).eq("level",chapter.level)
+  .eq("semester",chapter.semester).eq("subject",chapter.subject)
+  .in("target_class",selectedCodes);
+ if(chaptersError)return fail(503,"Impossible de vérifier les chapitres des classes.");
+ const chapterMap=new Map<string,string>();
+ for(const code of selectedCodes){
+  const {data:active,error:activeError}=await client.from("physix_classes")
+   .select("code").eq("owner_id",uid).eq("code",code).eq("level",chapter.level).eq("active",true).maybeSingle();
+  if(activeError||!active)return fail(403,"Classe inactive ou hors niveau : "+code);
+  const same=(otherChapters||[]).filter(x=>x.target_class===code&&
+   x.title.trim().toLocaleLowerCase("fr")===chapter.title.trim().toLocaleLowerCase("fr"));
+  if(same.length!==1)return fail(422,"Pour partager le QCM avec "+code+
+   ", créez d'abord un chapitre de même nom, matière et semestre dans cette classe.");
+  chapterMap.set(code,same[0].id);
+ }
+ const targetChapterIds=[...chapterMap.values()];
  const {count:existing,error:countError}=await client.from("physix_chapter_qcm")
-  .select("id",{head:true,count:"exact"}).eq("chapter_id",chapterId).eq("class_code",classCode);
+  .select("id",{head:true,count:"exact"}).in("chapter_id",targetChapterIds);
  if(countError)return fail(503,"Impossible de vérifier les QCM existants.");
  if((existing||0)>0)return Response.json({created:0,already_exists:true,
-  message:"Un QCM existe déjà pour ce chapitre. Révisez-le dans QCM par chapitre."},{headers:CORS});
+  message:"Au moins une des classes possède déjà un QCM pour ce chapitre. Aucune question ajoutée."},{headers:CORS});
  const {data:claimed,error:quotaError}=await client.rpc("physix_qcm_claim_generation");
  if(quotaError||claimed!==true)return fail(429,"Limite de génération du professeur atteinte. Réessayez plus tard.");
  const bytes=new Uint8Array(await pdf.arrayBuffer());
@@ -110,6 +135,43 @@ Deno.serve(async(req:Request)=>{
   return fail(422,"Gemini a produit "+cours.length+" questions de cours et "+applications.length+
    " applications au lieu de 15 et 4. Aucun brouillon créé.");
  const ordered=[...cours,...applications];
+ // Gemini sometimes repeats a distractor. Repair only that option via a second,
+ // bounded Gemini request; never silently accept duplicated or ambiguous answers.
+ for(let i=0;i<ordered.length;i++){
+  const item=ordered[i];
+  if(!Array.isArray(item.options)||item.options.length!==4||!item.options.every((x:unknown)=>typeof x==="string"))continue;
+  const normalized=(v:string)=>v.trim().toLocaleLowerCase("fr").replace(/\\s+/g," ");
+  if(new Set(item.options.map(normalized)).size===4)continue;
+  const repairPrompt="Corrige UNIQUEMENT les propositions de ce QCM de physique-chimie en conservant l'énoncé, "+
+   "la bonne réponse à la même position et son explication. Les quatre propositions doivent être distinctes, "+
+   "une seule physiquement correcte, les trois autres plausibles mais fausses. "+
+   "Rends UNIQUEMENT le JSON {\\\"options\\\":[\\\"...\\\",\\\"...\\\",\\\"...\\\",\\\"...\\\"]}. "+
+   "Voici les données : "+JSON.stringify({question:item.question,options:item.options,
+    correct_option:item.correct_option,explanation:item.explanation});
+  try{
+   const repairController=new AbortController();
+   const repairTimer=setTimeout(()=>repairController.abort(),17000);
+   let response:Response;
+   try{
+    response=await fetch("https://generativelanguage.googleapis.com/v1beta/models/"+MODEL+":generateContent",{
+     method:"POST",headers:{"Content-Type":"application/json","x-goog-api-key":GEMINI_KEY},
+     body:JSON.stringify({contents:[{role:"user",parts:[{text:repairPrompt}]}],
+      generationConfig:{responseMimeType:"application/json",maxOutputTokens:850}}),
+     signal:repairController.signal});
+   }finally{clearTimeout(repairTimer)}
+   if(response.ok){
+    const answer=await response.json();
+    const text=(answer?.candidates?.[0]?.content?.parts||[]).map((p:any)=>p.text||"").join("");
+    const replacement=JSON.parse(text)?.options;
+    if(Array.isArray(replacement)&&replacement.length===4&&
+     replacement.every((x:unknown)=>goodText(x,1,400))&&
+     new Set(replacement.map(normalized)).size===4&&
+     normalized(replacement[Number(item.correct_option)])===normalized(item.options[Number(item.correct_option)])){
+      item.options=replacement;
+    }
+   }
+  }catch{ /* keep original invalid QCM; teacher will see the exact validation error */ }
+ }
  const drafts:any[]=[];
  for(let i=0;i<19;i++){
   const item=ordered[i],expected=i<15?"cours":"application",position=i+1;
@@ -128,7 +190,7 @@ Deno.serve(async(req:Request)=>{
    return fail(422,"Question "+position+" : numéro de la bonne réponse invalide. Aucun brouillon créé.");
   if(!goodText(item.explanation,15,1500))
    return fail(422,"Question "+position+" : correction détaillée absente, trop courte ou trop longue. Aucun brouillon créé.");
-  drafts.push({owner_id:uid,class_code:classCode,chapter_id:chapterId,semester:chapter.semester,
+  for(const code of selectedCodes)drafts.push({owner_id:uid,class_code:code,chapter_id:chapterMap.get(code),semester:chapter.semester,
    question_type:expected,question:item.question.trim(),option_a:item.options[0].trim(),
    option_b:item.options[1].trim(),option_c:item.options[2].trim(),
    option_d:item.options[3].trim(),correct_option:correct,
@@ -136,12 +198,12 @@ Deno.serve(async(req:Request)=>{
  }
  // If another request already created a QCM meanwhile, return without appending duplicates.
  const {count:nowCount,error:checkError}=await client.from("physix_chapter_qcm")
-  .select("id",{count:"exact",head:true}).eq("chapter_id",chapterId).eq("class_code",classCode);
+  .select("id",{count:"exact",head:true}).in("chapter_id",targetChapterIds);
  if(checkError||nowCount)return fail(409,"Des questions existent maintenant pour ce chapitre. Aucun doublon ajouté.");
  const {data:inserted,error:insertError}=await client.from("physix_chapter_qcm")
   .insert(drafts).select("id");
- if(insertError||!inserted||inserted.length!==19)return fail(503,"Impossible d’enregistrer les 19 brouillons.");
- return Response.json({created:19,cours:15,applications:4,
-  message:"15 questions de cours et 4 applications enregistrées comme brouillons. Relisez avant publication."},
+ if(insertError||!inserted||inserted.length!==drafts.length)return fail(503,"Impossible d’enregistrer tous les brouillons.");
+ return Response.json({created:19,classes:selectedCodes,cours:15,applications:4,
+  message:"15 questions de cours et 4 applications en brouillon pour "+selectedCodes.join(", ")+". Relisez avant publication."},
   {headers:CORS});
 });

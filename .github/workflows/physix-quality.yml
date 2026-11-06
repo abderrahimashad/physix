@@ -86,5 +86,7 @@ jobs:
         run: python3 tests/check_auto_qcm.py
       - name: Check multi-class PDF and simple teacher dashboard
         run: python3 tests/check_shared_pdf_dashboard.py
+      - name: Check QCM retry and multi-class isolation
+        run: python3 tests/check_qcm_multiclass.py
       - name: Check repository for accidental live credentials
         run: python3 tests/check_no_secrets.py

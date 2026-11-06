@@ -5,7 +5,7 @@ const BASE="https://auqzfcucpglrnvwhjamo.supabase.co";
 const KEY="sb_publishable_5x4US_lL-yMa5RxlViAL6g_AokDwlx2";
 const el=id=>document.getElementById(id);
 const escape=s=>String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
-let token=null,email="",items=[],myProgress=[],classBoard=[],activeClass="",tab="lesson",busy=false;
+let token=null,email="",userId="",items=[],myProgress=[],classBoard=[],activeClass="",tab="lesson",busy=false;
 const notice=(message,error=false)=>{el("status").textContent=message;el("status").classList.toggle("error",error)};
 async function request(path,{method="GET",body,auth=false,blob=false}={}){
  const headers={"apikey":KEY};

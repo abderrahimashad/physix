@@ -121,6 +121,15 @@ el("verify-confirm").onsubmit=e=>submit(e,async()=>{
  if(!result.access_token)throw Error("Code de vérification invalide.");
  await authenticate(result.access_token);
 });
+el("activation-form").onsubmit=e=>submit(e,async form=>{
+ const v=Object.fromEntries(new FormData(form).entries());
+ if(v.password!==v.confirmation)throw Error("Les mots de passe sont différents.");
+ if(v.password.length<10)throw Error("Choisissez un mot de passe de 10 caractères minimum.");
+ await request("/rest/v1/rpc/physix_activate_pupil",{method:"POST",auth:true,body:{
+  p_code:v.code.trim().toUpperCase(),p_class:v.class_code,p_name:v.full_name.trim()}});
+ await request("/auth/v1/user",{method:"PUT",auth:true,body:{password:v.password}});
+ form.reset();screen("photo");notice("Compte activé. Ajoutez votre photo obligatoire.");
+});
 el("logout").addEventListener("click",async()=>{
  const old=token;token=null;items=[];myProgress=[];classBoard=[];email="";
  setAuthenticated(false);notice("Déconnecté. Vous pouvez vous reconnecter.");

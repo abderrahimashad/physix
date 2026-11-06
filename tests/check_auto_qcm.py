@@ -11,6 +11,8 @@ batch=get("supabase/migrations/20261106002300_physix_qcm_final_submit_only.sql")
 quotas=get("supabase/migrations/20261106002400_physix_gemini_qcm_teacher_quota.sql")
 types=get("supabase/migrations/20261106002500_physix_qcm_15_cours_4_applications.sql")
 review=get("supabase/migrations/20261106002600_physix_qcm_review_only_after_finish.sql")
+class_guard=get("supabase/migrations/20261106002700_physix_qcm_chapter_class_consistency.sql")
+freeze=get("supabase/migrations/20261106002900_physix_qcm_started_trigger_safe_insert_delete.sql")
 ci=get(".github/workflows/physix-quality.yml")
 for s in ("GEMINI_API_KEY","const MODEL=\"gemini-2.5-flash\"",
  "pdf instanceof File","application/pdf","generateContent","responseMimeType:\"application/json\"",
@@ -42,6 +44,9 @@ assert "pg_advisory_xact_lock" in batch
 assert "if v_submitted<>v_count" in batch
 assert "if v_answered<>v_count" in review or "v_answered<>v_count" in review
 assert "question_type in ('cours','application')" in types
+assert "c.target_class is distinct from new.class_code" in class_guard
+assert "physix_lock_started_chapter_quiz" in freeze and "tg_op='INSERT'" in freeze
+assert "chapter.target_class!==classCode" in generator
 assert "physix_qcm_claim_generation" in quotas
 assert ">=10" in quotas
 for src in (teacher,pdf,student):

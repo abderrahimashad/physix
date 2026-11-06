@@ -96,6 +96,7 @@ function render(){
    '<button type="button" id="open-wheel"><span class="px-pro-action-icon">🎯</span><strong>Élève au hasard</strong><small>Interroger en classe</small></button>'+
    '<button type="button" id="open-dashboard"><span class="px-pro-action-icon">📊</span><strong>Statistiques</strong><small>Résultats et progression</small></button>'+
    '<button type="button" id="open-pedagogy"><span class="px-pro-action-icon">📆</span><strong>Travail & annonces</strong><small>Consignes pour les groupes</small></button></div>'+
+   '<details class="px-simple-secondary"><summary>Autres outils pédagogiques</summary><div class="overview-home-shortcuts"><button type="button" id="open-portraits">📸 Trombinoscope</button><button type="button" id="open-ai">📝 Exercices à remettre</button></div></details>'+ 
    '<section class="px-pro-groups"><div><h3>Mes groupes</h3><p>Choisissez rapidement la classe pour votre prochain document.</p></div>'+
    '<div class="px-pro-group-chips">'+
    activeClasses.map(c=>'<button type="button" data-class-focus="'+esc(c.code)+'">'+esc(c.code)+'</button>').join("")+

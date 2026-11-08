@@ -1,6 +1,6 @@
 # QCM automatique avec Claude
 
-La génération des 15 questions de cours + 4 applications utilise l'API Anthropic (Claude) à la place de Gemini.
+La génération des 10 questions de cours + 5 applications utilise l'API Anthropic (Claude) à la place de Gemini.
 La clé reste un **secret serveur Supabase** : elle n'apparaît jamais dans le navigateur ni dans le dépôt.
 
 1. Créer une clé API sur https://console.anthropic.com (compte API distinct de l'abonnement Claude.ai) et ajouter quelques crédits.

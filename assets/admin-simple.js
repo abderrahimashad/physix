@@ -235,8 +235,8 @@ window.physixQuickPdfRender=(root,{rows,session,rest,refresh,esc,opt,alertText})
      const generated=await window.physixQcmGenerateFromPdf({
       file,chapterId:chapter.id,classCode:classroom.code,session,onStatus:note
      });
-     qcmSummary=generated.created===19?
-      " ✅ Claude a préparé 15 questions de cours et 4 exercices d’application en brouillon. Vérifiez-les dans QCM par chapitre.":
+     qcmSummary=generated.created===15?
+      " ✅ Claude a préparé 10 questions de cours et 5 exercices d’application en brouillon. Vérifiez-les dans QCM par chapitre.":
       " ℹ️ "+(generated.message||"Un QCM existe déjà pour ce chapitre.");
     }catch(qcmError){
      qcmSummary=" ⚠️ QCM non généré : "+qcmError.message+

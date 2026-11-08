@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""15 cours + 4 applications, Claude only on teacher PDF import, final-only student correction."""
+"""10 cours + 5 applications, Claude only on teacher PDF import, final-only student correction."""
 from pathlib import Path
 root=Path(__file__).resolve().parents[1]
 get=lambda p:(root/p).read_text(encoding="utf-8")
@@ -16,9 +16,9 @@ freeze=get("supabase/migrations/20261106002900_physix_qcm_started_trigger_safe_i
 ci=get(".github/workflows/physix-quality.yml")
 for s in ("ANTHROPIC_API_KEY","const MODEL=Deno.env.get(\"CLAUDE_QCM_MODEL\")||\"claude-sonnet-5-5\"",
  "pdf instanceof File","application/pdf","https://api.anthropic.com/v1/messages","type:\"document\"",
- "questions.length!==19","i<15?\"cours\":\"application\"","question_type:expected",
+ "questions.length!==15","i<10?\"cours\":\"application\"","question_type:expected",
  "published:false","physix_qcm_claim_generation","client.auth.getUser(jwt)",
- "CLAUDE_KEY","Clé Claude refusée","created:19","cours:15,applications:4"):
+ "CLAUDE_KEY","Clé Claude refusée","created:15","cours:10,applications:5"):
     assert s in generator,s
 assert "OPENAI_API_KEY" not in generator
 assert "SUPABASE_SERVICE_ROLE_KEY" not in generator
@@ -30,7 +30,7 @@ assert 'physixQcmGenerateFromPdf' in teacher and 'GEMINI_API_KEY' not in teacher
 assert "physixQcmGenerateFromPdf" in pdf
 assert '["Cours","Résumé"].includes(kind)' in pdf
 assert "createdFile=true" in pdf and "await refresh()" in pdf
-for s in ("qcm-owner-publish-all","questions.length!==19",
+for s in ("qcm-owner-publish-all","nCours===10&&nApp===5",
  "question_type===\"cours\"","question_type===\"application\"",
  "data-edit","chapter.state=\"published\""):
     assert s in teacher,s
@@ -52,4 +52,4 @@ assert ">=10" in quotas
 for src in (teacher,pdf,student):
     assert "ANTHROPIC_API_KEY" not in src
 assert "python3 tests/check_auto_qcm.py" in ci
-print("OK — 19 teacher-generated PDF QCM, private answers, final-only correction, no per-pupil Claude calls.")
+print("OK — 15 teacher-generated PDF QCM, private answers, final-only correction, no per-pupil Claude calls.")

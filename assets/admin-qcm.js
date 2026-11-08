@@ -8,8 +8,8 @@ window.physixQcmGenerateFromPdf=async({file,chapterId,classCode,classCodes,sessi
  // file est optionnel : sans PDF, Claude se base sur le titre du chapitre.
  if(file&&file.size>12*1024*1024)throw Error("QCM automatique : PDF de cours de 12 Mo maximum.");
  if(file&&file.size<200)throw Error("Le PDF est trop petit pour générer un QCM.");
- onStatus?.(file?"🤖 Claude prépare 15 questions de cours et 4 exercices d’application à partir de votre PDF…":
-  "🤖 Claude prépare 15 questions de cours et 4 exercices d’application à partir du titre du chapitre…");
+ onStatus?.(file?"🤖 Claude prépare 10 questions de cours et 5 exercices d’application à partir de votre PDF…":
+  "🤖 Claude prépare 10 questions de cours et 5 exercices d’application à partir du titre du chapitre…");
  const form=new FormData();
  if(file)form.append("pdf",file,file.name);
  form.append("chapter_id",chapterId);
@@ -29,14 +29,14 @@ window.physixTeacherQcm=(root,{rows,session,rest})=>{
  const classes=(rows.classes||[]).filter(c=>c.active),chapters=rows.chapters||[];
  const pane=document.createElement("section");pane.className="content-section px-qcm-admin";
  pane.innerHTML='<h3>✅ QCM — Questions de cours par chapitre</h3>'+
- '<p>Lors de l’ajout d’un PDF de cours, Claude propose automatiquement 15 questions de cours et 4 exercices d’application. Relisez les 19 réponses avant publication. Les élèves voient tout le corrigé uniquement à la fin du QCM.</p>'+
+ '<p>Lors de l’ajout d’un PDF de cours, Claude propose automatiquement 10 questions de cours et 5 exercices d’application. Relisez les 15 réponses avant publication. Les élèves voient tout le corrigé uniquement à la fin du QCM.</p>'+
  '<div class="px-qcm-controls"><label>Classe<select id="qcm-class">'+classes.map(c=>
  '<option value="'+esc(c.code)+'">'+esc(c.code)+'</option>').join("")+'</select></label>'+
  '<fieldset class="quick-class-fieldset"><legend>Partager le même QCM avec plusieurs classes</legend><div id="qcm-class-targets" class="quick-class-options"></div><p class="quick-file-hint">Choisissez G1, G2 et G3. Les classes doivent avoir le même chapitre (nom, matière et semestre).</p></fieldset>'+
  '<label>Semestre<select id="qcm-sem"><option value="1">Semestre 1</option><option value="2">Semestre 2</option></select></label>'+
  '<label>Chapitre<select id="qcm-chapter"></select></label></div>'+
  '<div id="qcm-owner-notice" class="content-note" role="status"></div>'+
- '<details class="px-qcm-form-wrap"><summary>🤖 Générer automatiquement 15 questions de cours + 4 applications à partir du PDF</summary>'+
+ '<details class="px-qcm-form-wrap"><summary>🤖 Générer automatiquement 10 questions de cours + 5 applications</summary>'+
  '<form id="qcm-generate-form"><label>PDF du chapitre (12 Mo max.)'+
  '<input name="pdf" type="file" accept=".pdf,application/pdf"></label>'+
  '<button type="submit">Générer à partir du PDF</button>'+
@@ -49,7 +49,7 @@ window.physixTeacherQcm=(root,{rows,session,rest})=>{
  '<label>Bonne réponse<select name="correct_option">'+['A','B','C','D'].map((k,i)=>'<option value="'+i+'">'+k+'</option>').join("")+'</select></label>'+
  '<label>Explication après réponse<textarea name="explanation" maxlength="1500" rows="3" placeholder="Expliquez pourquoi ce choix est correct."></textarea></label>'+
  '<button type="submit">Enregistrer comme brouillon</button></form></details>'+
- '<div class="px-qcm-bulk"><button type="button" id="qcm-owner-publish-all">✅ Publier les 19 questions validées</button><button type="button" id="qcm-owner-refresh">Actualiser les questions</button></div><h4>Questions de ce chapitre</h4><div id="qcm-owner-list"></div>'+
+ '<div class="px-qcm-bulk"><button type="button" id="qcm-owner-publish-all">✅ Publier les 15 questions validées</button><button type="button" id="qcm-owner-refresh">Actualiser les questions</button></div><h4>Questions de ce chapitre</h4><div id="qcm-owner-list"></div>'+
  '<h4>Participation aux QCM</h4><div id="qcm-owner-stats"></div>';
  root.append(pane);
  const q=s=>pane.querySelector(s);
@@ -120,11 +120,11 @@ window.physixTeacherQcm=(root,{rows,session,rest})=>{
  }
  async function publishAll(){
   const available=questions.filter(x=>!x.published);
-  if(questions.length!==19)return feedback("Pour publier le QCM automatique, il faut exactement 19 questions : 15 cours et 4 applications.",true);
-  if(questions.filter(x=>x.question_type==="cours").length!==15||
-    questions.filter(x=>x.question_type==="application").length!==4)
-   return feedback("Le QCM doit contenir 15 questions de cours et 4 applications.",true);
-  if(!confirm("Confirmer que vous avez vérifié les 19 réponses ? Publier le QCM complet et son chapitre pour les élèves de "+classCode+" ?"))return;
+  // Format actuel : 10 cours + 5 applications ; anciens QCM : 15 cours + 4 applications.
+  const nCours=questions.filter(x=>x.question_type==="cours").length,nApp=questions.filter(x=>x.question_type==="application").length;
+  if(!((nCours===10&&nApp===5)||(nCours===15&&nApp===4)))
+   return feedback("Le QCM doit contenir 10 questions de cours et 5 applications (ou l’ancien format 15 + 4).",true);
+  if(!confirm("Confirmer que vous avez vérifié les "+questions.length+" réponses ? Publier le QCM complet et son chapitre pour les élèves de "+classCode+" ?"))return;
   const b=q("#qcm-owner-publish-all");
   operation(b,async()=>{
    const chapter=chapters.find(c=>c.id===chapterId);
@@ -135,7 +135,7 @@ window.physixTeacherQcm=(root,{rows,session,rest})=>{
    if(available.length){
     const published=await rest("chapter_qcm","?chapter_id=eq."+encodeURIComponent(chapterId)+
      "&class_code=eq."+encodeURIComponent(classCode),"PATCH",{published:true});
-    if(!Array.isArray(published)||published.length!==19)throw Error("Publication des questions non confirmée.");
+    if(!Array.isArray(published)||published.length!==questions.length)throw Error("Publication des questions non confirmée.");
    }
   });
  }
@@ -198,7 +198,7 @@ window.physixTeacherQcm=(root,{rows,session,rest})=>{
  q("#qcm-generate-title").onclick=e=>{
   if(busy||!chapterId)return;
   const chapter=chapters.find(c=>c.id===chapterId);
-  if(!confirm("Générer 19 questions à partir du titre « "+(chapter?.title||"")+" » sans PDF ? Relisez toutes les réponses avant de publier."))return;
+  if(!confirm("Générer 15 questions à partir du titre « "+(chapter?.title||"")+" » sans PDF ? Relisez toutes les réponses avant de publier."))return;
   operation(e.currentTarget,async()=>{
    const result=await window.physixQcmGenerateFromPdf({chapterId,classCode,classCodes:getSelectedClasses(),session,onStatus:feedback});
    feedback(result.message||"QCM préparé. Vérifiez avant publication.");

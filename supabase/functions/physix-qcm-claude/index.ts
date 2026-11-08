@@ -125,9 +125,9 @@ Deno.serve(async(req:Request)=>{
  const instructions=[
   "Tu es professeur expert de physique-chimie au lycée marocain, sections BIOF.",
   ...sourceRules,
-  "Produis exactement 19 questions de QCM en français :",
-  "les 15 premières de type 'cours' (définitions, lois, compréhension, unités, relations et interprétation),",
-  "les 4 dernières de type 'application' (quatre petits exercices distincts avec données numériques,",
+  "Produis exactement 15 questions de QCM en français :",
+  "les 10 premières de type 'cours' (définitions, lois, compréhension, unités, relations et interprétation),",
+  "les 5 dernières de type 'application' (cinq petits exercices distincts avec données numériques,",
   "calculs ou application directe des lois et grandeurs du chapitre).",
   "Chaque item a une question, 4 propositions uniques, un seul correct_option entier 0..3,",
   "une explanation détaillée et physiquement correcte (calculs, unités et formule si pertinent),",
@@ -143,7 +143,7 @@ Deno.serve(async(req:Request)=>{
  let result:ClaudeResult;
  try{
   const prompt={type:"text",text:"Chapitre : "+chapter.title+" ; matière : "+chapter.subject+
-   " ; niveau : "+chapter.level+". Génère 15 questions de cours et 4 exercices d'application."};
+   " ; niveau : "+chapter.level+". Génère 10 questions de cours et 5 exercices d'application."};
   result=await callClaude({system:instructions,maxTokens:12000,timeoutMs:125000,content:hasPdf?[
    {type:"document",source:{type:"base64",media_type:"application/pdf",data:base64}},prompt]:[prompt]});
  }catch{return fail(503,"Claude indisponible ou délai dépassé. Réessayez dans quelques minutes.");}
@@ -155,16 +155,16 @@ Deno.serve(async(req:Request)=>{
  let generated:any;
  try{generated=parseJsonObject(result.text)}catch{return fail(422,"Claude n’a pas renvoyé un QCM JSON exploitable.");}
  const questions=generated?.questions;
- if(!Array.isArray(questions)||questions.length!==19)
-  return fail(422,"Claude n’a pas produit exactement 15 questions de cours et 4 applications. Aucun brouillon créé.");
+ if(!Array.isArray(questions)||questions.length!==15)
+  return fail(422,"Claude n’a pas produit exactement 10 questions de cours et 5 applications. Aucun brouillon créé.");
  // Normalize presentation differences only; never invent or change scientific answers.
  const typed=questions.map((q:any)=>({...q,question_type:
   typeof q?.question_type==="string"?q.question_type.trim().toLowerCase():q?.question_type}));
  const cours=typed.filter((q:any)=>q.question_type==="cours");
  const applications=typed.filter((q:any)=>q.question_type==="application");
- if(cours.length!==15||applications.length!==4)
+ if(cours.length!==10||applications.length!==5)
   return fail(422,"Claude a produit "+cours.length+" questions de cours et "+applications.length+
-   " applications au lieu de 15 et 4. Aucun brouillon créé.");
+   " applications au lieu de 10 et 5. Aucun brouillon créé.");
  const ordered=[...cours,...applications];
  // A model may repeat a distractor. Repair only that option via a second,
  // bounded Claude request; never silently accept duplicated or ambiguous answers.
@@ -193,8 +193,8 @@ Deno.serve(async(req:Request)=>{
   }catch{ /* keep original invalid QCM; teacher will see the exact validation error */ }
  }
  const drafts:any[]=[];
- for(let i=0;i<19;i++){
-  const item=ordered[i],expected=i<15?"cours":"application",position=i+1;
+ for(let i=0;i<15;i++){
+  const item=ordered[i],expected=i<10?"cours":"application",position=i+1;
   if(!goodText(item.question,10,1000))
    return fail(422,"Question "+position+" : énoncé absent, trop court ou trop long. Aucun brouillon créé.");
   if(!Array.isArray(item.options)||item.options.length!==4||
@@ -223,8 +223,8 @@ Deno.serve(async(req:Request)=>{
  const {data:inserted,error:insertError}=await client.from("physix_chapter_qcm")
   .insert(drafts).select("id");
  if(insertError||!inserted||inserted.length!==drafts.length)return fail(503,"Impossible d’enregistrer tous les brouillons.");
- return Response.json({created:19,classes:selectedCodes,cours:15,applications:4,source:hasPdf?"pdf":"titre",
-  message:"15 questions de cours et 4 applications en brouillon pour "+selectedCodes.join(", ")+
+ return Response.json({created:15,classes:selectedCodes,cours:10,applications:5,source:hasPdf?"pdf":"titre",
+  message:"10 questions de cours et 5 applications en brouillon pour "+selectedCodes.join(", ")+
    (hasPdf?"":" (générées à partir du titre du chapitre, sans PDF : vérifiez chaque réponse)")+". Relisez avant publication."},
   {headers:CORS});
 });

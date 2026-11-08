@@ -1,4 +1,4 @@
-/* PhysiX: one 19-question chapter QCM; answers graded on server ONLY at final submission. */
+/* PhysiX: one chapter QCM (10 course questions + 5 applications); answers graded on server ONLY at final submission. */
 (()=>{
 "use strict";
 const BASE="https://auqzfcucpglrnvwhjamo.supabase.co";
@@ -19,7 +19,7 @@ function progress(){
  const status=q("#student-qcm-summary");
  if(status){
   status.textContent=list.length?(finished?"QCM terminé. ":number+" / "+list.length+" réponse(s) sélectionnée(s). ")+
-   (list.length===19?"15 questions de cours + 4 exercices d’application.":"Complétez toutes les questions."):
+   (list.length===15?"10 questions de cours + 5 exercices d’application.":list.length===19?"15 questions de cours + 4 exercices d’application.":"Complétez toutes les questions."):
    "Aucun QCM publié pour ce chapitre et ce semestre.";
  }
  const button=q("#student-qcm-submit");
@@ -39,7 +39,8 @@ function draw(){
   const detail=review?.details?.find(r=>r.question_id===item.id);
   const prior=detail?.selected_option??item.selected_option;
   const answered=finished&&!!detail;
-  const heading=list.length===19?(i<15?"Question de cours":"Exercice d’application"):"Question de cours";
+  const nCours=list.length===15?10:list.length===19?15:list.length;
+  const heading=i<nCours?"Question de cours":"Exercice d’application";
   return '<article class="student-qcm-card"><div class="student-qcm-question"><small>'+heading+' '+(i+1)+'</small>'+
    '<strong>'+esc(item.question)+'</strong></div>'+
    (answered?'<div class="student-qcm-answered">'+(detail.is_correct?"✅ Bonne réponse":"❌ Réponse incorrecte")+
@@ -127,7 +128,7 @@ window.physixStudentQcm={
   token=newToken;classCode=activeClass;
   if(!q("#student-qcm-questions")){
    slot.innerHTML='<section class="student-module"><h3>✅ Questions de cours et exercices d’application</h3>'+
-    '<p class="student-help">Pour chaque chapitre, répondez aux 15 questions de cours puis aux 4 applications. Vous verrez votre correction à la fin.</p>'+
+    '<p class="student-help">Pour chaque chapitre, répondez aux questions de cours puis aux exercices d’application. Vous verrez votre correction à la fin.</p>'+
     '<div class="student-ai-controls"><label>Semestre<select id="student-qcm-sem"><option value="1">Semestre 1</option><option value="2">Semestre 2</option></select></label>'+
     '<label>Chapitre<select id="student-qcm-chapter"></select></label></div>'+
     '<p id="student-qcm-summary" class="student-help"></p>'+

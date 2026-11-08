@@ -94,7 +94,7 @@ function render(){
    '<div class="px-pro-actions">'+
    '<button type="button" id="open-tracking"><span class="px-pro-action-icon">'+ICONS.users+'</span><strong>Suivi & activités</strong><small>Participation, exercices, notes</small></button>'+
    '<button type="button" id="open-remises"><span class="px-pro-action-icon">'+ICONS.inbox+'</span><strong>Copies à corriger</strong><small>Valider les devoirs reçus</small></button>'+
-   '<button type="button" id="open-qcm"><span class="px-pro-action-icon">'+ICONS.check+'</span><strong>QCM & Claude</strong><small>19 questions par chapitre</small></button>'+
+   '<button type="button" id="open-qcm"><span class="px-pro-action-icon">'+ICONS.check+'</span><strong>QCM & Claude</strong><small>15 questions par chapitre</small></button>'+
    '<button type="button" id="open-wheel"><span class="px-pro-action-icon">'+ICONS.target+'</span><strong>Élève au hasard</strong><small>Interroger en classe</small></button>'+
    '<button type="button" id="open-dashboard"><span class="px-pro-action-icon">'+ICONS.chart+'</span><strong>Statistiques</strong><small>Résultats et progression</small></button>'+
    '<button type="button" id="open-pedagogy"><span class="px-pro-action-icon">'+ICONS.calendar+'</span><strong>Travail & annonces</strong><small>Consignes pour les groupes</small></button></div>'+

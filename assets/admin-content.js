@@ -64,9 +64,11 @@ function rowMarkup(x){
  x.level+" · "+x.subject+" · S"+x.semester+" · N° "+x.devoir_number;
  return '<article class="content-item"><div class="content-item-line"><strong>'+esc(x.title)+'</strong><span class="content-tag">'+esc(STATES.find(p=>p[0]===x.state)?.[1]||x.state)+'</span></div><p>'+esc(subtitle)+'</p><div class="content-actions"><button type="button" data-edit="'+esc(x.id)+'">Modifier</button><button type="button" data-delete="'+esc(x.id)+'" class="danger">Supprimer</button></div></article>';
 }
+const ICONS={users:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>',inbox:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="22 12 16 12 14 15 10 15 8 12 2 12"/><path d="M5.45 5.11 2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.45-6.89A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11z"/></svg>',check:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>',target:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/></svg>',chart:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>',calendar:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>'};
 function render(){
  const root=document.getElementById("content-root");if(!root||!session)return;
  root.hidden=false;
+ root.classList.toggle("px-home",tab==="documents");
  const labels={documents:"📄 Ajouter un PDF",classes:"Mes classes",chapters:"Chapitres",resources:"Ressources",devoirs:"Devoirs surveillés",tracking:"Suivi des élèves",pedagogy:"Travail et annonces",dashboard:"Tableau de bord",portraits:"Trombinoscope",ai:"Exercices à remettre",remises:"Copies reçues",wheel:"Roue aléatoire",qcm:"QCM par chapitre"};
  const nav=Object.keys(labels).map(t=>'<button type="button" data-tab="'+t+'" class="'+(t===tab?"selected":"")+'">'+labels[t]+'</button>').join("");
  if(tab==="documents"){
@@ -79,8 +81,8 @@ function render(){
   const tile=(label,value,note)=>'<div class="px-pro-kpi"><span>'+esc(label)+'</span><strong>'+value+'</strong><small>'+esc(note)+'</small></div>';
   root.innerHTML='<div class="px-pro-shell">'+
    '<header class="px-pro-hero"><div><div class="px-pro-eyebrow">PHYSIX <span aria-hidden="true">/</span> ESPACE ENSEIGNANT</div>'+
-   '<h2>Bonjour, professeur <span class="px-pro-wave" aria-hidden="true">👋</span></h2>'+
-   '<p>Votre classe, vos cours et vos évaluations. Tout au même endroit.</p></div>'+
+   '<h2>Bonjour, professeur</h2>'+
+   '<p>Vos classes, vos cours et vos évaluations, au même endroit.</p></div>'+
    '<button type="button" id="owner-logout" class="px-pro-logout">Déconnexion</button></header>'+
    '<div id="content-message" class="content-note" role="status" aria-live="polite" hidden></div>'+
    '<section class="px-pro-summary" aria-label="Vue d’ensemble">'+
@@ -90,18 +92,18 @@ function render(){
    tile("Ressources publiées",publishedResources,"Fiches pédagogiques")+'</section>'+
    '<div class="px-pro-section-heading"><div><h3>Actions rapides</h3><p>Les outils les plus utiles pendant le cours</p></div></div>'+
    '<div class="px-pro-actions">'+
-   '<button type="button" id="open-tracking"><span class="px-pro-action-icon">🙋</span><strong>Suivi & activités</strong><small>Participation, exercices, notes</small></button>'+
-   '<button type="button" id="open-remises"><span class="px-pro-action-icon">📥</span><strong>Copies à corriger</strong><small>Valider les devoirs reçus</small></button>'+
-   '<button type="button" id="open-qcm"><span class="px-pro-action-icon">✅</span><strong>QCM & Gemini</strong><small>19 questions par chapitre</small></button>'+
-   '<button type="button" id="open-wheel"><span class="px-pro-action-icon">🎯</span><strong>Élève au hasard</strong><small>Interroger en classe</small></button>'+
-   '<button type="button" id="open-dashboard"><span class="px-pro-action-icon">📊</span><strong>Statistiques</strong><small>Résultats et progression</small></button>'+
-   '<button type="button" id="open-pedagogy"><span class="px-pro-action-icon">📆</span><strong>Travail & annonces</strong><small>Consignes pour les groupes</small></button></div>'+
-   '<details class="px-simple-secondary"><summary>Autres outils pédagogiques</summary><div class="overview-home-shortcuts"><button type="button" id="open-portraits">📸 Trombinoscope</button><button type="button" id="open-ai">📝 Exercices à remettre</button></div></details>'+ 
+   '<button type="button" id="open-tracking"><span class="px-pro-action-icon">'+ICONS.users+'</span><strong>Suivi & activités</strong><small>Participation, exercices, notes</small></button>'+
+   '<button type="button" id="open-remises"><span class="px-pro-action-icon">'+ICONS.inbox+'</span><strong>Copies à corriger</strong><small>Valider les devoirs reçus</small></button>'+
+   '<button type="button" id="open-qcm"><span class="px-pro-action-icon">'+ICONS.check+'</span><strong>QCM & Claude</strong><small>19 questions par chapitre</small></button>'+
+   '<button type="button" id="open-wheel"><span class="px-pro-action-icon">'+ICONS.target+'</span><strong>Élève au hasard</strong><small>Interroger en classe</small></button>'+
+   '<button type="button" id="open-dashboard"><span class="px-pro-action-icon">'+ICONS.chart+'</span><strong>Statistiques</strong><small>Résultats et progression</small></button>'+
+   '<button type="button" id="open-pedagogy"><span class="px-pro-action-icon">'+ICONS.calendar+'</span><strong>Travail & annonces</strong><small>Consignes pour les groupes</small></button></div>'+
+   '<details class="px-simple-secondary"><summary>Autres outils pédagogiques</summary><div class="overview-home-shortcuts"><button type="button" id="open-portraits">Trombinoscope</button><button type="button" id="open-ai">Exercices à remettre</button></div></details>'+ 
    '<section class="px-pro-groups"><div><h3>Mes groupes</h3><p>Choisissez rapidement la classe pour votre prochain document.</p></div>'+
    '<div class="px-pro-group-chips">'+
    activeClasses.map(c=>'<button type="button" data-class-focus="'+esc(c.code)+'">'+esc(c.code)+'</button>').join("")+
    '</div>'+(docGroups.length>1?'<p class="px-pro-tip">Un même PDF peut être attribué à G1, G2 et G3 en une seule fois.</p>':"")+'</section>'+
-   '<div class="px-pro-section-heading" id="px-pro-doc-heading"><div><h3>Bibliothèque pédagogique</h3><p>Importer un cours, une série ou un devoir</p></div></div>'+
+   '<div class="px-pro-section-heading" id="px-pro-doc-heading"><div><h3>Documents et accès élèves</h3><p>Importer un cours, une série ou un devoir, et inviter vos élèves</p></div></div>'+
    '</div>';
   if(typeof window.physixQuickPdfRender==="function"){
     window.physixQuickPdfRender(root,{rows,session,rest,refresh,esc,opt,alertText});
@@ -125,7 +127,7 @@ function render(){
   }else alertText("Le module PDF est indisponible. Rechargez la page.",true);
   const menu=document.createElement("details");
   menu.className="quick-advanced-menu";
-  menu.innerHTML='<summary>⚙ Gestion avancée : classes, chapitres, ressources et devoirs</summary><nav class="content-tabs" aria-label="Gestion avancée">'+advanced+'</nav>';
+  menu.innerHTML='<summary>Gestion avancée : classes, chapitres, ressources et devoirs</summary><nav class="content-tabs" aria-label="Gestion avancée">'+advanced+'</nav>';
   root.append(menu);
   menu.querySelectorAll("[data-tab]").forEach(b=>b.addEventListener("click",()=>{tab=b.dataset.tab;editing=null;render()}));
   root.querySelector("#owner-logout").addEventListener("click",()=>{window.physixDrive?.disconnect();location.reload()});
@@ -282,6 +284,7 @@ window.physixAdminStart=async function(token,ownerId){
   window.physixAdminNotificationsInit?.({session,rest,openTab:window.physixAdminOpenTab});
   login.hidden=true;
   document.querySelector(".entry-wrap")?.classList.add("owner-authenticated");
+  document.body.classList.add("owner-authenticated");
   alertText("Connexion propriétaire confirmée. Vous pouvez gérer vos fiches.");
   root.scrollIntoView({behavior:"smooth",block:"start"});
  }catch(error){

@@ -7,19 +7,19 @@ const KEY="sb_publishable_5x4US_lL-yMa5RxlViAL6g_AokDwlx2";
 window.physixQcmGenerateFromPdf=async({file,chapterId,classCode,classCodes,session,onStatus})=>{
  if(!file||file.size>12*1024*1024)throw Error("QCM automatique : PDF de cours de 12 Mo maximum.");
  if(file.size<200)throw Error("Le PDF est trop petit pour générer un QCM.");
- onStatus?.("🤖 Gemini prépare 15 questions de cours et 4 exercices d’application à partir de votre PDF…");
+ onStatus?.("🤖 Claude prépare 15 questions de cours et 4 exercices d’application à partir de votre PDF…");
  const form=new FormData();
  form.append("pdf",file,file.name);
  form.append("chapter_id",chapterId);
  form.append("class_code",classCode);
  if(Array.isArray(classCodes)&&classCodes.length)form.append("class_codes",JSON.stringify(classCodes));
- const ctrl=new AbortController(),timeout=setTimeout(()=>ctrl.abort(),75000);
+ const ctrl=new AbortController(),timeout=setTimeout(()=>ctrl.abort(),140000);
  try{
-  const response=await fetch(BASE+"/functions/v1/physix-qcm-gemini",{
+  const response=await fetch(BASE+"/functions/v1/physix-qcm-claude",{
    method:"POST",headers:{apikey:KEY,Authorization:"Bearer "+session.token},
    body:form,signal:ctrl.signal,cache:"no-store",referrerPolicy:"no-referrer"});
   const result=await response.json().catch(()=>({}));
-  if(!response.ok)throw Error(result.message||"Gemini ne peut pas générer le QCM pour le moment.");
+  if(!response.ok)throw Error(result.message||"Claude ne peut pas générer le QCM pour le moment.");
   return result;
  }finally{clearTimeout(timeout)}
 };
@@ -27,7 +27,7 @@ window.physixTeacherQcm=(root,{rows,session,rest})=>{
  const classes=(rows.classes||[]).filter(c=>c.active),chapters=rows.chapters||[];
  const pane=document.createElement("section");pane.className="content-section px-qcm-admin";
  pane.innerHTML='<h3>✅ QCM — Questions de cours par chapitre</h3>'+
- '<p>Lors de l’ajout d’un PDF de cours, Gemini propose automatiquement 15 questions de cours et 4 exercices d’application. Relisez les 19 réponses avant publication. Les élèves voient tout le corrigé uniquement à la fin du QCM.</p>'+
+ '<p>Lors de l’ajout d’un PDF de cours, Claude propose automatiquement 15 questions de cours et 4 exercices d’application. Relisez les 19 réponses avant publication. Les élèves voient tout le corrigé uniquement à la fin du QCM.</p>'+
  '<div class="px-qcm-controls"><label>Classe<select id="qcm-class">'+classes.map(c=>
  '<option value="'+esc(c.code)+'">'+esc(c.code)+'</option>').join("")+'</select></label>'+
  '<fieldset class="quick-class-fieldset"><legend>Partager le même QCM avec plusieurs classes</legend><div id="qcm-class-targets" class="quick-class-options"></div><p class="quick-file-hint">Choisissez G1, G2 et G3. Les classes doivent avoir le même chapitre (nom, matière et semestre).</p></fieldset>'+
@@ -37,8 +37,8 @@ window.physixTeacherQcm=(root,{rows,session,rest})=>{
  '<details class="px-qcm-form-wrap"><summary>🤖 Générer automatiquement 15 questions de cours + 4 applications à partir du PDF</summary>'+
  '<form id="qcm-generate-form"><label>PDF du chapitre (12 Mo max.)'+
  '<input name="pdf" type="file" accept=".pdf,application/pdf" required></label>'+
- '<button type="submit">Générer mes 19 questions avec Gemini</button></form>'+
- '<p class="ai-help">La génération utilise votre quota Gemini gratuit uniquement côté professeur. Les questions restent en brouillon à vérifier.</p></details>'+
+ '<button type="submit">Générer mes 19 questions avec Claude</button></form>'+
+ '<p class="ai-help">La génération utilise votre clé API Claude uniquement côté professeur (quelques centimes par chapitre). Les questions restent en brouillon à vérifier.</p></details>'+
  '<details open class="px-qcm-form-wrap"><summary>➕ Ajouter une question de cours</summary>'+
  '<form id="qcm-owner-form"><label>Question<textarea name="question" required minlength="10" maxlength="1000" rows="3" placeholder="Quelle est l’unité SI de la capacité d’un condensateur ?"></textarea></label>'+
  ['A','B','C','D'].map(k=>'<label>Réponse '+k+'<input name="option_'+k.toLowerCase()+'" minlength="1" maxlength="400" required placeholder="Proposition '+k+'"></label>').join("")+

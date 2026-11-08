@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
-"""15 cours + 4 applications, free-tier Gemini only on teacher PDF import, final-only student correction."""
+"""15 cours + 4 applications, Claude only on teacher PDF import, final-only student correction."""
 from pathlib import Path
 root=Path(__file__).resolve().parents[1]
 get=lambda p:(root/p).read_text(encoding="utf-8")
-generator=get("supabase/functions/physix-qcm-gemini/index.ts")
+generator=get("supabase/functions/physix-qcm-claude/index.ts")
 teacher=get("assets/admin-qcm.js")
 pdf=get("assets/admin-simple.js")
 student=get("assets/eleve-qcm.js")
@@ -14,16 +14,16 @@ review=get("supabase/migrations/20261106002600_physix_qcm_review_only_after_fini
 class_guard=get("supabase/migrations/20261106002700_physix_qcm_chapter_class_consistency.sql")
 freeze=get("supabase/migrations/20261106002900_physix_qcm_started_trigger_safe_insert_delete.sql")
 ci=get(".github/workflows/physix-quality.yml")
-for s in ("GEMINI_API_KEY","const MODEL=\"gemini-3-flash-preview\"",
- "pdf instanceof File","application/pdf","generateContent","responseMimeType:\"application/json\"",
+for s in ("ANTHROPIC_API_KEY","const MODEL=Deno.env.get(\"CLAUDE_QCM_MODEL\")||\"claude-sonnet-5-5\"",
+ "pdf instanceof File","application/pdf","https://api.anthropic.com/v1/messages","type:\"document\"",
  "questions.length!==19","i<15?\"cours\":\"application\"","question_type:expected",
  "published:false","physix_qcm_claim_generation","client.auth.getUser(jwt)",
- "GEMINI_KEY","Quota gratuit Gemini","created:19","cours:15,applications:4"):
+ "CLAUDE_KEY","Clé Claude refusée","created:19","cours:15,applications:4"):
     assert s in generator,s
 assert "OPENAI_API_KEY" not in generator
 assert "SUPABASE_SERVICE_ROLE_KEY" not in generator
 assert "http://localhost" not in generator
-assert "x-goog-api-key" in generator
+assert "x-api-key" in generator and "GEMINI" not in generator and "generativelanguage" not in generator
 assert "getUser(jwt)" in generator
 assert "new FormData()" in teacher
 assert 'physixQcmGenerateFromPdf' in teacher and 'GEMINI_API_KEY' not in teacher
@@ -50,6 +50,6 @@ assert "chapter.target_class!==classCode" in generator
 assert "physix_qcm_claim_generation" in quotas
 assert ">=10" in quotas
 for src in (teacher,pdf,student):
-    assert "GEMINI_API_KEY" not in src
+    assert "ANTHROPIC_API_KEY" not in src
 assert "python3 tests/check_auto_qcm.py" in ci
-print("OK — 19 teacher-generated PDF QCM, private answers, final-only correction, no per-pupil Gemini calls.")
+print("OK — 19 teacher-generated PDF QCM, private answers, final-only correction, no per-pupil Claude calls.")

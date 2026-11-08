@@ -18,7 +18,7 @@ function request(session,path,{method="GET",body,file}={}){
 }
 window.physixStudentAdminRender=async(root,{rows,session,rest,refresh})=>{
  const section=document.createElement("section");section.className="content-section student-admin-section";
- section.innerHTML='<h3>🎓 Accès élèves et publication des documents</h3>'+
+ section.innerHTML='<h3>Accès élèves et publication des documents</h3>'+
  '<p>Par défaut, aucun fichier n’est visible aux élèves. L’inscription se fait avec un code d’activation individuel généré dans « Suivi des élèves », puis vérification e-mail/SMS, mot de passe et photo obligatoire. Publiez explicitement chaque PDF.</p>'+
  '<div class="student-admin-grid"><form id="student-allow-form"><h4>Invitations e-mail (anciens comptes)</h4>'+
  '<label>Adresse e-mail de l’élève<input name="email" type="email" maxlength="254" required placeholder="eleve@exemple.com" autocomplete="off"></label>'+

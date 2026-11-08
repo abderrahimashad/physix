@@ -1,0 +1,146 @@
+/* PhysiX — espace enseignant : habillage professionnel.
+   Chargé après les styles intégrés d'admin.html ; actif uniquement après connexion
+   (body.owner-authenticated), l'écran de connexion reste inchangé. */
+body.owner-authenticated{--pro-bg:#f3f6fb;--pro-card:#fff;--pro-line:#e2e8f2;--pro-text:#16253f;--pro-muted:#66768f;--pro-brand:#1f5fd1;--pro-brand-soft:#eaf1fd;--pro-radius:14px;
+ background:var(--pro-bg);font-family:Inter,"Segoe UI",system-ui,Arial,sans-serif;-webkit-font-smoothing:antialiased}
+body.owner-authenticated .entry{position:relative;min-height:100vh;background:var(--pro-bg);color:var(--pro-text);overflow:visible}
+body.owner-authenticated .entry-wrap{min-height:0;max-width:none;padding:0;display:block}
+body.owner-authenticated .px-copy{display:none}
+
+/* Barre supérieure */
+body.owner-authenticated .entry-header{position:sticky;top:0;z-index:20;height:60px;padding:0 clamp(16px,3vw,40px);background:#fff;border-bottom:1px solid var(--pro-line);box-shadow:0 1px 0 #fff}
+body.owner-authenticated .entry-brand{font-size:19px;font-weight:800;letter-spacing:-.2px;color:#0f2a55!important}
+body.owner-authenticated .brand-orbit{color:var(--pro-brand)}
+body.owner-authenticated .entry-badge{padding:6px 11px;border-radius:999px;background:var(--pro-brand-soft);color:var(--pro-brand);font-size:11px;font-weight:750;letter-spacing:1.2px}
+
+/* Conteneur */
+body.owner-authenticated #content-root{max-width:1160px;margin:0 auto;padding:28px clamp(16px,3vw,40px) 72px;background:transparent;border-radius:0;color:var(--pro-text)}
+body.owner-authenticated #content-root.px-home{display:grid;grid-template-columns:minmax(0,1.1fr) minmax(0,.9fr);gap:22px;align-items:start}
+body.owner-authenticated #content-root.px-home>.px-pro-shell,
+body.owner-authenticated #content-root.px-home>.quick-advanced-menu{grid-column:1/-1}
+body.owner-authenticated #content-root.px-home>#quick-pdf-section{grid-column:1}
+body.owner-authenticated #content-root.px-home>.student-admin-section{grid-column:2}
+@media(max-width:960px){body.owner-authenticated #content-root.px-home{display:block}}
+
+/* En-tête de page */
+body.owner-authenticated .px-pro-shell{gap:24px}
+body.owner-authenticated .px-pro-hero{padding:0;background:none;box-shadow:none;border-radius:0;color:var(--pro-text);align-items:flex-end}
+body.owner-authenticated .px-pro-eyebrow{font-size:11px;letter-spacing:1.6px;color:var(--pro-brand);font-weight:800}
+body.owner-authenticated .px-pro-eyebrow span{color:#9db0cf}
+body.owner-authenticated .px-pro-hero h2{margin:8px 0 6px;font-size:clamp(24px,2.6vw,30px);font-weight:800;letter-spacing:-.4px;color:#0f2a55}
+body.owner-authenticated .px-pro-hero p{color:var(--pro-muted);font-size:14.5px}
+body.owner-authenticated #content-root .px-pro-logout{background:#fff;color:#35507d;border:1px solid var(--pro-line);padding:9px 15px;border-radius:10px;font-size:13.5px;font-weight:650}
+body.owner-authenticated #content-root .px-pro-logout:hover{background:#f6f9ff;border-color:#c5d4ee}
+
+/* Indicateurs */
+body.owner-authenticated .px-pro-summary{gap:14px}
+body.owner-authenticated .px-pro-kpi{position:relative;padding:16px 18px 15px 20px;border:1px solid var(--pro-line);border-radius:var(--pro-radius);box-shadow:none;overflow:hidden;gap:3px}
+body.owner-authenticated .px-pro-kpi:before{content:"";position:absolute;left:0;top:0;bottom:0;width:4px;background:var(--pro-brand)}
+body.owner-authenticated .px-pro-kpi:nth-child(2):before{background:#13a38a}
+body.owner-authenticated .px-pro-kpi:nth-child(3):before{background:#7b5cd6}
+body.owner-authenticated .px-pro-kpi:nth-child(4):before{background:#e08a1e}
+body.owner-authenticated .px-pro-kpi span{font-size:12px;letter-spacing:.3px;text-transform:uppercase;color:var(--pro-muted);font-weight:700}
+body.owner-authenticated .px-pro-kpi strong{font-size:30px;color:#0f2a55;margin-top:2px}
+body.owner-authenticated .px-pro-kpi small{font-size:12px;color:#8091a9}
+
+/* Titres de section */
+body.owner-authenticated .px-pro-section-heading{margin:4px 0 -6px}
+body.owner-authenticated .px-pro-section-heading h3,body.owner-authenticated .px-pro-groups h3{font-size:16px;font-weight:800;color:#0f2a55;letter-spacing:-.1px;margin:0 0 3px}
+body.owner-authenticated .px-pro-section-heading p,body.owner-authenticated .px-pro-groups p{font-size:13px;color:var(--pro-muted)}
+
+/* Actions rapides : cartes horizontales compactes */
+body.owner-authenticated .px-pro-actions{gap:12px}
+body.owner-authenticated #content-root .px-pro-actions button{display:grid;grid-template-columns:44px 1fr;grid-template-rows:auto auto;column-gap:14px;row-gap:1px;align-items:center;min-height:0;padding:15px 16px;border-radius:var(--pro-radius);border:1px solid var(--pro-line);box-shadow:none;background:var(--pro-card);text-align:left}
+body.owner-authenticated #content-root .px-pro-actions button:hover,body.owner-authenticated #content-root .px-pro-actions button:focus-visible{transform:none;border-color:#9bbbed;box-shadow:0 4px 14px #1b3f7a14;outline:none}
+body.owner-authenticated #content-root .px-pro-actions button:focus-visible{outline:2px solid var(--pro-brand);outline-offset:2px}
+body.owner-authenticated .px-pro-action-icon{grid-row:1/3;width:44px;height:44px;margin:0;border-radius:11px;background:var(--pro-brand-soft);color:var(--pro-brand)}
+body.owner-authenticated .px-pro-action-icon svg{width:22px;height:22px;display:block}
+body.owner-authenticated .px-pro-actions strong{align-self:end;margin:0;font-size:14.5px;color:#12305f;font-weight:750}
+body.owner-authenticated .px-pro-actions small{align-self:start;font-size:12.5px;color:var(--pro-muted);line-height:1.35}
+body.owner-authenticated #content-root #open-qcm .px-pro-action-icon{background:#e6f6f2;color:#0f8d77}
+body.owner-authenticated #content-root #open-remises .px-pro-action-icon{background:#f0ebfc;color:#6a4cc4}
+body.owner-authenticated #content-root #open-wheel .px-pro-action-icon{background:#fdf1e1;color:#c27510}
+body.owner-authenticated #content-root #open-pedagogy .px-pro-action-icon{background:#e8f3fb;color:#1a78b4}
+
+/* Cartes génériques */
+body.owner-authenticated .px-simple-secondary,body.owner-authenticated .px-pro-groups,body.owner-authenticated .content-section,body.owner-authenticated .quick-advanced-menu{background:var(--pro-card);border:1px solid var(--pro-line);border-radius:var(--pro-radius);box-shadow:none}
+body.owner-authenticated .px-simple-secondary{padding:12px 18px;margin:0}
+body.owner-authenticated .px-simple-secondary summary{font-size:13.5px;color:#35507d}
+body.owner-authenticated .overview-home-shortcuts{margin-top:12px;max-width:none}
+body.owner-authenticated #content-root .overview-home-shortcuts button{padding:12px;font-size:14px;border:1px solid var(--pro-line);font-weight:650;color:#1f4e93;background:#fafcff;border-radius:10px}
+body.owner-authenticated .px-pro-groups{padding:18px 20px;gap:12px}
+body.owner-authenticated #content-root .px-pro-group-chips button{padding:8px 14px;border-radius:999px;font-size:13px;font-weight:700;background:var(--pro-brand-soft);border:1px solid #cddcf6;color:#1f4e93}
+body.owner-authenticated .px-pro-tip{font-size:12.5px;padding:9px 12px;background:#f5f8fe;border-left:3px solid var(--pro-brand)}
+
+/* Formulaire d'ajout de document : plus sobre */
+body.owner-authenticated #quick-pdf-section{max-width:none;margin:0;padding:22px 24px 24px;box-shadow:none}
+body.owner-authenticated .quick-simple-header{gap:14px;margin-bottom:6px;align-items:center}
+body.owner-authenticated .quick-step-icon{width:46px;height:46px;font-size:22px;border-radius:12px;background:var(--pro-brand-soft)}
+body.owner-authenticated .quick-simple-header h3{font-size:18px;margin:0 0 2px;color:#0f2a55}
+body.owner-authenticated .quick-simple-header p{font-size:13px;color:var(--pro-muted)}
+body.owner-authenticated .quick-step{gap:7px;margin:14px 0 0}
+body.owner-authenticated .quick-step>label,body.owner-authenticated .quick-class-fieldset legend,body.owner-authenticated .quick-simple-label{font-size:13.5px;font-weight:700;color:#24406e;margin:0 0 6px}
+body.owner-authenticated .quick-class-selector,body.owner-authenticated .quick-step select,body.owner-authenticated .quick-step input[type=file],body.owner-authenticated #quick-pdf-section #simple-chapter,body.owner-authenticated #simple-devoir-zone select,body.owner-authenticated #simple-devoir-zone input{padding:11px 13px;border:1px solid #cdd8ea;border-radius:10px;font:600 14px Inter,"Segoe UI",sans-serif;color:#16305a;background:#fff;min-height:0}
+body.owner-authenticated .quick-step input[type=file]{min-height:64px;border:1.5px dashed #b4c6e4;background:#f8faff;cursor:pointer}
+body.owner-authenticated .quick-class-selector:focus,body.owner-authenticated .quick-step select:focus,body.owner-authenticated .quick-optional input:focus{outline:2px solid #9fbcf0;outline-offset:1px;border-color:var(--pro-brand)}
+body.owner-authenticated .quick-class-fieldset{margin:12px 0 0}
+body.owner-authenticated .quick-class-options{gap:8px}
+body.owner-authenticated .quick-class-chip{min-height:0;padding:8px 13px;border:1px solid #cdd8ea;border-radius:999px;font-size:13px;font-weight:700;background:#fff}
+body.owner-authenticated .quick-class-chip:has(input:checked){border-color:var(--pro-brand);background:var(--pro-brand-soft);color:#174aa0}
+body.owner-authenticated .quick-class-chip input{width:16px;height:16px}
+body.owner-authenticated .quick-file-hint{font-size:12px;color:#7487a3}
+body.owner-authenticated #content-root .quick-manage-classes,body.owner-authenticated #content-root #simple-new-chapter{background:#fff;border:1px solid #cdd8ea;color:#1f4e93;padding:8px 13px;border-radius:9px;font-size:13px;font-weight:650;width:auto;align-self:flex-start}
+body.owner-authenticated .quick-optional{padding:10px 14px;background:#fafcff;border:1px solid var(--pro-line);border-radius:10px}
+body.owner-authenticated .quick-optional summary,body.owner-authenticated .quick-documents summary,body.owner-authenticated .quick-advanced-menu summary{font-size:13.5px;color:#2f5594;font-weight:700}
+body.owner-authenticated #content-root #connect-google-drive{padding:11px 14px;border-radius:10px;background:#fff;border:1px solid #cdd8ea;color:#24508f;font-size:13.5px;font-weight:650}
+body.owner-authenticated #content-root .quick-upload-btn,body.owner-authenticated #quick-main-upload{margin:14px 0 2px;padding:13px 16px;font-size:15px;font-weight:750;border-radius:10px;background:var(--pro-brand);box-shadow:0 2px 8px #1f5fd133}
+body.owner-authenticated #content-root .quick-upload-btn:hover:not(:disabled){background:#194fb0}
+body.owner-authenticated .quick-documents{margin-top:18px;padding:14px 0 0}
+
+/* Accès élèves */
+body.owner-authenticated .student-admin-section{margin:0;padding:22px 24px}
+body.owner-authenticated .student-admin-section h3{font-size:17px;margin:0 0 6px;color:#0f2a55}
+body.owner-authenticated .student-admin-section>p,body.owner-authenticated .student-admin-help{font-size:13px;color:var(--pro-muted);line-height:1.55}
+body.owner-authenticated .student-admin-section h4{font-size:14.5px;margin:20px 0 10px;color:#1c3b6e}
+body.owner-authenticated .student-admin-grid{grid-template-columns:1fr;gap:6px}
+body.owner-authenticated .student-admin-grid input,body.owner-authenticated .student-admin-grid select{padding:10px 12px;border:1px solid #cdd8ea;border-radius:10px;font-size:14px}
+body.owner-authenticated .student-admin-grid label{font-size:13px}
+
+/* Menu avancé et onglets des sous-pages */
+body.owner-authenticated .quick-advanced-menu{max-width:none;margin:0;padding:14px 20px}
+body.owner-authenticated .content-tabs{gap:8px;margin:16px 0 4px}
+body.owner-authenticated #content-root .content-tabs button{padding:8px 14px;border-radius:999px;border:1px solid var(--pro-line);background:#fff;color:#34517f;font-size:13px;font-weight:650}
+body.owner-authenticated #content-root .content-tabs button.selected{background:var(--pro-brand);border-color:var(--pro-brand);color:#fff}
+body.owner-authenticated #content-root .content-head button{background:#fff;border:1px solid var(--pro-line);color:#2c4e86;border-radius:10px;font-size:13.5px}
+body.owner-authenticated .content-head h2{color:#0f2a55;font-size:22px;letter-spacing:-.3px}
+body.owner-authenticated .content-note{border-radius:10px;font-size:13.5px;background:#eaf3fc;border:1px solid #d4e5f6}
+body.owner-authenticated .content-note.bad{background:#fdeef0;border-color:#f5ccd2}
+body.owner-authenticated #content-root button:not(.px-pro-logout):not([class*=quick-upload]):not(#quick-main-upload):not(.selected){transition:background .15s,border-color .15s}
+
+/* Notifications : discrètes */
+body.owner-authenticated .px-notifications{right:20px;bottom:20px}
+body.owner-authenticated .px-notifications>#px-notify-toggle{padding:10px 16px;font-size:13px;border-radius:999px;background:#0f2a55;box-shadow:0 6px 20px #0f2a5540}
+
+@media(max-width:850px){body.owner-authenticated .px-pro-summary{grid-template-columns:repeat(2,minmax(0,1fr))}body.owner-authenticated .px-pro-actions{grid-template-columns:1fr 1fr}}
+@media(max-width:600px){
+ body.owner-authenticated .entry-header{height:54px}
+ body.owner-authenticated .entry-badge{display:none}
+ body.owner-authenticated #content-root{padding:20px 14px 90px}
+ body.owner-authenticated .px-pro-hero{align-items:flex-start}
+ body.owner-authenticated .px-pro-kpi strong{font-size:26px}
+ body.owner-authenticated .px-pro-actions{grid-template-columns:1fr}
+ body.owner-authenticated #quick-pdf-section,body.owner-authenticated .student-admin-section{padding:18px 16px}
+ body.owner-authenticated .content-tabs{flex-wrap:nowrap;overflow-x:auto;padding-bottom:6px;scrollbar-width:thin}
+ body.owner-authenticated .content-tabs button{white-space:nowrap;flex:0 0 auto}
+ body.owner-authenticated .px-notifications{right:12px;bottom:12px}
+}
+@media(prefers-reduced-motion:reduce){body.owner-authenticated *{transition:none!important}}
+
+/* Finitions */
+body.owner-authenticated .content-note:empty{display:none}
+body.owner-authenticated #content-root .quick-upload-btn,body.owner-authenticated #quick-main-upload{color:#fff}
+body.owner-authenticated #quick-main-upload:disabled,body.owner-authenticated #content-root .quick-upload-btn:disabled{opacity:.5;cursor:not-allowed;color:#fff}
+body.owner-authenticated #content-root .student-admin-grid button,body.owner-authenticated #content-root .student-admin-entry button{background:#fff;border:1px solid #cdd8ea;color:#1f4e93;padding:9px 15px;border-radius:10px;font-size:13.5px;font-weight:700;width:auto;justify-self:start}
+body.owner-authenticated #content-root .student-admin-grid button:hover{background:var(--pro-brand-soft)}
+body.owner-authenticated .quick-step-icon{font-size:0}
+body.owner-authenticated .quick-step-icon:before{content:"";width:22px;height:22px;background:currentColor;color:var(--pro-brand);-webkit-mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z'/%3E%3Cpolyline points='14 2 14 8 20 8'/%3E%3Cline x1='12' y1='18' x2='12' y2='12'/%3E%3Cpolyline points='9 15 12 12 15 15'/%3E%3C/svg%3E") center/contain no-repeat;mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z'/%3E%3Cpolyline points='14 2 14 8 20 8'/%3E%3Cline x1='12' y1='18' x2='12' y2='12'/%3E%3Cpolyline points='9 15 12 12 15 15'/%3E%3C/svg%3E") center/contain no-repeat}

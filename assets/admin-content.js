@@ -67,6 +67,16 @@ function rowMarkup(x){
 function render(){
  const root=document.getElementById("content-root");if(!root||!session)return;
  root.hidden=false;
+ document.body.classList.add("px-workspace");
+ let sidebar=document.getElementById("px-workspace-nav");
+ if(!sidebar){
+  sidebar=document.createElement("aside");sidebar.id="px-workspace-nav";
+  document.body.append(sidebar);
+ }
+ const links=[["documents","⌂","Vue d’ensemble"],["tracking","◉","Suivi des élèves"],["qcm","✓","QCM & Gemini"],["remises","▤","Copies à corriger"],["pedagogy","▦","Travail & annonces"],["dashboard","↗","Statistiques"],["wheel","◎","Élève au hasard"],["classes","▧","Mes classes"],["portraits","▥","Trombinoscope"],["ai","✎","Exercices à remettre"]];
+ sidebar.innerHTML='<a class="px-workspace-brand" href="/">⚛ <span>PhysiX<small>ESPACE ENSEIGNANT</small></span></a><div class="px-nav-caption">VOTRE ESPACE</div><nav aria-label="Navigation enseignant">'+links.map(([key,icon,label])=>'<button type="button" data-workspace-tab="'+key+'" '+(tab===key?'aria-current="page"':'')+'><span aria-hidden="true">'+icon+'</span>'+label+'</button>').join("")+'</nav><div class="px-sidebar-footer"><span class="px-session-dot"></span> Session propriétaire<button type="button" id="px-sidebar-logout">Se déconnecter ↗</button></div>';
+ sidebar.querySelectorAll("[data-workspace-tab]").forEach(button=>button.addEventListener("click",()=>{tab=button.dataset.workspaceTab;editing=null;render();window.scrollTo({top:0,behavior:"instant"})}));
+ sidebar.querySelector("#px-sidebar-logout").addEventListener("click",()=>{window.physixDrive?.disconnect();location.reload()});
  const labels={documents:"📄 Ajouter un PDF",classes:"Mes classes",chapters:"Chapitres",resources:"Ressources",devoirs:"Devoirs surveillés",tracking:"Suivi des élèves",pedagogy:"Travail et annonces",dashboard:"Tableau de bord",portraits:"Trombinoscope",ai:"Exercices à remettre",remises:"Copies reçues",wheel:"Roue aléatoire",qcm:"QCM par chapitre"};
  const nav=Object.keys(labels).map(t=>'<button type="button" data-tab="'+t+'" class="'+(t===tab?"selected":"")+'">'+labels[t]+'</button>').join("");
  if(tab==="documents"){
@@ -79,9 +89,9 @@ function render(){
   const tile=(label,value,note)=>'<div class="px-pro-kpi"><span>'+esc(label)+'</span><strong>'+value+'</strong><small>'+esc(note)+'</small></div>';
   root.innerHTML='<div class="px-pro-shell">'+
    '<header class="px-pro-hero"><div><div class="px-pro-eyebrow">PHYSIX <span aria-hidden="true">/</span> ESPACE ENSEIGNANT</div>'+
-   '<h2>Bonjour, professeur <span class="px-pro-wave" aria-hidden="true">👋</span></h2>'+
+   '<h2>Votre journée de classe,<br><span class="px-hero-accent">en toute simplicité.</span></h2>'+
    '<p>Votre classe, vos cours et vos évaluations. Tout au même endroit.</p></div>'+
-   '<button type="button" id="owner-logout" class="px-pro-logout">Déconnexion</button></header>'+
+   '<div class="px-hero-orbit" aria-hidden="true">⚛</div><button type="button" id="owner-logout" class="px-pro-logout">Déconnexion</button></header>'+
    '<div id="content-message" class="content-note" role="status" aria-live="polite" hidden></div>'+
    '<section class="px-pro-summary" aria-label="Vue d’ensemble">'+
    tile("Classes actives",activeClasses.length,"Groupes d’enseignement")+

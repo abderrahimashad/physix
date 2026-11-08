@@ -1,0 +1,46 @@
+/* Authenticated teacher workspace. Login keeps its independent layout. */
+body.px-workspace{background:#f3f5fa;color:#192b46;font-family:Inter,'Segoe UI',sans-serif}
+.px-workspace .entry{display:block;min-height:100vh;background:#f3f5fa;padding:34px 38px 64px 292px}
+.px-workspace .entry-wrap{display:none}
+.px-workspace #content-root{max-width:1320px;margin:0 auto;padding:0;background:transparent;border-radius:0}
+#px-workspace-nav{position:fixed;inset:0 auto 0 0;width:250px;background:#101e36;color:#a4b4cf;padding:32px 18px 24px;display:flex;flex-direction:column;z-index:30;box-sizing:border-box;border-right:1px solid #23324b}
+.px-workspace-brand{display:flex;gap:12px;align-items:center;padding:0 14px 30px;color:#70ddd4;text-decoration:none;font-size:36px}
+.px-workspace-brand>span{font-size:27px;font-weight:800;color:white;letter-spacing:-1px}
+.px-workspace-brand small{display:block;font-size:9px;letter-spacing:2px;color:#93a4bf;margin-top:6px}
+.px-nav-caption{font-size:10px;font-weight:700;letter-spacing:1.7px;margin:16px 15px;color:#7286a5}
+#px-workspace-nav nav{display:grid;gap:5px}
+#px-workspace-nav nav button{display:flex;align-items:center;gap:13px;text-align:left;background:transparent;border:1px solid transparent;color:#b3c1d7;padding:12px 14px;border-radius:9px;font:600 12px 'Segoe UI',sans-serif;cursor:pointer}
+#px-workspace-nav nav button>span{font-size:20px;width:22px;color:#7f96b9;text-align:center}
+#px-workspace-nav nav button:hover{background:#1b2d49;color:white}
+#px-workspace-nav nav button[aria-current]{background:#253c59;color:#fff;border-color:#365574;box-shadow:inset 3px 0 #60d5c7}
+#px-workspace-nav nav button[aria-current]>span{color:#70e2d1}
+.px-sidebar-footer{margin-top:auto;padding:28px 14px 0;font-size:11px;color:#a1b4cf}
+.px-session-dot{display:inline-block;width:7px;height:7px;border-radius:50%;background:#68d4b1;margin-right:6px}
+#px-sidebar-logout{display:block;background:transparent;border:0;color:#d6dfef;margin-top:18px;padding:0;font-size:12px;cursor:pointer}
+.px-workspace .px-pro-shell{gap:24px}
+.px-workspace .px-pro-hero{position:relative;overflow:hidden;min-height:216px;padding:34px 38px;border-radius:20px;background:radial-gradient(ellipse at 100% 0%,#356d83 0%,transparent 62%),#142f50;box-shadow:0 12px 30px #132c4b12}
+.px-workspace .px-pro-eyebrow{color:#a1cfcf;font-size:10px;letter-spacing:2.5px}
+.px-workspace .px-pro-hero h2{font-size:clamp(28px,3vw,42px);font-weight:700;letter-spacing:-1.3px;line-height:1.22;margin:18px 0 12px;position:relative;z-index:1}
+.px-hero-accent{color:#85e4d4}
+.px-workspace .px-pro-hero p{font-size:13px;color:#b9cbde;position:relative;z-index:1}
+.px-hero-orbit{position:absolute;right:65px;top:0;font-size:200px;line-height:1.3;color:#92e4da;opacity:.18;transform:rotate(-15deg);pointer-events:none}
+.px-workspace #content-root .px-pro-logout{position:absolute;top:22px;right:24px;font-size:11px;padding:8px 11px;background:#ffffff0d;border-color:#ffffff30}
+.px-workspace .px-pro-summary{gap:16px}
+.px-workspace .px-pro-kpi{position:relative;padding:23px 22px;border:1px solid #e5e9f0;border-radius:14px;box-shadow:0 4px 14px #1d345305;border-top:3px solid #4c83d3}
+.px-workspace .px-pro-kpi:nth-child(2){border-top-color:#7f72c6}.px-workspace .px-pro-kpi:nth-child(3){border-top-color:#37a99b}.px-workspace .px-pro-kpi:nth-child(4){border-top-color:#d5a154}
+.px-workspace .px-pro-kpi strong{font-size:36px;color:#182e4c;margin:5px 0;font-weight:700;letter-spacing:-1px}
+.px-workspace .px-pro-kpi span{font-size:12px;color:#6c7890}.px-workspace .px-pro-kpi small{font-size:11px;color:#8b96a9}
+.px-workspace .px-pro-section-heading h3,.px-workspace .px-pro-groups h3{font-size:18px;color:#22344e;letter-spacing:-.3px}
+.px-workspace #content-root .px-pro-actions button{min-height:112px;display:grid;grid-template-columns:46px 1fr;grid-template-rows:auto auto;column-gap:14px;align-content:center;padding:22px;border-color:#e4e9f1;border-radius:13px;box-shadow:none}
+.px-workspace .px-pro-action-icon{grid-row:1/3;margin:0;width:44px;height:48px;font-size:22px;background:#edf3fc;border-radius:12px}
+.px-workspace .px-pro-actions strong{font-size:14px;align-self:end;color:#253b5c}.px-workspace .px-pro-actions small{font-size:11px}
+.px-workspace .px-pro-actions button:nth-child(2) .px-pro-action-icon{background:#fff2e6}.px-workspace .px-pro-actions button:nth-child(3) .px-pro-action-icon{background:#e7f5f1}
+.px-workspace .px-pro-groups{padding:24px;border-color:#e3e9f2;border-radius:14px}
+.px-workspace #content-root .px-pro-group-chips button{padding:13px 20px;background:#f5f8fc;border-color:#e1e8f2;border-radius:8px}
+.px-workspace .px-pro-tip{background:#f0f8f7;border-color:#57b6aa;color:#4b766f;font-size:12px}
+.px-workspace #quick-pdf-section,.px-workspace .quick-advanced-menu{max-width:none;margin:22px 0;border-color:#e3e9f2;box-shadow:none;border-radius:14px}
+.px-workspace .content-section{border-color:#e3e9f2;border-radius:14px}
+.px-workspace #content-root :is(button,a,input,select,summary,textarea):focus-visible,#px-workspace-nav :is(button,a):focus-visible{outline:3px solid #4aa9a1;outline-offset:3px}
+@media(min-width:1600px){.px-workspace .entry{padding-top:46px}}
+@media(max-width:1100px){.px-workspace .entry{padding-left:255px;padding-right:24px}#px-workspace-nav{width:230px}.px-workspace .px-pro-actions{grid-template-columns:repeat(2,minmax(0,1fr))}.px-hero-orbit{right:15px}}
+@media(max-width:760px){#px-workspace-nav{position:relative;width:100%;padding:18px 20px;gap:0}.px-workspace-brand{padding:0 0 16px;font-size:28px}.px-workspace-brand>span{font-size:23px}.px-nav-caption,.px-sidebar-footer{display:none}#px-workspace-nav nav{display:flex;overflow-x:auto;padding-bottom:5px}#px-workspace-nav nav button{flex:0 0 auto;padding:9px 12px;white-space:nowrap}#px-workspace-nav nav button>span{font-size:16px;width:17px}.px-workspace{display:flex;flex-direction:column}#px-workspace-nav{order:-1}.px-workspace .entry{padding:22px 18px 60px;min-height:0}.px-workspace .px-pro-hero{min-height:210px;padding:28px 23px}.px-workspace .px-pro-hero h2{font-size:30px;margin-top:30px}.px-hero-orbit{font-size:150px;right:-18px;top:40px}.px-workspace .px-pro-summary{grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}.px-workspace .px-pro-kpi{padding:17px}.px-workspace #content-root .px-pro-actions button{grid-template-columns:1fr;grid-template-rows:auto auto auto;padding:16px;min-height:160px;gap:6px}.px-workspace .px-pro-action-icon{grid-row:auto;margin-bottom:5px}.px-workspace .px-pro-actions{gap:10px}.px-workspace .px-pro-hero p{max-width:260px}.px-workspace #content-root .px-pro-logout{top:16px;right:16px}}

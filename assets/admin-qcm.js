@@ -5,11 +5,13 @@ const esc=s=>String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&
 const BASE="https://auqzfcucpglrnvwhjamo.supabase.co";
 const KEY="sb_publishable_5x4US_lL-yMa5RxlViAL6g_AokDwlx2";
 window.physixQcmGenerateFromPdf=async({file,chapterId,classCode,classCodes,session,onStatus})=>{
- if(!file||file.size>12*1024*1024)throw Error("QCM automatique : PDF de cours de 12 Mo maximum.");
- if(file.size<200)throw Error("Le PDF est trop petit pour générer un QCM.");
- onStatus?.("🤖 Claude prépare 15 questions de cours et 4 exercices d’application à partir de votre PDF…");
+ // file est optionnel : sans PDF, Claude se base sur le titre du chapitre.
+ if(file&&file.size>12*1024*1024)throw Error("QCM automatique : PDF de cours de 12 Mo maximum.");
+ if(file&&file.size<200)throw Error("Le PDF est trop petit pour générer un QCM.");
+ onStatus?.(file?"🤖 Claude prépare 15 questions de cours et 4 exercices d’application à partir de votre PDF…":
+  "🤖 Claude prépare 15 questions de cours et 4 exercices d’application à partir du titre du chapitre…");
  const form=new FormData();
- form.append("pdf",file,file.name);
+ if(file)form.append("pdf",file,file.name);
  form.append("chapter_id",chapterId);
  form.append("class_code",classCode);
  if(Array.isArray(classCodes)&&classCodes.length)form.append("class_codes",JSON.stringify(classCodes));
@@ -36,8 +38,10 @@ window.physixTeacherQcm=(root,{rows,session,rest})=>{
  '<div id="qcm-owner-notice" class="content-note" role="status"></div>'+
  '<details class="px-qcm-form-wrap"><summary>🤖 Générer automatiquement 15 questions de cours + 4 applications à partir du PDF</summary>'+
  '<form id="qcm-generate-form"><label>PDF du chapitre (12 Mo max.)'+
- '<input name="pdf" type="file" accept=".pdf,application/pdf" required></label>'+
- '<button type="submit">Générer mes 19 questions avec Claude</button></form>'+
+ '<input name="pdf" type="file" accept=".pdf,application/pdf"></label>'+
+ '<button type="submit">Générer à partir du PDF</button>'+
+ '<button type="button" id="qcm-generate-title">Générer sans PDF (à partir du titre du chapitre)</button></form>'+
+ '<p class="ai-help">Sans PDF, Claude utilise seulement le titre, la matière et le niveau du chapitre. Les questions peuvent s’écarter de votre cours : vérifiez chaque réponse.</p>'+
  '<p class="ai-help">La génération utilise votre clé API Claude uniquement côté professeur (quelques centimes par chapitre). Les questions restent en brouillon à vérifier.</p></details>'+
  '<details open class="px-qcm-form-wrap"><summary>➕ Ajouter une question de cours</summary>'+
  '<form id="qcm-owner-form"><label>Question<textarea name="question" required minlength="10" maxlength="1000" rows="3" placeholder="Quelle est l’unité SI de la capacité d’un condensateur ?"></textarea></label>'+
@@ -181,14 +185,23 @@ window.physixTeacherQcm=(root,{rows,session,rest})=>{
  q("#qcm-generate-form").onsubmit=e=>{
   e.preventDefault();
   if(busy||!chapterId)return;
-  const form=e.currentTarget,file=form.elements.pdf.files?.[0],button=form.querySelector("button");
-  if(!file)return;
+  const form=e.currentTarget,file=form.elements.pdf.files?.[0],button=form.querySelector('button[type="submit"]');
+  if(!file)return feedback("Choisissez un PDF, ou utilisez « Générer sans PDF ».",true);
   operation(button,async()=>{
    const result=await window.physixQcmGenerateFromPdf({
     file,chapterId,classCode,classCodes:getSelectedClasses(),session,onStatus:feedback
    });
    feedback(result.message||"QCM préparé. Vérifiez avant publication.");
    form.reset();
+  });
+ };
+ q("#qcm-generate-title").onclick=e=>{
+  if(busy||!chapterId)return;
+  const chapter=chapters.find(c=>c.id===chapterId);
+  if(!confirm("Générer 19 questions à partir du titre « "+(chapter?.title||"")+" » sans PDF ? Relisez toutes les réponses avant de publier."))return;
+  operation(e.currentTarget,async()=>{
+   const result=await window.physixQcmGenerateFromPdf({chapterId,classCode,classCodes:getSelectedClasses(),session,onStatus:feedback});
+   feedback(result.message||"QCM préparé. Vérifiez avant publication.");
   });
  };
  q("#qcm-owner-publish-all").onclick=publishAll;

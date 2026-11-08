@@ -62,12 +62,17 @@ Deno.serve(async(req:Request)=>{
   !selectedCodes.every(x=>typeof x==="string"&&x.length>=2&&x.length<=100)||
   new Set(selectedCodes).size!==selectedCodes.length||!selectedCodes.includes(classCode as string))
   return fail(400,"Choisissez des classes distinctes, dont la classe principale.");
- if(!(pdf instanceof File)||pdf.size<200||pdf.size>12*1024*1024||
+ // The PDF is optional: without it Claude works from the chapter title and the Moroccan curriculum.
+ const hasPdf=pdf instanceof File;
+ if(pdf!==null&&!hasPdf)return fail(400,"Fichier PDF invalide.");
+ if((hasPdf&&(pdf.size<200||pdf.size>12*1024*1024))||
  typeof chapterId!=="string"||!/^[a-f0-9-]{36}$/i.test(chapterId)||
  typeof classCode!=="string"||classCode.length<2||classCode.length>100)
- return fail(400,"Choisissez un PDF de cours (12 Mo max), un chapitre et une classe valides.");
- const signature=new Uint8Array(await pdf.slice(0,5).arrayBuffer());
- if(String.fromCharCode(...signature)!=="%PDF-")return fail(415,"Ce fichier n’est pas un PDF valide.");
+ return fail(400,"Choisissez un PDF de cours (12 Mo max) ou le titre seul, un chapitre et une classe valides.");
+ if(hasPdf){
+  const signature=new Uint8Array(await pdf.slice(0,5).arrayBuffer());
+  if(String.fromCharCode(...signature)!=="%PDF-")return fail(415,"Ce fichier n’est pas un PDF valide.");
+ }
  const uid=identity.user.id;
  const [cResult,kResult]=await Promise.all([
   client.from("physix_chapters").select("id,owner_id,title,subject,semester,level,target_class")
@@ -103,15 +108,23 @@ Deno.serve(async(req:Request)=>{
   message:"Au moins une des classes possède déjà un QCM pour ce chapitre. Aucune question ajoutée."},{headers:CORS});
  const {data:claimed,error:quotaError}=await client.rpc("physix_qcm_claim_generation");
  if(quotaError||claimed!==true)return fail(429,"Limite de génération du professeur atteinte. Réessayez plus tard.");
- const bytes=new Uint8Array(await pdf.arrayBuffer());
  let base64="";
- // Use bounded chunks; no student information or answer keys are sent to Claude.
- for(let i=0;i<bytes.length;i+=16384)
-  base64+=String.fromCharCode(...bytes.subarray(i,i+16384));
- base64=btoa(base64);
+ if(hasPdf){
+  const bytes=new Uint8Array(await pdf.arrayBuffer());
+  // Use bounded chunks; no student information or answer keys are sent to Claude.
+  for(let i=0;i<bytes.length;i+=16384)
+   base64+=String.fromCharCode(...bytes.subarray(i,i+16384));
+  base64=btoa(base64);
+ }
+ const sourceRules=hasPdf?[
+  "Lis UNIQUEMENT le document PDF fourni, même s'il contient des équations ou des figures."
+ ]:[
+  "Aucun document n'est fourni : appuie-toi sur le titre du chapitre, la matière, le niveau et le programme officiel marocain (BIOF).",
+  "Reste strictement dans le programme de ce chapitre ; n'invente pas de lois ni de valeurs, et ne pose aucune question dont tu n'es pas certain de la réponse."
+ ];
  const instructions=[
   "Tu es professeur expert de physique-chimie au lycée marocain, sections BIOF.",
-  "Lis UNIQUEMENT le document PDF fourni, même s'il contient des équations ou des figures.",
+  ...sourceRules,
   "Produis exactement 19 questions de QCM en français :",
   "les 15 premières de type 'cours' (définitions, lois, compréhension, unités, relations et interprétation),",
   "les 4 dernières de type 'application' (quatre petits exercices distincts avec données numériques,",
@@ -129,11 +142,11 @@ Deno.serve(async(req:Request)=>{
  ].join("\n");
  let result:ClaudeResult;
  try{
-  result=await callClaude({system:instructions,maxTokens:12000,timeoutMs:125000,content:[
-   {type:"document",source:{type:"base64",media_type:"application/pdf",data:base64}},
-   {type:"text",text:"Chapitre : "+chapter.title+" ; matière : "+chapter.subject+
-    " ; niveau : "+chapter.level+". Génère 15 questions de cours et 4 exercices d'application."}]});
- }catch{return fail(503,"Claude indisponible ou délai dépassé. Le PDF reste enregistré.");}
+  const prompt={type:"text",text:"Chapitre : "+chapter.title+" ; matière : "+chapter.subject+
+   " ; niveau : "+chapter.level+". Génère 15 questions de cours et 4 exercices d'application."};
+  result=await callClaude({system:instructions,maxTokens:12000,timeoutMs:125000,content:hasPdf?[
+   {type:"document",source:{type:"base64",media_type:"application/pdf",data:base64}},prompt]:[prompt]});
+ }catch{return fail(503,"Claude indisponible ou délai dépassé. Réessayez dans quelques minutes.");}
  if(result.status===429||result.status===529)return fail(429,"Claude est surchargé ou la limite de requêtes est atteinte. Réessayez dans quelques minutes.");
  if(result.status===401||result.status===403)return fail(503,"Clé Claude refusée : vérifiez ANTHROPIC_API_KEY dans les secrets Supabase.");
  if(result.status===400)return fail(503,"Claude a refusé la demande : solde de crédits insuffisant ou PDF non lisible (100 pages maximum).");
@@ -210,7 +223,8 @@ Deno.serve(async(req:Request)=>{
  const {data:inserted,error:insertError}=await client.from("physix_chapter_qcm")
   .insert(drafts).select("id");
  if(insertError||!inserted||inserted.length!==drafts.length)return fail(503,"Impossible d’enregistrer tous les brouillons.");
- return Response.json({created:19,classes:selectedCodes,cours:15,applications:4,
-  message:"15 questions de cours et 4 applications en brouillon pour "+selectedCodes.join(", ")+". Relisez avant publication."},
+ return Response.json({created:19,classes:selectedCodes,cours:15,applications:4,source:hasPdf?"pdf":"titre",
+  message:"15 questions de cours et 4 applications en brouillon pour "+selectedCodes.join(", ")+
+   (hasPdf?"":" (générées à partir du titre du chapitre, sans PDF : vérifiez chaque réponse)")+". Relisez avant publication."},
   {headers:CORS});
 });
